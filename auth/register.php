@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 require_once __DIR__ . '/auth_helpers.php';
 
@@ -7,14 +7,9 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = authSanitizarCorreo($_POST['correo'] ?? '');
     $password = (string) ($_POST['password'] ?? '');
-    $passwordConfirmacion = (string) ($_POST['password_confirmacion'] ?? '');
 
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Ingresá un correo válido.';
-    } elseif (strlen($password) < 8) {
-        $error = 'La contraseña debe tener al menos 8 caracteres.';
-    } elseif ($password !== $passwordConfirmacion) {
-        $error = 'La verificación de contraseña no coincide.';
+        $error = 'IngresÃ¡ un correo vÃ¡lido.';
     } else {
         try {
             $stmt = $pdo->prepare('SELECT id FROM user_auth WHERE correo = :correo LIMIT 1');
@@ -74,28 +69,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="im-alerta im-alerta--info"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
     <form class="im-formulario" action="/auth/register.php" method="post" target="_top">
-      <label class="im-campo im-campo-material" data-im-campo="email">
+      <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="email">
         <span>Correo</span>
         <input type="email" name="correo" autocomplete="email" required>
         <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i>
         <small data-im-error>Correo requerido.</small>
       </label>
-      <label class="im-campo im-campo-material" data-im-campo="password">
-        <span>Contraseña</span>
-        <input type="password" name="password" autocomplete="new-password" required>
+      <label class="im-campo im-campo-material im-campo--ancho">
+        <span>ContraseÃ±a</span>
+        <input type="password" name="password" autocomplete="new-password">
         <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">lock</i>
-        <small data-im-error>Contraseña requerida.</small>
       </label>
-      <label class="im-campo im-campo-material" data-im-campo="confirmarPassword" data-im-confirmar="password">
-        <span>Verificar contraseña</span>
-        <input type="password" name="password_confirmacion" autocomplete="new-password" required>
-        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">lock_reset</i>
-        <small data-im-error>La verificación es requerida.</small>
-      </label>
-      <button class="im-boton im-boton--principal" type="submit">Crear cuenta</button>
+      <button class="im-boton im-boton--principal im-campo--ancho" type="submit">Crear cuenta</button>
     </form>
   </main>
   <script src="../assets/impulsa_material/js/material-validaciones.js"></script>
 </body>
 </html>
-

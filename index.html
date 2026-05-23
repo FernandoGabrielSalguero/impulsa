@@ -691,16 +691,21 @@
     }
 
     .emprende-sheet__header {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       align-items: center;
-      justify-content: space-between;
       gap: 1rem;
       margin-bottom: 1rem;
     }
 
     .emprende-sheet__brand {
+      grid-column: 2;
       width: min(260px, 70vw);
       height: auto;
+    }
+
+    .emprende-sheet__header .im-boton-icono {
+      justify-self: end;
     }
 
     .emprende-sheet__panel {
@@ -1199,9 +1204,9 @@
         aria-label="Cerrar">close</button>
     </header>
     <div class="im-tabs" data-emprende-tabs>
-      <button class="activo" type="button">Impulsa emprende</button>
+      <button class="activo" type="button">¿Qué es?</button>
       <button type="button">Registro</button>
-      <button type="button">Login</button>
+      <button type="button">Ingresar</button>
     </div>
     <div class="im-tab-panel emprende-sheet__panel activo">
       <p class="im-sobrelinea">Acompañamiento emprendedor</p>
