@@ -2712,13 +2712,53 @@ html[data-alto-contraste="true"] :focus-visible {
   .im-menu-lateral,
   .im-aplicacion[data-menu-colapsado="true"] .im-menu-lateral {
     position: fixed;
-    width: min(var(--im-menu-ancho), calc(100vw - 56px));
-    transform: translateX(-100%);
-    box-shadow: var(--im-sombra-2);
+    inset: auto 0 0;
+    z-index: 40;
+    width: 100%;
+    height: auto;
+    padding: .45rem .65rem calc(.45rem + env(safe-area-inset-bottom));
+    overflow: hidden;
+    border-top: 1px solid var(--im-color-borde);
+    border-right: 0;
+    box-shadow: 0 -8px 24px rgba(29, 27, 32, .12);
+    transform: none;
   }
 
   .im-aplicacion[data-menu-movil="abierto"] .im-menu-lateral {
-    transform: translateX(0);
+    transform: none;
+  }
+
+  .im-marca {
+    display: none;
+  }
+
+  .im-navegacion {
+    display: flex;
+    gap: .25rem;
+    min-width: 0;
+    padding-top: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .im-navegacion::-webkit-scrollbar {
+    display: none;
+  }
+
+  .im-nav-item,
+  .im-aplicacion[data-menu-colapsado="true"] .im-nav-item {
+    flex: 0 0 76px;
+    min-height: 58px;
+    justify-content: center;
+    flex-direction: column;
+    gap: .2rem;
+    padding: .35rem .25rem;
+    scroll-snap-align: start;
+    text-align: center;
   }
 
   .im-aplicacion[data-menu-colapsado="true"] .im-marca__texto,
@@ -2730,27 +2770,50 @@ html[data-alto-contraste="true"] :focus-visible {
     pointer-events: auto;
   }
 
-  .im-aplicacion[data-menu-colapsado="true"] .im-nav-item {
-    justify-content: flex-start;
-    gap: .75rem;
-    padding-inline: .75rem;
+  .im-nav-item__icono,
+  .im-aplicacion[data-menu-colapsado="true"] .im-nav-item__icono {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .im-nav-item__icono::before {
+    font-size: 1.35rem;
+  }
+
+  .im-nav-item__texto,
+  .im-aplicacion[data-menu-colapsado="true"] .im-nav-item__texto {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 auto;
+    font-size: .66rem;
+    line-height: 1.1;
+    opacity: 1;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .im-cortina {
-    position: fixed;
-    inset: 0;
-    z-index: 25;
     display: none;
-    background: rgba(29, 27, 32, .36);
   }
 
   .im-aplicacion[data-menu-movil="abierto"] .im-cortina {
-    display: block;
+    display: none;
   }
 
   .im-barra-superior {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .im-barra-superior [data-alternar-menu] {
+    display: none;
+  }
+
+  .im-contenido {
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
   }
 
   .im-barra-superior__acciones {
