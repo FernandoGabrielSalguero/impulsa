@@ -24,6 +24,16 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
     .im-accion-salir {
       color: #ba1a1a;
     }
+
+    .im-bottom-sheet--perfil {
+      max-width: 860px;
+      max-height: min(760px, calc(100vh - 2rem));
+      overflow: auto;
+    }
+
+    .im-perfil-check {
+      color: var(--im-color-exito);
+    }
   </style>
 </head>
 <body>
@@ -61,6 +71,7 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
         </div>
         <div class="im-barra-superior__acciones">
           <button class="im-boton-icono im-boton-icono--principal im-tooltip" type="button" data-abrir-config-tema aria-label="Configurar temas" data-tooltip="Configurar estilos"></button>
+          <button class="im-boton-icono material-symbols-rounded im-tooltip" type="button" data-abrir-perfil aria-label="Mi perfil" data-tooltip="Mi perfil">account_circle</button>
           <a class="im-boton-icono material-symbols-rounded im-tooltip im-accion-salir" href="/auth/logout.php" aria-label="Salir" data-tooltip="Salir">logout</a>
         </div>
       </header>
@@ -77,6 +88,7 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
       </main>
     </div>
   </div>
+  <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="../../../assets/impulsa_material/js/material.js"></script>
 </body>
 </html>
