@@ -257,6 +257,33 @@
     return { valido: true, mensaje: regla.ok || "Campo validado correctamente." };
   };
 
+  const obtenerResultadoRemoto = async (campo, valor) => {
+    const url = campo.dataset.imValidacionUrl;
+
+    if (!url || !valor.trim()) {
+      return { valido: true, mensaje: "" };
+    }
+
+    try {
+      const respuesta = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "X-Requested-With": "fetch",
+        },
+        body: new URLSearchParams({ valor, campo: campo.dataset.imCampo || "" }),
+      });
+      const payload = await respuesta.json();
+
+      return {
+        valido: Boolean(payload.valido),
+        mensaje: payload.mensaje || (payload.valido ? "Campo validado correctamente." : "El campo no es valido."),
+      };
+    } catch (error) {
+      return { valido: false, mensaje: "No pudimos validar el campo en este momento." };
+    }
+  };
+
   const validarCampoAsync = async (campo) => {
     const input = obtenerInputCampo(campo);
     const tipo = campo.dataset.imCampo;
@@ -281,7 +308,15 @@
       return false;
     }
 
-    const resultado = obtenerResultadoCampo(campo);
+    let resultado = obtenerResultadoCampo(campo);
+    if (resultado.valido) {
+      resultado = await obtenerResultadoRemoto(campo, obtenerValorCampo(campo));
+    }
+
+    if (campo.dataset.imVersionValidacion !== version) {
+      return false;
+    }
+
     if (resultado.valido && tipo === "importe") {
       input.value = formatearImporte(input.value);
     }
@@ -364,6 +399,21 @@
         });
       });
     }
+  });
+
+  document.querySelectorAll("[data-im-toggle-password]").forEach((boton) => {
+    const input = boton.closest(".im-campo")?.querySelector('input[type="password"], input[data-im-password-visible]');
+    if (!input) {
+      return;
+    }
+
+    boton.addEventListener("click", () => {
+      const visible = input.type === "text";
+      input.type = visible ? "password" : "text";
+      input.dataset.imPasswordVisible = visible ? "" : "true";
+      boton.textContent = visible ? "visibility" : "visibility_off";
+      boton.setAttribute("aria-label", visible ? "Mostrar contraseña" : "Ocultar contraseña");
+    });
   });
 
   document.querySelectorAll("[data-im-validar]").forEach((formulario) => {

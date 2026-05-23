@@ -3,20 +3,23 @@
 require_once __DIR__ . '/auth_helpers.php';
 
 $error = '';
+$correoError = '';
+$correoValor = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = authSanitizarCorreo($_POST['correo'] ?? '');
     $password = (string) ($_POST['password'] ?? '');
+    $correoValor = $correo;
 
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-        $error = 'IngresÃ¡ un correo vÃ¡lido.';
+        $correoError = 'Ingresá un correo válido.';
     } else {
         try {
             $stmt = $pdo->prepare('SELECT id FROM user_auth WHERE correo = :correo LIMIT 1');
             $stmt->execute(['correo' => $correo]);
 
             if ($stmt->fetch()) {
-                $error = 'Ya existe un usuario registrado con ese correo.';
+                $correoError = 'Ya existe un usuario registrado con ese correo.';
             } else {
                 $pdo->beginTransaction();
 
@@ -69,16 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="im-alerta im-alerta--info"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
     <form class="im-formulario" action="/auth/register.php" method="post" target="_top">
-      <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="email">
+      <label class="im-campo im-campo-material im-campo--ancho<?= $correoError !== '' ? ' im-campo--error' : '' ?>" data-im-campo="email" data-im-validacion-url="/auth/check_email.php"<?= $correoError !== '' ? ' data-im-valido="false"' : '' ?>>
         <span>Correo</span>
-        <input type="email" name="correo" autocomplete="email" required>
+        <input type="email" name="correo" autocomplete="email" value="<?= htmlspecialchars($correoValor, ENT_QUOTES, 'UTF-8') ?>" required>
         <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i>
-        <small data-im-error>Correo requerido.</small>
+        <small data-im-error><?= htmlspecialchars($correoError !== '' ? $correoError : 'Correo requerido.', ENT_QUOTES, 'UTF-8') ?></small>
       </label>
       <label class="im-campo im-campo-material im-campo--ancho">
-        <span>ContraseÃ±a</span>
+        <span>Contraseña</span>
         <input type="password" name="password" autocomplete="new-password">
-        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">lock</i>
+        <button class="im-campo__boton-icono material-symbols-rounded" type="button" data-im-toggle-password aria-label="Mostrar contraseña">visibility</button>
       </label>
       <button class="im-boton im-boton--principal im-campo--ancho" type="submit">Crear cuenta</button>
     </form>

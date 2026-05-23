@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i>
       </label>
       <label class="im-campo im-campo-material im-campo--ancho">
-        <span>ContraseÃ±a</span>
+        <span>Contraseña</span>
         <input type="password" name="password" autocomplete="current-password">
         <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">lock</i>
       </label>
