@@ -56,7 +56,8 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
           </div>
         </div>
         <div class="im-barra-superior__acciones">
-          <a class="im-boton im-boton--tonal" href="/auth/logout.php">Salir</a>
+          <button class="im-boton-icono im-boton-icono--principal" type="button" data-abrir-config-tema aria-label="Configurar temas" title="Configurar estilos"></button>
+          <a class="im-boton-icono material-symbols-rounded" href="/auth/logout.php" aria-label="Salir" title="Salir">logout</a>
         </div>
       </header>
       <main class="im-contenido">
