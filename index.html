@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GP6NMLG283"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-GP6NMLG283');
+  </script>
+  <title>Impulsa</title>
+  <meta name="description"
+    content="Impulsa acompaña a pymes a ordenar, automatizar y controlar sus operaciones mediante soluciones de software claras, medibles y escalables.">
+  <style>
+    @font-face {
+      font-family: "Montserrat";
+      src: url("assets/marcas/impulsa/fonts/Montserrat/Montserrat-VariableFont_wght.ttf") format("truetype");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg: #f4f8fb;
+      --surface: rgba(255, 255, 255, .92);
+      --card: #fff;
+      --text: #112c4e;
+      --muted: #4f6482;
+      --line: rgba(17, 44, 78, .12);
+      --primary: #112c4e;
+      --primary-dark: #091a30;
+      --secondary: #2eb3ba;
+      --secondary-soft: rgba(46, 179, 186, .12);
+      --shadow: 0 24px 80px rgba(17, 44, 78, .12);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --container: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      font-family: "Montserrat", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(46, 179, 186, .16), transparent 28%),
+        radial-gradient(circle at right 10% top 16%, rgba(17, 44, 78, .14), transparent 22%),
+        linear-gradient(180deg, #f7fbfd 0%, #eef5fa 44%, #fff 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      width: min(calc(100% - 2rem), var(--container));
+      margin: 0 auto;
+    }
+
+    .container > *,
+    .hero-grid > *,
+    .logo-grid > *,
+    .story-grid > *,
+    .services-grid > *,
+    .vision-grid > *,
+    .process-grid > *,
+    .proof-grid > *,
+    .lead-grid > *,
+    .flow-grid > *,
+    .field-row > * {
+      min-width: 0;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(18px);
+      background: rgba(255, 255, 255, .82);
+      border-bottom: 1px solid rgba(17, 44, 78, .08);
+    }
+
+    .topbar-inner,
+    .hero-actions,
+    .stat-row,
+    .contact-points,
+    .highlight-band,
+    .form-footer {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .topbar-inner {
+      justify-content: space-between;
+      padding: 1rem 0;
+      position: relative;
+    }
+
+    .brand img {
+      /* Ajusta acá el tamaño de la marca del header en desktop */
+      height: clamp(3rem, 4.4vw, 3.7rem);
+      width: auto;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-toggle-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 3rem;
+      height: 3rem;
+      border: 1px solid rgba(17, 44, 78, .12);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .92);
+      cursor: pointer;
+    }
+
+    .nav-toggle-btn span {
+      position: relative;
+      width: 1.25rem;
+      height: 2px;
+      background: var(--primary);
+      border-radius: 999px;
+      transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .nav-toggle-btn span::before,
+    .nav-toggle-btn span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 1.25rem;
+      height: 2px;
+      background: var(--primary);
+      border-radius: 999px;
+      transition: transform 180ms ease, top 180ms ease, bottom 180ms ease;
+    }
+
+    .nav-toggle-btn span::before {
+      top: -.38rem;
+    }
+
+    .nav-toggle-btn span::after {
+      bottom: -.38rem;
+    }
+
+    .nav {
+      display: flex;
+      gap: 1.2rem;
+      color: var(--muted);
+      font-size: .95rem;
+      align-items: center;
+    }
+
+    .nav-cta {
+      padding: .72rem 1rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--secondary), #5fd3d8);
+      color: #0d3c40;
+      font-weight: 750;
+      font-size: .9rem;
+      border: 1px solid rgba(46, 179, 186, .22);
+      box-shadow: 0 8px 18px rgba(46, 179, 186, .14);
+      transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+    }
+
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 22px rgba(46, 179, 186, .18);
+      filter: saturate(1.02);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: .95rem 1.4rem;
+      font: inherit;
+      font-weight: 700;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      box-shadow: 0 14px 34px rgba(17, 44, 78, .24);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: rgba(255, 255, 255, .82);
+      border: 1px solid rgba(17, 44, 78, .08);
+    }
+
+    .hero {
+      padding: 4.5rem 0 2rem;
+    }
+
+    .hero-grid,
+    .logo-grid,
+    .story-grid,
+    .services-grid,
+    .vision-grid,
+    .process-grid,
+    .proof-grid,
+    .lead-grid,
+    .flow-grid,
+    .field-row,
+    .impulsa-marks,
+    .client-logos {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr);
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .logo-grid {
+      grid-template-columns: .95fr 1.05fr;
+    }
+
+    .story-grid {
+      grid-template-columns: 1.05fr .95fr;
+    }
+
+    .services-grid,
+    .proof-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .vision-grid {
+      grid-template-columns: 1.1fr .9fr;
+    }
+
+    .process-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .lead-grid {
+      grid-template-columns: .9fr 1.1fr;
+      align-items: start;
+    }
+
+    .flow-grid,
+    .field-row,
+    .impulsa-marks {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .client-logos {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .55rem .9rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .82);
+      border: 1px solid rgba(17, 44, 78, .08);
+      color: var(--primary);
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .hero h1,
+    .section-heading h2 {
+      margin: 0;
+      font-family: "Montserrat", "Segoe UI", sans-serif;
+      letter-spacing: -.05em;
+      line-height: .95;
+    }
+
+    .hero h1 {
+      margin-top: 1rem;
+      font-size: clamp(2.8rem, 7vw, 5.6rem);
+      max-width: 12ch;
+    }
+
+    .section-heading {
+      display: grid;
+      gap: .85rem;
+      margin-bottom: 1.6rem;
+      max-width: 62ch;
+    }
+
+    .section-heading h2 {
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      line-height: 1;
+    }
+
+    .hero p,
+    .section-heading p,
+    .flow-card p,
+    .section-card p,
+    .quote-card p,
+    .process-step p,
+    .story-panel p,
+    .logo-card p,
+    .service-bullet p,
+    .form-note,
+    .list li {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .hero p {
+      max-width: 58ch;
+      font-size: 1.08rem;
+    }
+
+    .stat-row {
+      margin-top: 2rem;
+    }
+
+    .stat-card,
+    .flow-card,
+    .section-card,
+    .quote-card,
+    .form-card,
+    .logo-card,
+    .service-panel,
+    .process-step,
+    .story-aside .section-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 14px 40px rgba(17, 44, 78, .05);
+    }
+
+    .stat-card {
+      min-width: 170px;
+      padding: 1rem 1.1rem;
+      background: rgba(255, 255, 255, .76);
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 1.45rem;
+      letter-spacing: -.04em;
+      margin-bottom: .2rem;
+    }
+
+    .hero-panel {
+      position: relative;
+      padding: 1.4rem;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(244, 250, 252, .98));
+      border: 1px solid rgba(17, 44, 78, .08);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-panel::before,
+    .hero-panel::after,
+    .story-panel::after {
+      content: "";
+      position: absolute;
+      border-radius: 24px;
+      z-index: -1;
+    }
+
+    .hero-panel::before {
+      inset: auto -1rem -1rem auto;
+      width: 140px;
+      height: 140px;
+      background: rgba(46, 179, 186, .18);
+    }
+
+    .hero-panel::after {
+      inset: -1.25rem auto auto -1.25rem;
+      width: 90px;
+      height: 90px;
+      background: rgba(17, 44, 78, .16);
+    }
+
+    .board,
+    .story-points,
+    .story-aside {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .board-title {
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -.03em;
+    }
+
+    .board-meta {
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .flow-card,
+    .section-card,
+    .quote-card,
+    .form-card,
+    .logo-card,
+    .service-panel,
+    .process-step {
+      padding: 1.4rem;
+    }
+
+    .flow-card span,
+    .process-step span,
+    .story-point span,
+    .service-bullet span {
+      display: inline-flex;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+    }
+
+    .flow-card span,
+    .process-step span,
+    .service-bullet span {
+      background: var(--secondary-soft);
+      color: var(--secondary);
+    }
+
+    .flow-card span,
+    .process-step span {
+      margin-bottom: .8rem;
+    }
+
+    .section-card strong {
+      display: inline-block;
+      margin-bottom: .7rem;
+      color: var(--secondary);
+      font-size: .92rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    section {
+      padding: 1.75rem 0;
+    }
+
+    .logo-card p {
+      margin-bottom: 1rem;
+    }
+
+    .impulsa-mark,
+    .client-logo {
+      display: grid;
+      place-items: center;
+      border-radius: 20px;
+      border: 1px solid rgba(17, 44, 78, .08);
+      background: #fff;
+    }
+
+    .impulsa-mark {
+      min-height: 92px;
+      padding: 1rem;
+      background: linear-gradient(180deg, rgba(17, 44, 78, .05), rgba(46, 179, 186, .08));
+    }
+
+    .impulsa-mark img {
+      max-height: 44px;
+      width: auto;
+    }
+
+    .client-logo {
+      min-height: 82px;
+      padding: 1rem;
+    }
+
+    .client-logo img {
+      max-height: 38px;
+      width: auto;
+      filter: saturate(.9);
+    }
+
+    .story-panel {
+      position: relative;
+      padding: 1.9rem;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(160deg, var(--primary), #173e6d 62%, #1e5a86 100%);
+      color: #f4fbff;
+      box-shadow: 0 24px 60px rgba(17, 44, 78, .18);
+      overflow: hidden;
+    }
+
+    .story-panel::after {
+      inset: auto -2.5rem -2.5rem auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 999px;
+      background: rgba(46, 179, 186, .18);
+    }
+
+    .story-panel h3,
+    .service-panel h3 {
+      margin: 0 0 .8rem;
+      font-size: 1.35rem;
+      letter-spacing: -.04em;
+    }
+
+    .story-panel p {
+      color: rgba(244, 251, 255, .9);
+    }
+
+    .story-point,
+    .service-bullet {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: .75rem;
+      align-items: start;
+    }
+
+    .story-point span {
+      background: rgba(46, 179, 186, .18);
+      color: #8ef1f3;
+    }
+
+    .story-aside .section-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .97), rgba(241, 249, 251, .98));
+    }
+
+    .service-panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(239, 247, 250, .98));
+    }
+
+    .service-icon {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      margin-bottom: 1rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .service-bullet+.service-bullet {
+      margin-top: .8rem;
+    }
+
+    .highlight-band {
+      margin-top: 2rem;
+      padding: 1.4rem 1.5rem;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(17, 44, 78, .98), rgba(25, 74, 119, .96));
+      color: #edf8fd;
+      justify-content: space-between;
+      box-shadow: 0 20px 40px rgba(17, 44, 78, .2);
+    }
+
+    .highlight-band p {
+      color: inherit;
+      max-width: 54ch;
+    }
+
+    .quote-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .97), rgba(239, 247, 250, .96));
+    }
+
+    .contact-points {
+      margin-top: 1.6rem;
+    }
+
+    .contact-chip {
+      padding: .85rem 1rem;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .76);
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    form {
+      display: grid;
+      gap: .95rem;
+      margin-top: 1rem;
+    }
+
+    label {
+      display: grid;
+      gap: .45rem;
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid rgba(17, 44, 78, .14);
+      border-radius: 16px;
+      padding: .95rem 1rem;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(46, 179, 186, .6);
+      box-shadow: 0 0 0 4px rgba(46, 179, 186, .12);
+    }
+
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .form-footer {
+      justify-content: space-between;
+      margin-top: .2rem;
+    }
+
+    .form-status {
+      margin: 0 0 1rem;
+      padding: .95rem 1rem;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      line-height: 1.6;
+    }
+
+    .form-status-success {
+      background: rgba(46, 179, 186, .12);
+      border-color: rgba(46, 179, 186, .24);
+      color: #11656a;
+    }
+
+    .form-status-error {
+      background: rgba(180, 52, 70, .1);
+      border-color: rgba(180, 52, 70, .2);
+      color: #8a2331;
+    }
+
+    .is-submitting {
+      opacity: .75;
+      cursor: wait;
+    }
+
+    .captcha-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+      gap: 1rem;
+      align-items: end;
+    }
+
+    .captcha-hint {
+      display: block;
+      font-size: .85rem;
+      font-weight: 600;
+      color: #ff0022;
+    }
+
+    footer {
+      border-top: 1px solid rgba(17, 44, 78, .08);
+      padding: 1.4rem 0 2rem;
+      color: var(--muted);
+      font-size: .92rem;
+      text-align: center;
+    }
+
+    .list {
+      margin: 1rem 0 0;
+      padding-left: 1.1rem;
+    }
+
+    .list li+li {
+      margin-top: .6rem;
+    }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 700ms ease forwards;
+    }
+
+    .delay-1 {
+      animation-delay: 120ms;
+    }
+
+    .delay-2 {
+      animation-delay: 220ms;
+    }
+
+    .delay-3 {
+      animation-delay: 320ms;
+    }
+
+    .delay-4 {
+      animation-delay: 420ms;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 980px) {
+
+      .hero-grid,
+      .logo-grid,
+      .story-grid,
+      .services-grid,
+      .vision-grid,
+      .process-grid,
+      .proof-grid,
+      .lead-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .brand img {
+        height: 3.35rem;
+      }
+
+      .nav-toggle-btn {
+        display: inline-flex;
+        order: 3;
+      }
+
+      .nav {
+        display: none;
+        position: absolute;
+        top: calc(100% + .55rem);
+        right: 0;
+        width: min(260px, calc(100vw - 2rem));
+        padding: .85rem;
+        border: 1px solid rgba(17, 44, 78, .1);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, .98);
+        box-shadow: 0 18px 40px rgba(17, 44, 78, .14);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .2rem;
+      }
+
+      .nav a {
+        width: 100%;
+        padding: .8rem .9rem;
+        border-radius: 14px;
+      }
+
+      .nav-toggle:checked+.nav-toggle-btn+nav {
+        display: flex;
+      }
+
+      .nav-toggle:checked+.nav-toggle-btn span {
+        background: transparent;
+      }
+
+      .nav-toggle:checked+.nav-toggle-btn span::before {
+        top: 0;
+        transform: rotate(45deg);
+      }
+
+      .nav-toggle:checked+.nav-toggle-btn span::after {
+        bottom: 0;
+        transform: rotate(-45deg);
+      }
+
+      .client-logos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        padding-top: 2.6rem;
+      }
+
+      .flow-grid,
+      .field-row,
+      .captcha-row,
+      .impulsa-marks,
+      .client-logos {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        max-width: 9ch;
+      }
+
+      .topbar-inner {
+        padding: .9rem 0;
+      }
+
+      .btn,
+      .hero-actions .btn,
+      .form-footer .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a class="brand" href="#inicio" aria-label="Impulsa, inicio">
+          <img src="assets/marcas/impulsa/Marca impulsa Original Color.png" alt="Marca Impulsa">
+        </a>
+        <input class="nav-toggle" id="nav-toggle" type="checkbox" aria-label="Abrir menú">
+        <label class="nav-toggle-btn" for="nav-toggle" aria-hidden="true">
+          <span></span>
+        </label>
+        <nav class="nav" aria-label="Principal">
+          <a href="#servicios">Servicios</a>
+          <a href="#proceso">Proceso</a>
+          <a href="#nosotros">Enfoque</a>
+          <a href="#contacto">Contacto</a>
+          <a class="nav-cta" href="https://gestion.impulsagroup.com/" target="_blank" rel="noopener noreferrer">Impulsa Emprende</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="inicio">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="eyebrow fade-up">Consultora de desarrollo de software</div>
+            <h1 class="fade-up delay-1">Ordena tu operación. Automatiza lo repetitivo. Gana control.</h1>
+            <br>
+            <br>
+            <p class="fade-up delay-2">
+              Impulsa acompaña a pymes que crecieron entre planillas, mensajes y procesos manuales, y hoy necesitan
+              estructura para operar con claridad. Diseñamos e implementamos soluciones de software que convierten el
+              caos operativo en un sistema medible, confiable y escalable.
+            </p>
+            <br>
+            <br>
+            <br>
+            <div class="hero-actions fade-up delay-3">
+              <a class="btn btn-primary" href="#contacto">Quiero una reunión</a>
+              <a class="btn btn-secondary" href="#servicios">Ver cómo trabajamos</a>
+            </div>
+          </div>
+          <aside class="hero-panel fade-up delay-2" aria-label="Resumen de propuesta">
+            <div class="board">
+              <div class="board-header">
+                <div>
+                  <div class="board-title">De procesos dispersos a una operación profesional</div>
+                  <div class="board-meta">Tecnología con estructura, no complejidad</div>
+                </div>
+                <img src="assets/marcas/impulsa/Isotipo triple.png" alt="Isotipo Impulsa"
+                  style="width: 6rem; height: 6rem; object-fit: contain;">
+              </div>
+              <div class="flow-grid">
+                <article class="flow-card"><span>1</span>
+                  <h3>Relevamiento y diagnóstico</h3>
+                  <p>Entendemos cómo trabaja la empresa hoy, dónde se pierde tiempo y dónde falta trazabilidad.</p>
+                </article>
+                <article class="flow-card"><span>2</span>
+                  <h3>Diseño de solución</h3>
+                  <p>Traducimos la operación en un sistema claro, con procesos definidos y datos útiles.</p>
+                </article>
+                <article class="flow-card"><span>3</span>
+                  <h3>Desarrollo e implementación</h3>
+                  <p>Construimos la herramienta adecuada y acompañamos su adopción dentro del equipo.</p>
+                </article>
+                <article class="flow-card"><span>4</span>
+                  <h3>Control y escalabilidad</h3>
+                  <p>La empresa gana visibilidad operativa para crecer con menos improvisación.</p>
+                </article>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="nosotros">
+        <div class="container">
+          <div class="section-heading fade-up">
+            <h2>La tecnología no debería agregar más ruido.</h2>
+            <p>Muchas empresas ya saben que necesitan software, pero no cualquier software. Necesitan estructura:
+              procesos claros, datos confiables y una operación que no dependa del desorden ni de personas que "tienen
+              todo en la cabeza".</p>
+          </div>
+          <div class="story-grid">
+            <article class="story-panel fade-up delay-1">
+              <h3>Convertimos caos operativo en una base clara para crecer</h3>
+              <p>Acompañamos a cada empresa desde el relevamiento y análisis hasta el diseño, desarrollo e
+                implementación de la solución, con foco en que la tecnología no agregue complejidad, sino estructura
+                útil para operar.</p>
+              <br>
+              <br>
+              <div class="story-points">
+                <div class="story-point"><span>01</span>
+                  <p>Detectamos dónde se pierde tiempo, trazabilidad y capacidad de respuesta.</p>
+                </div>
+                <div class="story-point"><span>02</span>
+                  <p>Traducimos la operación real en procesos claros y sostenibles para el equipo.</p>
+                </div>
+                <div class="story-point"><span>03</span>
+                  <p>Implementamos software que ayuda a decidir mejor, no solo a digitalizar problemas.</p>
+                </div>
+              </div>
+            </article>
+            <div class="story-aside">
+              <article class="section-card fade-up delay-2">
+                <strong>Nuestra Misión</strong>
+                <h3>Ordenar y automatizar para liberar foco estratégico</h3>
+                <p>Acompañamos a las pymes a ordenar y automatizar sus procesos mediante soluciones de software que les
+                  permitan operar con mayor claridad, control y eficiencia.</p>
+              </article>
+              <article class="section-card fade-up delay-3">
+                <strong>Nuestra Visión</strong>
+                <h3>Ser referencia en profesionalización operativa para pymes</h3>
+                <p>Queremos que Impulsa sea un sello de procesos claros, datos confiables, transparencia y control para
+                  empresas que quieren crecer con una estructura más sólida.</p>
+              </article>
+            </div>
+          </div>
+          <div class="highlight-band fade-up delay-4">
+            <p>Cuando la operación está bien diseñada, los líderes dejan de apagar incendios y recuperan tiempo para
+              tomar decisiones de crecimiento con información confiable.</p>
+            <a class="btn btn-secondary" href="#contacto">Hablar con Impulsa</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="servicios">
+        <div class="container">
+          <div class="section-heading fade-up">
+            <h2>Qué resuelve Impulsa</h2>
+            <p>No vendemos tecnología aislada. Diseñamos soluciones que mejoran el funcionamiento de la empresa y le dan
+              soporte a su crecimiento.</p>
+          </div>
+          <div class="services-grid">
+            <article class="service-panel fade-up delay-1">
+              <img class="service-icon" src="assets/marcas/impulsa/Icono analisis de datos.png"
+                alt="Ícono análisis de datos">
+              <h3>Orden operativo</h3>
+              <div class="service-bullet"><span>1</span>
+                <p>Mapeamos procesos, roles y puntos de fricción para construir una estructura más clara.</p>
+              </div>
+              <div class="service-bullet"><span>2</span>
+                <p>Reducimos dependencias informales que hoy frenan el trabajo o lo hacen impredecible.</p>
+              </div>
+              <div class="service-bullet"><span>3</span>
+                <p>Definimos una base operativa que pueda sostener crecimiento sin perder visibilidad.</p>
+              </div>
+            </article>
+            <article class="service-panel fade-up delay-2">
+              <img class="service-icon" src="assets/marcas/impulsa/Icono desarrollo web.png" alt="Ícono desarrollo web">
+              <h3>Automatización inteligente</h3>
+              <div class="service-bullet"><span>1</span>
+                <p>Eliminamos tareas manuales repetitivas que consumen tiempo y generan errores evitables.</p>
+              </div>
+              <div class="service-bullet"><span>2</span>
+                <p>Integramos seguimiento, validaciones y alertas para que el proceso avance con menos fricción.</p>
+              </div>
+              <div class="service-bullet"><span>3</span>
+                <p>La operación queda soportada por una herramienta concreta, no por memoria o urgencia.</p>
+              </div>
+            </article>
+            <article class="service-panel fade-up delay-3">
+              <img class="service-icon" src="assets/marcas/impulsa/Icono inteligencia artificial.png"
+                alt="Ícono inteligencia artificial">
+              <h3>Control y trazabilidad</h3>
+              <div class="service-bullet"><span>1</span>
+                <p>Centralizamos información para que cada decisión tenga un respaldo claro y actualizado.</p>
+              </div>
+              <div class="service-bullet"><span>2</span>
+                <p>Generamos indicadores útiles para líderes que necesitan ver problemas antes de que escalen.</p>
+              </div>
+              <div class="service-bullet"><span>3</span>
+                <p>Dejamos evidencia de cada proceso para mejorar control, seguimiento y aprendizaje interno.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="proceso">
+        <div class="container">
+          <div class="section-heading fade-up">
+            <h2>Cómo trabajamos</h2>
+            <p>Acompañamos a cada empresa desde el relevamiento inicial hasta la implementación, cuidando que la
+              tecnología se adapte al negocio y no al revés.</p>
+          </div>
+          <div class="process-grid">
+            <article class="process-step fade-up delay-1"><span>01</span>
+              <h3>Escuchamos y relevamos</h3>
+              <p>Analizamos la operación actual, sus puntos ciegos y lo que hoy frena la gestión.</p>
+            </article>
+            <article class="process-step fade-up delay-2"><span>02</span>
+              <h3>Definimos estructura</h3>
+              <p>Traducimos la necesidad del negocio en un proceso claro, con objetivos y criterios medibles.</p>
+            </article>
+            <article class="process-step fade-up delay-3"><span>03</span>
+              <h3>Construimos e implementamos</h3>
+              <p>Desarrollamos la solución y acompañamos su adopción para que el cambio sea útil en la práctica.</p>
+            </article>
+            <article class="process-step fade-up delay-4"><span>04</span>
+              <h3>Consolidamos control</h3>
+              <p>Dejamos una base operativa más profesional, visible y preparada para escalar.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="contacto" class="lead-section">
+        <div class="container lead-grid">
+          <div class="section-heading fade-up">
+            <h2>Conversemos sobre tu operación</h2>
+            <p>Si querés entender dónde se está perdiendo tiempo, control o visibilidad, completa el formulario y
+              coordinamos una primera conversación. La idea es simple: detectar si hay una oportunidad concreta para
+              ordenar y automatizar sin agregar complejidad innecesaria.</p>
+            <div class="contact-points">
+              <div class="contact-chip">Diagnóstico inicial</div>
+              <div class="contact-chip">Enfoque consultivo</div>
+              <div class="contact-chip">Soluciones pensadas para pymes</div>
+            </div>
+          </div>
+          <div class="form-card fade-up delay-2">
+            <h3>Solicitar contacto</h3>
+            <p class="form-note">Dejanos tus datos y una breve descripción del desafío que querés resolver.</p>
+            <div id="form-status" class="form-status" hidden aria-live="polite"></div>
+            <form id="contact-form" action="mailer.php" method="post" accept-charset="UTF-8">
+              <input type="hidden" name="form_source" value="landing-impulsa">
+              <input type="hidden" id="form_rendered_at" name="form_rendered_at" value="">
+              <input type="text" name="website" tabindex="-1" autocomplete="off" hidden>
+              <div class="field-row">
+                <label for="nombre">Nombre<input id="nombre" name="nombre" type="text" placeholder="Tu nombre"
+                    required></label>
+                <label for="empresa">Empresa<input id="empresa" name="empresa" type="text"
+                    placeholder="Nombre de la empresa" required></label>
+              </div>
+              <div class="field-row">
+                <label for="email">Email<input id="email" name="email" type="email" placeholder="nombre@empresa.com"
+                    required></label>
+                <label for="telefono">Teléfono<input id="telefono" name="telefono" type="tel" placeholder="+54 9 ..."
+                    required></label>
+              </div>
+              <div class="field-row">
+                <label for="equipo">Tamaño del equipo
+                  <select id="equipo" name="equipo">
+                    <option value="">Seleccionar</option>
+                    <option>1 a 10 personas</option>
+                    <option>11 a 30 personas</option>
+                    <option>31 a 100 personas</option>
+                    <option>Más de 100 personas</option>
+                  </select>
+                </label>
+                <label for="objetivo">Principal necesidad
+                  <select id="objetivo" name="objetivo">
+                    <option value="">Seleccionar</option>
+                    <option>Ordenar procesos</option>
+                    <option>Automatizar tareas</option>
+                    <option>Centralizar información</option>
+                    <option>Mejorar control operativo</option>
+                  </select>
+                </label>
+              </div>
+              <label for="mensaje">Contanos brevemente qué está pasando hoy
+                <textarea id="mensaje" name="mensaje"
+                  placeholder="Ejemplo: hoy tenemos información repartida en varias planillas y nos cuesta hacer seguimiento del trabajo."></textarea>
+              </label>
+              <div class="captcha-row">
+                <label for="captcha">Captcha
+                  <input id="captcha" name="captcha" type="text" inputmode="numeric" placeholder="Tu respuesta"
+                    required>
+                  <span class="captcha-hint">Pregunta de verificación: ¿cuánto es 4 + 3?</span>
+                </label>
+              </div>
+              <div class="form-footer">
+                <p class="form-note">Respuesta orientativa en una primera conversación para entender contexto y
+                  prioridad.</p>
+                <button class="btn btn-primary" type="submit">Quiero que me contacten</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">Todos los derechos reservados 2026</div>
+    </footer>
+  </div>
+  <script>
+    (() => {
+      const box = document.getElementById('form-status');
+      const form = document.getElementById('contact-form');
+      const renderedAt = document.getElementById('form_rendered_at');
+      const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+
+      if (!box || !form) {
+        return;
+      }
+
+      if (renderedAt) {
+        renderedAt.value = Date.now().toString();
+        window.__impulsaRenderedAt = renderedAt.value;
+      }
+
+      const messages = {
+        success: 'Gracias. Tu mensaje fue enviado y te responderemos a la brevedad.',
+        invalid: 'Revisa los datos ingresados e intenta nuevamente.',
+        invalid_captcha: 'No pudimos validar el captcha. Resuelve la cuenta e intenta nuevamente.',
+        error: 'No se pudo enviar el mensaje en este momento. Intenta nuevamente en unos minutos.'
+      };
+
+      const showStatus = (status, fallbackMessage) => {
+        const message = messages[status] || fallbackMessage || messages.error;
+        box.textContent = message;
+        box.hidden = false;
+        box.className = `form-status ${status === 'success' ? 'form-status-success' : 'form-status-error'}`;
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+
+      const setSubmitting = (submitting) => {
+        if (!submitButton) {
+          return;
+        }
+
+        submitButton.disabled = submitting;
+        submitButton.classList.toggle('is-submitting', submitting);
+        submitButton.textContent = submitting ? 'Enviando...' : 'Quiero que me contacten';
+      };
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        box.hidden = true;
+        box.textContent = '';
+        box.className = 'form-status';
+
+        if (renderedAt && window.__impulsaRenderedAt) {
+          renderedAt.value = window.__impulsaRenderedAt;
+        }
+
+        const formData = new FormData(form);
+        setSubmitting(true);
+
+        try {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'fetch'
+            }
+          });
+
+          let payload = null;
+          try {
+            payload = await response.json();
+          } catch (error) {
+            payload = null;
+          }
+
+          const status = payload && payload.status ? payload.status : 'error';
+          const message = payload && payload.message ? payload.message : '';
+          showStatus(status, message);
+
+          if (response.ok && status === 'success') {
+            form.reset();
+            if (renderedAt) {
+              window.__impulsaRenderedAt = Date.now().toString();
+              renderedAt.value = window.__impulsaRenderedAt;
+            }
+          }
+        } catch (error) {
+          showStatus('error');
+          console.error('[contact-form]', error);
+        } finally {
+          setSubmitting(false);
+        }
+      });
+
+    })();
+  </script>
+</body>
+
+</html>
