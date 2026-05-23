@@ -2,6 +2,7 @@
 $usuarioCorreo = $usuarioCorreo ?? '';
 $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
+$usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
 ?>
 <!doctype html>
 <html lang="es">
@@ -48,7 +49,7 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
           <?php endif; ?>
         </span>
         <div class="im-marca__texto">
-          <strong>Impulsa Emprende</strong>
+          <strong><?= htmlspecialchars($usuarioMarcaNombre, ENT_QUOTES, 'UTF-8') ?></strong>
           <span>Administrador</span>
         </div>
       </div>
@@ -65,7 +66,7 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
         <div class="im-barra-superior__grupo">
           <button class="im-boton-icono" type="button" data-alternar-menu aria-label="Menu"></button>
           <div>
-            <p class="im-sobrelinea">Impulsa Emprende</p>
+            <p class="im-sobrelinea">Impulsa</p>
             <h1>Dashboard</h1>
           </div>
         </div>

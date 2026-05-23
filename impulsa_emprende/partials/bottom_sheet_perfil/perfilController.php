@@ -3,19 +3,28 @@
 require_once __DIR__ . '/PerfilModel.php';
 
 $perfilModel = new PerfilModel($pdo);
-$perfilMensaje = '';
-$perfilError = '';
+$perfilSnackbar = $_SESSION['perfil_snackbar'] ?? null;
+unset($_SESSION['perfil_snackbar']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['perfil_accion'] ?? '') === 'guardar_perfil') {
     try {
         $perfilModel->guardarPerfil((int) $usuario['id'], $_POST, $_FILES['avatar'] ?? null);
-        $perfilMensaje = 'Perfil actualizado correctamente.';
+        $_SESSION['perfil_snackbar'] = [
+            'mensaje' => 'Perfil actualizado correctamente.',
+            'estado' => 'exito',
+        ];
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        $perfilError = 'No pudimos guardar el perfil en este momento.';
+        $_SESSION['perfil_snackbar'] = [
+            'mensaje' => 'No pudimos guardar el perfil en este momento.',
+            'estado' => 'error',
+        ];
     }
+
+    header('Location: ' . strtok($_SERVER['REQUEST_URI'] ?? '', '?'));
+    exit;
 }
 
 $perfilDatos = $perfilModel->obtenerPerfil((int) $usuario['id'], $usuarioCorreo);

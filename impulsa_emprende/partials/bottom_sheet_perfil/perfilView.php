@@ -2,8 +2,7 @@
 $perfilDatos = $perfilDatos ?? [];
 $perfilCompleto = $perfilCompleto ?? true;
 $perfilSesionDebug = $perfilSesionDebug ?? [];
-$perfilMensaje = $perfilMensaje ?? '';
-$perfilError = $perfilError ?? '';
+$perfilSnackbar = $perfilSnackbar ?? null;
 
 if (!function_exists('perfilCampo')) {
     function perfilCampo(array $perfil, string $clave): string
@@ -21,13 +20,6 @@ if (!function_exists('perfilCampo')) {
     </div>
     <button class="im-boton-icono" type="button" data-cerrar-perfil aria-label="Cerrar dialog"></button>
   </header>
-
-  <?php if ($perfilMensaje !== ''): ?>
-    <div class="im-alerta im-alerta--info"><?= htmlspecialchars($perfilMensaje, ENT_QUOTES, 'UTF-8') ?></div>
-  <?php endif; ?>
-  <?php if ($perfilError !== ''): ?>
-    <div class="im-alerta im-alerta--info"><?= htmlspecialchars($perfilError, ENT_QUOTES, 'UTF-8') ?></div>
-  <?php endif; ?>
 
   <form class="im-formulario" action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="perfil_accion" value="guardar_perfil">
@@ -95,6 +87,7 @@ if (!function_exists('perfilCampo')) {
 
 <script>
   window.__impulsaSesion = <?= json_encode($perfilSesionDebug, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+  window.__impulsaPerfilSnackbar = <?= json_encode($perfilSnackbar, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   console.log('Sesion Impulsa', window.__impulsaSesion);
 
   (() => {
@@ -117,8 +110,28 @@ if (!function_exists('perfilCampo')) {
       boton.addEventListener('click', () => setOpen(false));
     });
 
-    if (!perfilCompleto) {
+    if (!perfilCompleto && !window.__impulsaPerfilSnackbar) {
       window.addEventListener('load', () => setOpen(true));
+    }
+
+    if (window.__impulsaPerfilSnackbar?.mensaje) {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const snackbar = document.querySelector('.im-snackbar');
+          if (!snackbar) {
+            return;
+          }
+
+          const texto = snackbar.querySelector('span');
+          if (texto) {
+            texto.textContent = window.__impulsaPerfilSnackbar.mensaje;
+          }
+
+          snackbar.classList.add('abierto');
+          clearTimeout(window.__impulsaPerfilSnackbarTimer);
+          window.__impulsaPerfilSnackbarTimer = setTimeout(() => snackbar.classList.remove('abierto'), 3600);
+        }, 0);
+      });
     }
   })();
 </script>
