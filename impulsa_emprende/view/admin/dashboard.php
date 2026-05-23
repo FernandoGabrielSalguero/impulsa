@@ -20,6 +20,10 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
       border-radius: inherit;
       object-fit: cover;
     }
+
+    .im-accion-salir {
+      color: #ba1a1a;
+    }
   </style>
 </head>
 <body>
@@ -56,8 +60,8 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
           </div>
         </div>
         <div class="im-barra-superior__acciones">
-          <button class="im-boton-icono im-boton-icono--principal" type="button" data-abrir-config-tema aria-label="Configurar temas" title="Configurar estilos"></button>
-          <a class="im-boton-icono material-symbols-rounded" href="/auth/logout.php" aria-label="Salir" title="Salir">logout</a>
+          <button class="im-boton-icono im-boton-icono--principal im-tooltip" type="button" data-abrir-config-tema aria-label="Configurar temas" data-tooltip="Configurar estilos"></button>
+          <a class="im-boton-icono material-symbols-rounded im-tooltip im-accion-salir" href="/auth/logout.php" aria-label="Salir" data-tooltip="Salir">logout</a>
         </div>
       </header>
       <main class="im-contenido">
