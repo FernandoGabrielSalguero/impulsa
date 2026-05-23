@@ -15,6 +15,12 @@
   <title>Impulsa</title>
   <meta name="description"
     content="Impulsa acompaña a pymes a ordenar, automatizar y controlar sus operaciones mediante soluciones de software claras, medibles y escalables.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="assets/impulsa_material/css/material.css">
   <style>
     @font-face {
       font-family: "Montserrat";
@@ -679,6 +685,35 @@
       color: #8a2331;
     }
 
+    .emprende-sheet {
+      max-width: 860px;
+      padding: 1.15rem;
+    }
+
+    .emprende-sheet__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .emprende-sheet__brand {
+      width: min(260px, 70vw);
+      height: auto;
+    }
+
+    .emprende-sheet__panel {
+      min-height: 310px;
+    }
+
+    .emprende-auth-frame {
+      width: 100%;
+      min-height: 340px;
+      border: 0;
+      background: transparent;
+    }
+
     .is-submitting {
       opacity: .75;
       cursor: wait;
@@ -878,7 +913,7 @@
           <a href="#proceso">Proceso</a>
           <a href="#nosotros">Enfoque</a>
           <a href="#contacto">Contacto</a>
-          <a class="nav-cta" href="https://gestion.impulsagroup.com/" target="_blank" rel="noopener noreferrer">Impulsa Emprende</a>
+          <a class="nav-cta" href="#impulsa-emprende" data-abrir-emprende>Impulsa Emprende</a>
         </nav>
       </div>
     </header>
@@ -1154,7 +1189,77 @@
       </div>
     </footer>
   </div>
+  <div class="im-bottom-sheet-cortina" data-cerrar-emprende></div>
+  <section class="im-bottom-sheet emprende-sheet" id="impulsa-emprende" role="dialog" aria-modal="true"
+    aria-labelledby="impulsa-emprende-titulo">
+    <header class="emprende-sheet__header">
+      <img class="emprende-sheet__brand" src="assets/brands/impulsa-emprende/Impulsa Emprende.png"
+        alt="Impulsa Emprende">
+      <button class="im-boton-icono material-symbols-rounded" type="button" data-cerrar-emprende
+        aria-label="Cerrar">close</button>
+    </header>
+    <div class="im-tabs" data-emprende-tabs>
+      <button class="activo" type="button">Impulsa emprende</button>
+      <button type="button">Registro</button>
+      <button type="button">Login</button>
+    </div>
+    <div class="im-tab-panel emprende-sheet__panel activo">
+      <p class="im-sobrelinea">Acompañamiento emprendedor</p>
+      <h2 id="impulsa-emprende-titulo">Construir bases sólidas para crecer</h2>
+      <p>Acompañamos a los emprendedores a ordenar su propuesta, profesionalizar sus procesos y construir una base
+        clara para alcanzar el éxito con más foco, estructura y capacidad de decisión.</p>
+    </div>
+    <div class="im-tab-panel emprende-sheet__panel">
+      <iframe class="emprende-auth-frame" src="auth/register.php?embed=1" title="Registro Impulsa Emprende"></iframe>
+    </div>
+    <div class="im-tab-panel emprende-sheet__panel">
+      <iframe class="emprende-auth-frame" src="auth/login.php?embed=1" title="Login Impulsa Emprende"></iframe>
+    </div>
+  </section>
   <script>
+    (() => {
+      const sheet = document.getElementById('impulsa-emprende');
+      const backdrop = document.querySelector('[data-cerrar-emprende].im-bottom-sheet-cortina');
+      const openButtons = document.querySelectorAll('[data-abrir-emprende]');
+      const closeButtons = document.querySelectorAll('[data-cerrar-emprende]');
+      const tabs = document.querySelector('[data-emprende-tabs]');
+
+      const setOpen = (open) => {
+        sheet?.classList.toggle('abierto', open);
+        backdrop?.classList.toggle('abierto', open);
+        document.body.style.overflow = open ? 'hidden' : '';
+      };
+
+      openButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          setOpen(true);
+        });
+      });
+
+      closeButtons.forEach((button) => {
+        button.addEventListener('click', () => setOpen(false));
+      });
+
+      if (tabs) {
+        const buttons = [...tabs.querySelectorAll('button')];
+        const panels = [];
+        let next = tabs.nextElementSibling;
+
+        while (next?.classList.contains('im-tab-panel')) {
+          panels.push(next);
+          next = next.nextElementSibling;
+        }
+
+        buttons.forEach((button, index) => {
+          button.addEventListener('click', () => {
+            buttons.forEach((item, position) => item.classList.toggle('activo', position === index));
+            panels.forEach((panel, position) => panel.classList.toggle('activo', position === index));
+          });
+        });
+      }
+    })();
+
     (() => {
       const box = document.getElementById('form-status');
       const form = document.getElementById('contact-form');
