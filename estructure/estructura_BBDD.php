@@ -3,7 +3,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // Cargar tu archivo de conexión (usa $pdo)
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config.php';
 
 // Obtener el nombre de la base de datos actual
 $baseDatos = $pdo->query("SELECT DATABASE()")->fetchColumn();
