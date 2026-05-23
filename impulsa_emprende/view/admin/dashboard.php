@@ -1,3 +1,7 @@
+<?php
+$usuarioCorreo = $usuarioCorreo ?? '';
+$usuarioInicial = $usuarioInicial ?? '?';
+?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -37,7 +41,10 @@
           </div>
         </div>
         <div class="im-barra-superior__acciones">
-          <span class="im-chip im-chip--avatar"><b><?= htmlspecialchars(obtenerInicialAvatar($usuario['correo']), ENT_QUOTES, 'UTF-8') ?></b><?= htmlspecialchars($usuario['correo'], ENT_QUOTES, 'UTF-8') ?></span>
+          <span class="im-chip im-chip--avatar">
+            <b><?= htmlspecialchars($usuarioInicial, ENT_QUOTES, 'UTF-8') ?></b>
+            <?= htmlspecialchars($usuarioCorreo, ENT_QUOTES, 'UTF-8') ?>
+          </span>
           <a class="im-boton im-boton--tonal" href="/auth/logout.php">Salir</a>
         </div>
       </header>
@@ -57,4 +64,3 @@
   <script src="../../../assets/impulsa_material/js/material.js"></script>
 </body>
 </html>
-
