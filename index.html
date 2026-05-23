@@ -706,6 +706,27 @@
       text-align: center;
     }
 
+    .footer-content {
+      display: grid;
+      gap: .75rem;
+      justify-items: center;
+    }
+
+    .footer-resources {
+      display: grid;
+      gap: .35rem;
+      justify-items: center;
+    }
+
+    .footer-resources strong {
+      color: var(--text);
+    }
+
+    .footer-resources a {
+      color: var(--secondary);
+      font-weight: 700;
+    }
+
     .list {
       margin: 1rem 0 0;
       padding-left: 1.1rem;
@@ -1124,7 +1145,13 @@
     </main>
 
     <footer>
-      <div class="container">Todos los derechos reservados 2026</div>
+      <div class="container footer-content">
+        <div class="footer-resources">
+          <strong>Recursos</strong>
+          <a href="assets/impulsa_material/index.html">Impulsa Material</a>
+        </div>
+        <div>Todos los derechos reservados 2026</div>
+      </div>
     </footer>
   </div>
   <script>
