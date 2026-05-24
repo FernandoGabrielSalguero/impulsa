@@ -16,7 +16,6 @@ if (!function_exists('misionCampo')) {
       <h3>Mision</h3>
       <span class="im-etiqueta">Defini a quien ayudas, que problema resolves y como lo haces.</span>
     </div>
-    <span class="im-chip <?= $misionCompleta ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= $misionCompleta ? 'Completado' : 'Incompleto' ?></span>
   </div>
   <label class="im-campo im-campo-material im-campo--ancho">
     <span>A quien ayudo</span>

@@ -74,15 +74,15 @@ if (!function_exists('definicionH')) {
 
           <div class="im-acordeon">
             <details class="im-expansion" id="mision" open>
-              <summary>Mision</summary>
+              <summary>Mision <span class="im-chip <?= $misionCompleta ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= $misionCompleta ? 'Completado' : 'Incompleto' ?></span></summary>
               <?php require __DIR__ . '/../../partials/mision/misionView.php'; ?>
             </details>
             <details class="im-expansion" id="vision">
-              <summary>Vision</summary>
+              <summary>Vision <span class="im-chip <?= $visionCompleta ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= $visionCompleta ? 'Completado' : 'Incompleto' ?></span></summary>
               <?php require __DIR__ . '/../../partials/vision/visionView.php'; ?>
             </details>
             <details class="im-expansion" id="buyer-persona">
-              <summary>Buyer Persona</summary>
+              <summary>Buyer Persona <span class="im-chip <?= $buyerCompleto ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= $buyerCompleto ? 'Completado' : 'Incompleto' ?></span></summary>
               <?php require __DIR__ . '/../../partials/buyerPerson/buyerView.php'; ?>
             </details>
           </div>

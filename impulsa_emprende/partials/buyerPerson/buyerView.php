@@ -16,7 +16,6 @@ if (!function_exists('buyerCampo')) {
       <h3>Buyer Persona</h3>
       <span class="im-etiqueta">Construi el perfil de la persona que tiene mas probabilidad de comprarte.</span>
     </div>
-    <span class="im-chip <?= $buyerCompleto ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= $buyerCompleto ? 'Completado' : 'Incompleto' ?></span>
   </div>
   <label class="im-campo im-campo-material im-campo--ancho">
     <span>Cliente ideal</span>

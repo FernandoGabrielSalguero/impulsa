@@ -16,7 +16,6 @@ if (!function_exists('visionCampo')) {
       <h3>Vision</h3>
       <span class="im-etiqueta">Defini hacia donde queres llevar tu emprendimiento.</span>
     </div>
-    <span class="im-chip <?= $visionCompleta ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= $visionCompleta ? 'Completado' : 'Incompleto' ?></span>
   </div>
   <label class="im-campo im-campo-material im-campo--ancho">
     <span>Conversion futura</span>
