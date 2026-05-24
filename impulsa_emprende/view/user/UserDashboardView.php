@@ -95,6 +95,10 @@ if (!function_exists('userDashEstado')) {
           <span class="im-nav-item__icono" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/user/userDefinicionController.php">
+          <span class="im-nav-item__icono" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Definicion</span>
+        </a>
       </nav>
     </aside>
 
