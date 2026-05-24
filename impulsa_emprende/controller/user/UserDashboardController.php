@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
 require_once __DIR__ . '/../../model/user/UserDashboardModel.php';
 
-$usuario = authRequiereRol('impulsa_cliente');
+$usuario = authRequiereRol('impulsa_usuario');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
