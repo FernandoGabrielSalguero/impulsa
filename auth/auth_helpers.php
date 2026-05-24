@@ -49,6 +49,7 @@ function authDashboardPorRol(string $rol): ?string
 {
     $dashboards = [
         'impulsa_administrador' => '/impulsa_emprende/controller/admin/dashboard.php',
+        'impulsa_cliente' => '/impulsa_emprende/controller/user/UserDashboardController.php',
     ];
 
     return $dashboards[$rol] ?? null;
@@ -80,4 +81,3 @@ function authMensajeEstado(?string $estado): string
 
     return $mensajes[$estado ?? ''] ?? '';
 }
-
