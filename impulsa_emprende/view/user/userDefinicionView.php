@@ -3,6 +3,9 @@ $usuarioCorreo = $usuarioCorreo ?? '';
 $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Cliente';
 $definicionSnackbar = $definicionSnackbar ?? null;
+$misionCompleta = $misionCompleta ?? false;
+$visionCompleta = $visionCompleta ?? false;
+$buyerCompleto = $buyerCompleto ?? false;
 
 if (!function_exists('definicionH')) {
     function definicionH(mixed $value): string
@@ -95,14 +98,14 @@ if (!function_exists('definicionH')) {
   <script>
     window.__impulsaDefinicionSnackbar = <?= json_encode($definicionSnackbar, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
     (() => {
-      if (!window.__impulsaDefinicionSnackbar?.mensaje) {
+      if (!window.__impulsaDefinicionSnackbar || !window.__impulsaDefinicionSnackbar.mensaje) {
         return;
       }
 
       window.addEventListener('load', () => {
         setTimeout(() => {
           const snackbar = document.querySelector('.im-snackbar');
-          const texto = snackbar?.querySelector('span');
+          const texto = snackbar ? snackbar.querySelector('span') : null;
           if (!snackbar || !texto) {
             return;
           }
