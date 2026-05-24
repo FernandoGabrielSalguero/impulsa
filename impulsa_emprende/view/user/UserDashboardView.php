@@ -127,7 +127,7 @@ if (!function_exists('userDashEstado')) {
           </div>
 
           <div class="im-grilla im-grilla--metricas">
-            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Proyectos</span><strong><?= (int) ($resumen['proyectos_total'] ?? 0) ?></strong><small>Visibles para cliente</small></article>
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Proyectos</span><strong><?= (int) ($resumen['proyectos_total'] ?? 0) ?></strong><small>Visibles en curso</small></article>
             <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Activos</span><strong><?= (int) ($resumen['proyectos_activos'] ?? 0) ?></strong><small>En curso o revision</small></article>
             <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Entregables</span><strong><?= (int) ($resumen['entregables_pendientes'] ?? 0) ?></strong><small>Pendientes o en revision</small></article>
             <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Reportes</span><strong><?= (int) ($resumen['reportes_visibles'] ?? 0) ?></strong><small>Marketing visibles</small></article>
