@@ -10,6 +10,7 @@ $actualizaciones = $dashboardData['actualizaciones'] ?? [];
 $suscripcionesMarketing = $dashboardData['suscripcionesMarketing'] ?? [];
 $reportesMarketing = $dashboardData['reportesMarketing'] ?? [];
 $contratos = $dashboardData['contratos'] ?? [];
+$definicion = $dashboardData['definicion'] ?? [];
 
 if (!function_exists('userDashH')) {
     function userDashH(mixed $value): string
@@ -135,6 +136,56 @@ if (!function_exists('userDashEstado')) {
             <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Activos</span><strong><?= (int) ($resumen['proyectos_activos'] ?? 0) ?></strong><small>En curso o revision</small></article>
             <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Entregables</span><strong><?= (int) ($resumen['entregables_pendientes'] ?? 0) ?></strong><small>Pendientes o en revision</small></article>
             <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Reportes</span><strong><?= (int) ($resumen['reportes_visibles'] ?? 0) ?></strong><small>Marketing visibles</small></article>
+          </div>
+
+          <div class="im-grilla im-grilla--metricas">
+            <?php
+              $misionDef = $definicion['mision'] ?? ['resultado' => '', 'completado' => 0];
+              $visionDef = $definicion['vision'] ?? ['resultado' => '', 'completado' => 0];
+              $buyerDef = $definicion['buyer'] ?? ['resultado' => '', 'completado' => 0];
+            ?>
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera">
+                <div>
+                  <h3>Mision</h3>
+                  <span class="im-etiqueta">Definicion estrategica</span>
+                </div>
+                <span class="im-chip <?= (int) ($misionDef['completado'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= (int) ($misionDef['completado'] ?? 0) === 1 ? 'Completado' : 'Incompleto' ?></span>
+              </div>
+              <p><?= (int) ($misionDef['completado'] ?? 0) === 1 ? userDashH($misionDef['resultado'] ?? '') : 'Completa la mision para ver el resultado.' ?></p>
+            </article>
+
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera">
+                <div>
+                  <h3>Vision</h3>
+                  <span class="im-etiqueta">Proyeccion de la empresa</span>
+                </div>
+                <span class="im-chip <?= (int) ($visionDef['completado'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= (int) ($visionDef['completado'] ?? 0) === 1 ? 'Completado' : 'Incompleto' ?></span>
+              </div>
+              <p><?= (int) ($visionDef['completado'] ?? 0) === 1 ? userDashH($visionDef['resultado'] ?? '') : 'Completa la vision para ver el resultado.' ?></p>
+            </article>
+
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera">
+                <div>
+                  <h3>Buyer Persona</h3>
+                  <span class="im-etiqueta">Cliente ideal</span>
+                </div>
+                <span class="im-chip <?= (int) ($buyerDef['completado'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= (int) ($buyerDef['completado'] ?? 0) === 1 ? 'Completado' : 'Incompleto' ?></span>
+              </div>
+              <p><?= (int) ($buyerDef['completado'] ?? 0) === 1 ? userDashH($buyerDef['resultado'] ?? '') : 'Completa el buyer persona para ver el resultado.' ?></p>
+            </article>
+
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera">
+                <div>
+                  <h3>Pagina web</h3>
+                  <span class="im-etiqueta">Solicitud Landing page</span>
+                </div>
+                <span class="im-chip">Pendiente</span>
+              </div>
+            </article>
           </div>
 
           <div class="im-grilla im-grilla--dashboard">

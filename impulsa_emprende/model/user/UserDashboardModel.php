@@ -16,6 +16,7 @@ class UserDashboardModel
             'suscripcionesMarketing' => $this->obtenerSuscripcionesMarketing($userId),
             'reportesMarketing' => $this->obtenerReportesMarketing($userId),
             'contratos' => $this->obtenerContratos($userId),
+            'definicion' => $this->obtenerDefinicion($userId),
         ];
     }
 
@@ -175,6 +176,54 @@ class UserDashboardModel
         $stmt->execute(['user_id' => $userId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function obtenerDefinicion(int $userId): array
+    {
+        return [
+            'mision' => $this->obtenerDefinicionMision($userId),
+            'vision' => $this->obtenerDefinicionVision($userId),
+            'buyer' => $this->obtenerDefinicionBuyer($userId),
+        ];
+    }
+
+    private function obtenerDefinicionMision(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT mision_estructura AS resultado, completado
+             FROM emprendedor_mision
+             WHERE user_auth_id = :user_id
+             LIMIT 1'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: ['resultado' => '', 'completado' => 0];
+    }
+
+    private function obtenerDefinicionVision(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT vision_estructura AS resultado, completado
+             FROM emprendedor_vision
+             WHERE user_auth_id = :user_id
+             LIMIT 1'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: ['resultado' => '', 'completado' => 0];
+    }
+
+    private function obtenerDefinicionBuyer(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT buyer_persona_estructura AS resultado, completado
+             FROM emprendedor_buyer_persona
+             WHERE user_auth_id = :user_id
+             LIMIT 1'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: ['resultado' => '', 'completado' => 0];
     }
 
     private function contar(string $sql, int $userId): int
