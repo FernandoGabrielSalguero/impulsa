@@ -35,7 +35,8 @@ class MisionModel
                 : (string) ($existentes[$campo] ?? '');
         }
 
-        $datos['mision_estructura'] = $this->crearEstructura($datos);
+        $estructuraPost = $this->limpiar($data['mision_estructura'] ?? '');
+        $datos['mision_estructura'] = $estructuraPost !== '' ? $estructuraPost : $this->crearEstructura($datos);
         $datos['completado'] = $this->estaCompleto($datos) ? 1 : 0;
 
         $stmt = $this->pdo->prepare(

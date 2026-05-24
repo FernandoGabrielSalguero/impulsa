@@ -11,6 +11,7 @@ if (!function_exists('buyerCampo')) {
 ?>
 <form class="im-formulario im-stepper__contenido" action="" method="post">
   <input type="hidden" name="buyer_accion" value="guardar_buyer">
+  <input type="hidden" name="buyer_persona_estructura" value="<?= buyerCampo($buyerDatos, 'buyer_persona_estructura') ?>" data-buyer-estructura>
   <div class="im-tarjeta__cabecera">
     <div>
       <h3>Buyer Persona</h3>
@@ -77,7 +78,47 @@ if (!function_exists('buyerCampo')) {
     <input type="text" name="motivo_eleccion" value="<?= buyerCampo($buyerDatos, 'motivo_eleccion') ?>" placeholder="Por que te elegiria" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">verified</i>
   </label>
+  <article class="im-tab-panel activo im-campo--ancho">
+    <span class="im-etiqueta">Buyer persona construido</span>
+    <p data-buyer-preview><?= buyerCampo($buyerDatos, 'buyer_persona_estructura') ?></p>
+  </article>
   <div class="im-formulario__acciones">
     <button class="im-boton im-boton--principal" type="submit">Guardar buyer persona</button>
   </div>
 </form>
+<script>
+  (() => {
+    const form = document.currentScript.previousElementSibling;
+    const get = (name) => {
+      const field = form.querySelector(`[name="${name}"]`);
+      return field ? field.value.trim() : '';
+    };
+    const preview = form.querySelector('[data-buyer-preview]');
+    const hidden = form.querySelector('[data-buyer-estructura]');
+    const fallback = 'Completa los campos para construir el buyer persona de la empresa.';
+
+    const render = () => {
+      const cliente = get('cliente_ideal');
+      const edad = get('edad_etapa_vida');
+      const ocupacion = get('ocupacion_realidad_diaria');
+      const problema = get('problema_necesidad');
+      const frustracion = get('preocupacion_frustracion');
+      const objetivo = get('objetivo_mejora');
+      const motivacion = get('motivacion_busqueda');
+      const freno = get('freno_dudas');
+      const criterio = get('criterio_eleccion');
+      const busqueda = get('busqueda_informacion');
+      const decision = get('decision_compra');
+      const motivo = get('motivo_eleccion');
+      const hayDatos = [cliente, edad, ocupacion, problema, frustracion, objetivo, motivacion, freno, criterio, busqueda, decision, motivo].some(Boolean);
+      const texto = hayDatos
+        ? `El buyer persona principal es ${cliente || 'un cliente potencial alineado con la propuesta de valor'}. Se encuentra en la etapa ${edad || 'adecuada para decidir una compra'} y su realidad diaria esta marcada por ${ocupacion || 'necesidades concretas y poco tiempo disponible'}. Necesita resolver ${problema || 'un problema relevante'}, le preocupa ${frustracion || 'equivocarse al elegir'} y busca mejorar ${objetivo || 'su situacion actual'}. Se motiva cuando ${motivacion || 'encuentra una solucion clara y confiable'}, aunque puede frenarse por ${freno || 'dudas sobre el resultado'}. Para elegir evalua ${criterio || 'confianza, precio, calidad y acompanamiento'}, se informa en ${busqueda || 'canales digitales y recomendaciones'}, decide comprar cuando ${decision || 'percibe valor y seguridad'} y elige la empresa porque ${motivo || 'la propuesta responde a su necesidad mejor que otras alternativas'}.`
+        : fallback;
+      preview.textContent = texto;
+      hidden.value = texto === fallback ? '' : texto;
+    };
+
+    form.addEventListener('input', render);
+    render();
+  })();
+</script>

@@ -47,7 +47,10 @@ class BuyerModel
                 : (string) ($existentes[$campo] ?? '');
         }
 
-        $datos['buyer_persona_estructura'] = json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $estructuraPost = $this->limpiar($data['buyer_persona_estructura'] ?? '');
+        $datos['buyer_persona_estructura'] = $estructuraPost !== ''
+            ? $estructuraPost
+            : $this->crearEstructura($datos);
         $datos['completado'] = $this->estaCompleto($datos) ? 1 : 0;
 
         $stmt = $this->pdo->prepare(
@@ -122,5 +125,24 @@ class BuyerModel
     private function limpiar(mixed $valor): string
     {
         return trim((string) $valor);
+    }
+
+    private function crearEstructura(array $datos): string
+    {
+        return trim(sprintf(
+            "Buyer persona: %s. Se encuentra en la etapa %s y su realidad diaria esta marcada por %s. Necesita resolver %s, le preocupa %s y busca mejorar %s. Se motiva cuando %s, aunque puede frenarse por %s. Para elegir evalua %s, se informa en %s, decide la compra cuando %s y elige la empresa porque %s.",
+            $datos['cliente_ideal'],
+            $datos['edad_etapa_vida'],
+            $datos['ocupacion_realidad_diaria'],
+            $datos['problema_necesidad'],
+            $datos['preocupacion_frustracion'],
+            $datos['objetivo_mejora'],
+            $datos['motivacion_busqueda'],
+            $datos['freno_dudas'],
+            $datos['criterio_eleccion'],
+            $datos['busqueda_informacion'],
+            $datos['decision_compra'],
+            $datos['motivo_eleccion']
+        ));
     }
 }
