@@ -74,7 +74,7 @@ if (!function_exists('userDashEstado')) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard Cliente | Impulsa Emprende</title>
+  <title>Dashboard | Impulsa Emprende</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
@@ -95,14 +95,6 @@ if (!function_exists('userDashEstado')) {
           <span class="im-nav-item__icono" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
-        <a class="im-nav-item" href="#proyectos" data-seccion="proyectos">
-          <span class="im-nav-item__icono" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Proyectos</span>
-        </a>
-        <a class="im-nav-item" href="#marketing" data-seccion="marketing">
-          <span class="im-nav-item__icono" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Marketing</span>
-        </a>
       </nav>
     </aside>
 
@@ -114,7 +106,7 @@ if (!function_exists('userDashEstado')) {
           <button class="im-boton-icono" type="button" data-alternar-menu aria-label="Menu"></button>
           <div>
             <p class="im-sobrelinea">Impulsa Emprende</p>
-            <h1>Dashboard cliente</h1>
+            <h1>Dashboard</h1>
           </div>
         </div>
         <div class="im-barra-superior__acciones">
@@ -132,7 +124,6 @@ if (!function_exists('userDashEstado')) {
               <h2>Hola, <?= userDashH($usuarioMarcaNombre) ?></h2>
               <p>Resumen de tus proyectos, entregables y servicios activos con Impulsa.</p>
             </div>
-            <button class="im-boton im-boton--tonal" type="button" data-abrir-perfil>Actualizar perfil</button>
           </div>
 
           <div class="im-grilla im-grilla--metricas">
