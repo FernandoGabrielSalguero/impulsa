@@ -37,7 +37,7 @@ if (!function_exists('definicionH')) {
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
-        <a class="im-nav-item activo" href="#definicion" data-seccion="definicion">
+        <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
           <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
           <span class="im-nav-item__texto">Definicion</span>
         </a>
@@ -63,7 +63,7 @@ if (!function_exists('definicionH')) {
       </header>
 
       <main class="im-contenido">
-        <section class="im-seccion-documento activa" id="definicion" data-panel="definicion">
+        <section class="im-seccion-documento activa" id="dashboard" data-panel="dashboard">
           <div class="im-encabezado-seccion">
             <div>
               <p class="im-sobrelinea">Estrategia</p>
