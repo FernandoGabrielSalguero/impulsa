@@ -5,14 +5,24 @@ require_once __DIR__ . '/auth_helpers.php';
 $error = '';
 $correoError = '';
 $correoValor = '';
+$nombreValor = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nombre = trim((string) ($_POST['nombre'] ?? ''));
     $correo = authSanitizarCorreo($_POST['correo'] ?? '');
     $password = (string) ($_POST['password'] ?? '');
+    $passwordConfirmacion = (string) ($_POST['password_confirmacion'] ?? '');
+    $nombreValor = $nombre;
     $correoValor = $correo;
 
-    if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+    if ($nombre !== '' && mb_strlen($nombre) < 2) {
+        $error = 'Ingresá un nombre válido.';
+    } elseif (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         $correoError = 'Ingresá un correo válido.';
+    } elseif (strlen($password) < 6) {
+        $error = 'La contraseña debe tener al menos 6 caracteres.';
+    } elseif ($passwordConfirmacion !== '' && $password !== $passwordConfirmacion) {
+        $error = 'Las contraseñas no coinciden.';
     } else {
         try {
             $stmt = $pdo->prepare('SELECT id FROM user_auth WHERE correo = :correo LIMIT 1');
@@ -30,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([
                     'correo' => $correo,
                     'password' => password_hash($password, PASSWORD_DEFAULT),
-                    'rol' => 'impulsa_emprendedor',
+                    'rol' => 'impulsa_usuario',
                 ]);
 
                 $userId = (int) $pdo->lastInsertId();
@@ -42,6 +52,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'user_auth_id' => $userId,
                     'correo' => $correo,
                 ]);
+
+                if ($nombre !== '') {
+                    $stmt = $pdo->prepare(
+                        'INSERT INTO user_info (user_auth_id, nombre, created_at, updated_at)
+                         VALUES (:user_auth_id, :nombre, NOW(), NOW())'
+                    );
+                    $stmt->execute([
+                        'user_auth_id' => $userId,
+                        'nombre' => $nombre,
+                    ]);
+                }
 
                 $pdo->commit();
                 authRedirect('/auth/login.php?estado=registrado');
@@ -72,6 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="im-alerta im-alerta--info"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
     <form class="im-formulario" action="/auth/register.php" method="post" target="_top">
+      <label class="im-campo im-campo-material im-campo--ancho">
+        <span>Nombre</span>
+        <input type="text" name="nombre" autocomplete="name" minlength="2" value="<?= htmlspecialchars($nombreValor, ENT_QUOTES, 'UTF-8') ?>" required>
+        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">person</i>
+      </label>
       <label class="im-campo im-campo-material im-campo--ancho<?= $correoError !== '' ? ' im-campo--error' : '' ?>" data-im-campo="email" data-im-validacion-url="/auth/check_email.php"<?= $correoError !== '' ? ' data-im-valido="false"' : '' ?>>
         <span>Correo</span>
         <input type="email" name="correo" autocomplete="email" value="<?= htmlspecialchars($correoValor, ENT_QUOTES, 'UTF-8') ?>" required>
@@ -80,7 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </label>
       <label class="im-campo im-campo-material im-campo--ancho">
         <span>Contraseña</span>
-        <input type="password" name="password" autocomplete="new-password">
+        <input type="password" name="password" autocomplete="new-password" minlength="6" required>
+        <button class="im-campo__boton-icono material-symbols-rounded" type="button" data-im-toggle-password aria-label="Mostrar contraseña">visibility</button>
+      </label>
+      <label class="im-campo im-campo-material im-campo--ancho">
+        <span>Confirmar contraseña</span>
+        <input type="password" name="password_confirmacion" autocomplete="new-password" minlength="6" required>
         <button class="im-campo__boton-icono material-symbols-rounded" type="button" data-im-toggle-password aria-label="Mostrar contraseña">visibility</button>
       </label>
       <button class="im-boton im-boton--principal im-campo--ancho" type="submit">Crear cuenta</button>

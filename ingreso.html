@@ -223,14 +223,13 @@
           <h2 id="login-title">Iniciar sesión</h2>
           <p class="intro">Ingresá tus datos para acceder a tu cuenta.</p>
 
-          <!-- Completar el atributo action cuando exista el endpoint de autenticacion. -->
-          <form action="" method="post">
+          <form action="/auth/login.php" method="post">
             <div class="form-group">
-              <label for="login-user">Email o usuario</label>
+              <label for="login-user">Email</label>
               <input
-                type="text"
+                type="email"
                 id="login-user"
-                name="usuario"
+                name="correo"
                 placeholder="tu@email.com"
                 autocomplete="username"
                 required
@@ -258,8 +257,7 @@
           <h2 id="register-title">Registrarse</h2>
           <p class="intro">Creá una cuenta nueva para empezar a usar el sistema.</p>
 
-          <!-- Completar el atributo action cuando exista el endpoint de registro. -->
-          <form action="" method="post">
+          <form action="/auth/register.php" method="post">
             <div class="form-group">
               <label for="register-name">Nombre</label>
               <input
@@ -278,7 +276,7 @@
               <input
                 type="email"
                 id="register-email"
-                name="email"
+                name="correo"
                 placeholder="tu@email.com"
                 autocomplete="email"
                 required
