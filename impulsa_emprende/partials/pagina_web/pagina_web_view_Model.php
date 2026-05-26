@@ -61,34 +61,22 @@ class PaginaWebViewModel
 
     public function obtenerUbicaciones(): array
     {
-        return [
-            'Argentina' => [
-                'Buenos Aires' => ['La Plata', 'Mar del Plata', 'Bahia Blanca', 'Tandil', 'Otra localidad'],
-                'CABA' => ['Ciudad Autonoma de Buenos Aires'],
-                'Catamarca' => ['San Fernando del Valle de Catamarca', 'Belen', 'Otra localidad'],
-                'Chaco' => ['Resistencia', 'Presidencia Roque Saenz Pena', 'Otra localidad'],
-                'Chubut' => ['Rawson', 'Comodoro Rivadavia', 'Puerto Madryn', 'Otra localidad'],
-                'Cordoba' => ['Cordoba', 'Rio Cuarto', 'Villa Maria', 'Otra localidad'],
-                'Corrientes' => ['Corrientes', 'Goya', 'Otra localidad'],
-                'Entre Rios' => ['Parana', 'Concordia', 'Gualeguaychu', 'Otra localidad'],
-                'Formosa' => ['Formosa', 'Clorinda', 'Otra localidad'],
-                'Jujuy' => ['San Salvador de Jujuy', 'Palpala', 'Otra localidad'],
-                'La Pampa' => ['Santa Rosa', 'General Pico', 'Otra localidad'],
-                'La Rioja' => ['La Rioja', 'Chilecito', 'Otra localidad'],
-                'Mendoza' => ['Mendoza', 'San Rafael', 'Godoy Cruz', 'Otra localidad'],
-                'Misiones' => ['Posadas', 'Obera', 'Eldorado', 'Otra localidad'],
-                'Neuquen' => ['Neuquen', 'San Martin de los Andes', 'Otra localidad'],
-                'Rio Negro' => ['Viedma', 'Bariloche', 'General Roca', 'Otra localidad'],
-                'Salta' => ['Salta', 'Tartagal', 'Otra localidad'],
-                'San Juan' => ['San Juan', 'Rawson', 'Otra localidad'],
-                'San Luis' => ['San Luis', 'Villa Mercedes', 'Otra localidad'],
-                'Santa Cruz' => ['Rio Gallegos', 'Caleta Olivia', 'Otra localidad'],
-                'Santa Fe' => ['Santa Fe', 'Rosario', 'Rafaela', 'Otra localidad'],
-                'Santiago del Estero' => ['Santiago del Estero', 'La Banda', 'Otra localidad'],
-                'Tierra del Fuego' => ['Ushuaia', 'Rio Grande', 'Otra localidad'],
-                'Tucuman' => ['San Miguel de Tucuman', 'Yerba Buena', 'Otra localidad'],
-            ],
-        ];
+        $path = __DIR__ . '/../../assets/provincias/localidades.json';
+        if (!is_file($path)) {
+            return [];
+        }
+
+        $json = file_get_contents($path);
+        if ($json === false) {
+            return [];
+        }
+
+        $ubicaciones = json_decode($json, true);
+        if (!is_array($ubicaciones)) {
+            return [];
+        }
+
+        return $this->normalizarUbicaciones($ubicaciones);
     }
 
     public function guardar(int $userId, array $data): array
@@ -321,5 +309,40 @@ class PaginaWebViewModel
         if ($datos['calle'] === null || $datos['numero'] === null) {
             throw new InvalidArgumentException('Completa calle y numero si tenes espacio fisico.');
         }
+    }
+
+    private function normalizarUbicaciones(array $ubicaciones): array
+    {
+        $normalizadas = [];
+
+        foreach ($ubicaciones as $pais => $provincias) {
+            if (!is_string($pais) || !is_array($provincias)) {
+                continue;
+            }
+
+            $pais = trim($pais);
+            if ($pais === '') {
+                continue;
+            }
+
+            $normalizadas[$pais] = [];
+            foreach ($provincias as $provincia => $localidades) {
+                if (!is_string($provincia) || !is_array($localidades)) {
+                    continue;
+                }
+
+                $provincia = trim($provincia);
+                if ($provincia === '') {
+                    continue;
+                }
+
+                $normalizadas[$pais][$provincia] = array_values(array_filter(array_map(
+                    static fn (mixed $localidad): string => trim((string) $localidad),
+                    $localidades
+                ), static fn (string $localidad): bool => $localidad !== ''));
+            }
+        }
+
+        return $normalizadas;
     }
 }
