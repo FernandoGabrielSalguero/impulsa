@@ -77,7 +77,7 @@ if (!function_exists('userDashEstado')) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard | Impulsa Emprende</title>
-  <link rel="stylesheet" href="../../../assets/impulsa_material/css/material.css">
+  <link rel="stylesheet" href="/assets/impulsa_material/css/material.css?v=icons-local-1">
 </head>
 <body>
   <div class="im-aplicacion" data-menu-colapsado="false">
