@@ -73,7 +73,10 @@ function authSanitizarCorreo(?string $correo): string
 function authMensajeEstado(?string $estado): string
 {
     $mensajes = [
-        'registrado' => 'Registro creado. Ya podés ingresar con tu correo y contraseña.',
+        'registrado' => 'Registro creado. Te enviamos un correo para verificar tu dirección.',
+        'correo_verificado' => 'Correo verificado correctamente. Ya podés ingresar.',
+        'verificacion_invalida' => 'El enlace de verificación no es válido o ya fue utilizado.',
+        'verificacion_error' => 'No pudimos verificar el correo en este momento.',
         'rol_pendiente' => 'Tu usuario existe, pero el dashboard de tu rol todavía no está habilitado.',
         'sin_permiso' => 'No tenés permisos para acceder a ese panel.',
         'logout' => 'Sesión cerrada correctamente.',

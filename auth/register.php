@@ -1,6 +1,7 @@
 ﻿<?php
 
 require_once __DIR__ . '/auth_helpers.php';
+require_once __DIR__ . '/../impulsa_emprende/mail/Mail.php';
 
 $error = '';
 $correoError = '';
@@ -31,16 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->fetch()) {
                 $correoError = 'Ya existe un usuario registrado con ese correo.';
             } else {
+                $verificationToken = bin2hex(random_bytes(32));
                 $pdo->beginTransaction();
 
                 $stmt = $pdo->prepare(
-                    'INSERT INTO user_auth (correo, password, rol, created_at, updated_at)
-                     VALUES (:correo, :password, :rol, NOW(), NOW())'
+                    'INSERT INTO user_auth (correo, password, rol, verification_token, created_at, updated_at)
+                     VALUES (:correo, :password, :rol, :verification_token, NOW(), NOW())'
                 );
                 $stmt->execute([
                     'correo' => $correo,
                     'password' => password_hash($password, PASSWORD_DEFAULT),
                     'rol' => 'impulsa_usuario',
+                    'verification_token' => $verificationToken,
                 ]);
 
                 $userId = (int) $pdo->lastInsertId();
@@ -65,6 +68,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $pdo->commit();
+                $appUrl = rtrim((string) (getenv('APP_URL') ?: ''), '/');
+                if ($appUrl === '') {
+                    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                    $appUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+                }
+
+                \SVE\Mail\Mailer::enviarVerificacionCorreo([
+                    'correo' => $correo,
+                    'link' => $appUrl . '/auth/verificar_correo.php?token=' . urlencode($verificationToken),
+                    'user_auth_id' => $userId,
+                ]);
+
                 authRedirect('/auth/login.php?estado=registrado');
             }
         } catch (Throwable $e) {
