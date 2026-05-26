@@ -78,6 +78,10 @@ $formatearFecha = static function (?string $fecha): string {
           <span class="im-nav-item__icono" data-icon="groups" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Usuarios</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminSolicitudesPaginaWebSolicitudesController.php">
+          <span class="im-nav-item__icono" data-icon="language" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Solicitudes web</span>
+        </a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>
