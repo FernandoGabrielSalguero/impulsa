@@ -17,7 +17,6 @@ class PaginaWebViewModel
         'vende_productos',
         'vende_servicios',
         'ya_factura',
-        'espacio_fisico',
     ];
 
     public function __construct(private PDO $pdo)
@@ -51,8 +50,45 @@ class PaginaWebViewModel
     public function obtenerSubcategorias(): array
     {
         return $this->pdo
-            ->query('SELECT id, nombre FROM rubro_emprendedor_subcategoria ORDER BY nombre')
+            ->query(
+                'SELECT rs.id, rs.nombre, rr.categoria_id
+                 FROM rubro_emprendedor_subcategoria rs
+                 INNER JOIN rubro_emprendedor_relaciones rr ON rr.subcategoria_id = rs.id
+                 ORDER BY rs.nombre'
+            )
             ->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerUbicaciones(): array
+    {
+        return [
+            'Argentina' => [
+                'Buenos Aires' => ['La Plata', 'Mar del Plata', 'Bahia Blanca', 'Tandil', 'Otra localidad'],
+                'CABA' => ['Ciudad Autonoma de Buenos Aires'],
+                'Catamarca' => ['San Fernando del Valle de Catamarca', 'Belen', 'Otra localidad'],
+                'Chaco' => ['Resistencia', 'Presidencia Roque Saenz Pena', 'Otra localidad'],
+                'Chubut' => ['Rawson', 'Comodoro Rivadavia', 'Puerto Madryn', 'Otra localidad'],
+                'Cordoba' => ['Cordoba', 'Rio Cuarto', 'Villa Maria', 'Otra localidad'],
+                'Corrientes' => ['Corrientes', 'Goya', 'Otra localidad'],
+                'Entre Rios' => ['Parana', 'Concordia', 'Gualeguaychu', 'Otra localidad'],
+                'Formosa' => ['Formosa', 'Clorinda', 'Otra localidad'],
+                'Jujuy' => ['San Salvador de Jujuy', 'Palpala', 'Otra localidad'],
+                'La Pampa' => ['Santa Rosa', 'General Pico', 'Otra localidad'],
+                'La Rioja' => ['La Rioja', 'Chilecito', 'Otra localidad'],
+                'Mendoza' => ['Mendoza', 'San Rafael', 'Godoy Cruz', 'Otra localidad'],
+                'Misiones' => ['Posadas', 'Obera', 'Eldorado', 'Otra localidad'],
+                'Neuquen' => ['Neuquen', 'San Martin de los Andes', 'Otra localidad'],
+                'Rio Negro' => ['Viedma', 'Bariloche', 'General Roca', 'Otra localidad'],
+                'Salta' => ['Salta', 'Tartagal', 'Otra localidad'],
+                'San Juan' => ['San Juan', 'Rawson', 'Otra localidad'],
+                'San Luis' => ['San Luis', 'Villa Mercedes', 'Otra localidad'],
+                'Santa Cruz' => ['Rio Gallegos', 'Caleta Olivia', 'Otra localidad'],
+                'Santa Fe' => ['Santa Fe', 'Rosario', 'Rafaela', 'Otra localidad'],
+                'Santiago del Estero' => ['Santiago del Estero', 'La Banda', 'Otra localidad'],
+                'Tierra del Fuego' => ['Ushuaia', 'Rio Grande', 'Otra localidad'],
+                'Tucuman' => ['San Miguel de Tucuman', 'Yerba Buena', 'Otra localidad'],
+            ],
+        ];
     }
 
     public function guardar(int $userId, array $data): array
@@ -80,12 +116,18 @@ class PaginaWebViewModel
         foreach ($this->camposBooleanos as $campo) {
             $datos[$campo] = isset($data[$campo]) ? 1 : 0;
         }
+        $datos['espacio_fisico'] = $this->normalizarBooleanoSelect($data['espacio_fisico'] ?? null);
 
         foreach ($this->camposRequeridos as $campo) {
             if ((string) ($datos[$campo] ?? '') === '') {
                 throw new InvalidArgumentException('Faltan campos obligatorios.');
             }
         }
+        $this->validarFecha($datos['fecha_inicio']);
+        $this->validarRubro($datos['rubro_categoria_id']);
+        $this->validarRubroSubcategoria($datos['rubro_categoria_id'], $datos['rubro_subcategoria_id']);
+        $this->validarUbicacion($datos['pais'], $datos['provincia'], $datos['localidad']);
+        $this->validarEspacioFisico($datos);
 
         $datos['completado'] = 1;
 
@@ -172,5 +214,112 @@ class PaginaWebViewModel
         $valor = (int) $valor;
 
         return $valor > 0 ? $valor : null;
+    }
+
+    private function normalizarBooleanoSelect(mixed $valor): int
+    {
+        if ($valor === '1' || $valor === 1) {
+            return 1;
+        }
+
+        if ($valor === '0' || $valor === 0) {
+            return 0;
+        }
+
+        throw new InvalidArgumentException('Indica si tenes espacio fisico.');
+    }
+
+    private function validarFecha(string $fecha): void
+    {
+        $date = DateTimeImmutable::createFromFormat('Y-m-d', $fecha);
+        if (!$date || $date->format('Y-m-d') !== $fecha) {
+            throw new InvalidArgumentException('La fecha de inicio no es valida.');
+        }
+    }
+
+    private function validarRubroSubcategoria(?int $categoriaId, ?int $subcategoriaId): void
+    {
+        if ($subcategoriaId === null) {
+            return;
+        }
+
+        if ($categoriaId === null) {
+            throw new InvalidArgumentException('Selecciona un rubro antes de elegir subcategoria.');
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*)
+             FROM rubro_emprendedor_relaciones
+             WHERE categoria_id = :categoria_id
+               AND subcategoria_id = :subcategoria_id'
+        );
+        $stmt->execute([
+            'categoria_id' => $categoriaId,
+            'subcategoria_id' => $subcategoriaId,
+        ]);
+
+        if ((int) $stmt->fetchColumn() !== 1) {
+            throw new InvalidArgumentException('La subcategoria no pertenece al rubro seleccionado.');
+        }
+    }
+
+    private function validarRubro(?int $categoriaId): void
+    {
+        if ($categoriaId === null) {
+            return;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM rubro_emprendedor_categoria WHERE id = :categoria_id'
+        );
+        $stmt->execute(['categoria_id' => $categoriaId]);
+
+        if ((int) $stmt->fetchColumn() !== 1) {
+            throw new InvalidArgumentException('El rubro seleccionado no es valido.');
+        }
+    }
+
+    private function validarUbicacion(?string $pais, ?string $provincia, ?string $localidad): void
+    {
+        $ubicaciones = $this->obtenerUbicaciones();
+
+        if ($pais === null) {
+            if ($provincia !== null || $localidad !== null) {
+                throw new InvalidArgumentException('Selecciona un pais antes de elegir provincia o localidad.');
+            }
+            return;
+        }
+
+        if (!isset($ubicaciones[$pais])) {
+            throw new InvalidArgumentException('El pais seleccionado no esta disponible.');
+        }
+
+        if ($provincia === null) {
+            if ($localidad !== null) {
+                throw new InvalidArgumentException('Selecciona una provincia antes de elegir localidad.');
+            }
+            return;
+        }
+
+        if (!isset($ubicaciones[$pais][$provincia])) {
+            throw new InvalidArgumentException('La provincia no pertenece al pais seleccionado.');
+        }
+
+        if ($localidad !== null && !in_array($localidad, $ubicaciones[$pais][$provincia], true)) {
+            throw new InvalidArgumentException('La localidad no pertenece a la provincia seleccionada.');
+        }
+    }
+
+    private function validarEspacioFisico(array &$datos): void
+    {
+        if ((int) $datos['espacio_fisico'] === 0) {
+            $datos['calle'] = null;
+            $datos['numero'] = null;
+            return;
+        }
+
+        if ($datos['calle'] === null || $datos['numero'] === null) {
+            throw new InvalidArgumentException('Completa calle y numero si tenes espacio fisico.');
+        }
     }
 }

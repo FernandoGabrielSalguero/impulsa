@@ -6,6 +6,7 @@ $paginaWebPartialModel = new PaginaWebViewModel($pdo);
 $paginaWebSolicitud = $paginaWebPartialModel->obtenerSolicitud((int) $usuario['id']);
 $paginaWebCategorias = $paginaWebPartialModel->obtenerCategorias();
 $paginaWebSubcategorias = $paginaWebPartialModel->obtenerSubcategorias();
+$paginaWebUbicaciones = $paginaWebPartialModel->obtenerUbicaciones();
 $paginaWebCamposUsados = $paginaWebPartialModel->camposUsados();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['pagina_web_accion'] ?? '') === 'guardar_pagina_web') {
@@ -25,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['pagina_web_accion'] ?? '')
             $_SESSION['pagina_web_snackbar'] = [
                 'mensaje' => $paginaWebSolicitud
                     ? 'Ya existe una solicitud de pagina web para tu usuario.'
-                    : 'No pudimos guardar la solicitud en este momento.',
+                    : ($e instanceof InvalidArgumentException ? $e->getMessage() : 'No pudimos guardar la solicitud en este momento.'),
                 'estado' => 'error',
             ];
         }
