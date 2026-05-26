@@ -119,6 +119,6 @@ if (!function_exists('definicionH')) {
       });
     })();
   </script>
-  <script src="../../../assets/impulsa_material/js/material.js"></script>
+  <script src="/assets/impulsa_material/js/material.js?v=panel-default-1"></script>
 </body>
 </html>

@@ -396,6 +396,6 @@ if (!function_exists('userDashEstado')) {
   </div>
 
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
-  <script src="../../../assets/impulsa_material/js/material.js"></script>
+  <script src="/assets/impulsa_material/js/material.js?v=panel-default-1"></script>
 </body>
 </html>

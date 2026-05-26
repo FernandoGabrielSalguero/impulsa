@@ -85,10 +85,13 @@
   });
 
   const hashInicial = window.location.hash.replace("#", "");
-  const seccionInicial = hashInicial || "dashboard";
+  const panelActivoInicial = document.querySelector("[data-panel].activa")?.dataset.panel;
+  const primerPanel = paneles[0]?.dataset.panel;
+  const seccionInicial = hashInicial || panelActivoInicial || primerPanel || "dashboard";
   const existeSeccion = [...paneles].some((panel) => panel.dataset.panel === seccionInicial);
+  const seccionFallback = panelActivoInicial || primerPanel || "dashboard";
 
-  mostrarPanel(existeSeccion ? seccionInicial : "dashboard");
+  mostrarPanel(existeSeccion ? seccionInicial : seccionFallback);
   if (esMovil()) {
     cerrarMenuMovil();
   }
