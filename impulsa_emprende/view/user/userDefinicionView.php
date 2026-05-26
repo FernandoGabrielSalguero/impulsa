@@ -20,9 +20,6 @@ if (!function_exists('definicionH')) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Definicion | Impulsa Emprende</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../assets/impulsa_material/css/material.css">
 </head>
 <body>
@@ -43,6 +40,10 @@ if (!function_exists('definicionH')) {
         <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
           <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
           <span class="im-nav-item__texto">Definicion</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/user/UserPaginaWebController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">web</span>
+          <span class="im-nav-item__texto">Pagina web</span>
         </a>
       </nav>
     </aside>

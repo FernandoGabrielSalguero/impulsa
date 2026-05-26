@@ -17,6 +17,7 @@ class UserDashboardModel
             'reportesMarketing' => $this->obtenerReportesMarketing($userId),
             'contratos' => $this->obtenerContratos($userId),
             'definicion' => $this->obtenerDefinicion($userId),
+            'paginaWeb' => $this->obtenerSolicitudPaginaWeb($userId),
         ];
     }
 
@@ -224,6 +225,19 @@ class UserDashboardModel
         $stmt->execute(['user_id' => $userId]);
 
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: ['resultado' => '', 'completado' => 0];
+    }
+
+    private function obtenerSolicitudPaginaWeb(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT id, nombre_emprendimiento, completado, created_at, updated_at
+             FROM landing_page_request
+             WHERE user_auth_id = :user_id
+             LIMIT 1'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 
     private function contar(string $sql, int $userId): int

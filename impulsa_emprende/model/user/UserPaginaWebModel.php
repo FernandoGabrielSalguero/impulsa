@@ -1,6 +1,6 @@
 <?php
 
-class UserDefinicionModel
+class UserPaginaWebModel
 {
     public function __construct(private PDO $pdo)
     {
@@ -21,14 +21,23 @@ class UserDefinicionModel
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 
-    public function definicionCompleta(int $userId): bool
+    public function obtenerEstadoDefinicion(int $userId): array
     {
-        return $this->moduloCompleto('emprendedor_mision', $userId)
-            && $this->moduloCompleto('emprendedor_vision', $userId)
-            && $this->moduloCompleto('emprendedor_buyer_persona', $userId);
+        return [
+            'mision' => $this->estaCompleto('emprendedor_mision', $userId),
+            'vision' => $this->estaCompleto('emprendedor_vision', $userId),
+            'buyer' => $this->estaCompleto('emprendedor_buyer_persona', $userId),
+        ];
     }
 
-    private function moduloCompleto(string $tabla, int $userId): bool
+    public function tieneDefinicionCompleta(int $userId): bool
+    {
+        $estado = $this->obtenerEstadoDefinicion($userId);
+
+        return $estado['mision'] && $estado['vision'] && $estado['buyer'];
+    }
+
+    private function estaCompleto(string $tabla, int $userId): bool
     {
         $stmt = $this->pdo->prepare(
             "SELECT completado FROM {$tabla} WHERE user_auth_id = :user_id LIMIT 1"

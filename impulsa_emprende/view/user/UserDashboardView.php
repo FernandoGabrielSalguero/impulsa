@@ -11,6 +11,7 @@ $suscripcionesMarketing = $dashboardData['suscripcionesMarketing'] ?? [];
 $reportesMarketing = $dashboardData['reportesMarketing'] ?? [];
 $contratos = $dashboardData['contratos'] ?? [];
 $definicion = $dashboardData['definicion'] ?? [];
+$paginaWeb = $dashboardData['paginaWeb'] ?? [];
 
 if (!function_exists('userDashH')) {
     function userDashH(mixed $value): string
@@ -76,9 +77,6 @@ if (!function_exists('userDashEstado')) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard | Impulsa Emprende</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../assets/impulsa_material/css/material.css">
 </head>
 <body>
@@ -93,12 +91,16 @@ if (!function_exists('userDashEstado')) {
       </div>
       <nav class="im-navegacion">
         <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
-          <span class="im-nav-item__icono" aria-hidden="true"></span>
+          <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
         <a class="im-nav-item" href="/impulsa_emprende/controller/user/userDefinicionController.php">
           <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
           <span class="im-nav-item__texto">Definicion</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/user/UserPaginaWebController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">web</span>
+          <span class="im-nav-item__texto">Pagina web</span>
         </a>
       </nav>
     </aside>
@@ -145,6 +147,9 @@ if (!function_exists('userDashEstado')) {
               $misionDef = $definicion['mision'] ?? ['resultado' => '', 'completado' => 0];
               $visionDef = $definicion['vision'] ?? ['resultado' => '', 'completado' => 0];
               $buyerDef = $definicion['buyer'] ?? ['resultado' => '', 'completado' => 0];
+              $definicionCompleta = (int) ($misionDef['completado'] ?? 0) === 1
+                && (int) ($visionDef['completado'] ?? 0) === 1
+                && (int) ($buyerDef['completado'] ?? 0) === 1;
             ?>
             <article class="im-tarjeta">
               <div class="im-tarjeta__cabecera">
@@ -185,8 +190,24 @@ if (!function_exists('userDashEstado')) {
                   <h3>Pagina web</h3>
                   <span class="im-etiqueta">Solicitud Landing page</span>
                 </div>
-                <span class="im-chip">Pendiente</span>
+                <?php if ($paginaWeb): ?>
+                  <span class="im-chip <?= (int) ($paginaWeb['completado'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= (int) ($paginaWeb['completado'] ?? 0) === 1 ? 'Solicitada' : 'Pendiente' ?></span>
+                <?php elseif ($definicionCompleta): ?>
+                  <span class="im-chip im-chip--activo">Disponible</span>
+                <?php else: ?>
+                  <span class="im-chip im-chip--pendiente">Bloqueada</span>
+                <?php endif; ?>
               </div>
+              <?php if ($paginaWeb): ?>
+                <p>Ya existe una solicitud para <?= userDashH($paginaWeb['nombre_emprendimiento'] ?? 'tu emprendimiento') ?>.</p>
+              <?php elseif ($definicionCompleta): ?>
+                <p>Ya podes completar el formulario para solicitar tu pagina web.</p>
+                <div class="im-formulario__acciones">
+                  <a class="im-boton im-boton--principal" href="/impulsa_emprende/controller/user/UserPaginaWebController.php">Solicitar</a>
+                </div>
+              <?php else: ?>
+                <p>Completa primero mision, vision y buyer persona para habilitar la solicitud.</p>
+              <?php endif; ?>
             </article>
           </div>
 
