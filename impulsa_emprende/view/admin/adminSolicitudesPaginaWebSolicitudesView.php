@@ -93,6 +93,12 @@ $nombreSolicitante = static function (array $solicitud): string {
     .im-solicitud-modal {
       width: min(920px, calc(100vw - 2rem));
       max-height: min(760px, calc(100vh - 2rem));
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .im-solicitud-modal .im-dialog__contenido {
+      min-height: 0;
+      overflow-y: auto;
     }
 
     .im-solicitud-detalle {
@@ -205,10 +211,7 @@ $nombreSolicitante = static function (array $solicitud): string {
                       <tr>
                         <td><?= (int) ($solicitud['id'] ?? 0) ?></td>
                         <td><?= $h($formatearFecha($solicitud['created_at'] ?? null)) ?></td>
-                        <td class="im-tabla-tareas__nombre">
-                          <?= $h($solicitud['nombre_emprendimiento'] ?? '-') ?>
-                          <br><small><?= $h($solicitud['descripcion'] ?? '') ?></small>
-                        </td>
+                        <td class="im-tabla-tareas__nombre"><?= $h($solicitud['nombre_emprendimiento'] ?? '-') ?></td>
                         <td><?= $h($nombreSolicitante($solicitud)) ?></td>
                         <td><?= $h($solicitud['usuario_correo'] ?? '-') ?></td>
                         <td><?= $h($solicitud['telefono_contacto'] ?? '-') ?></td>
