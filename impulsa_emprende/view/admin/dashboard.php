@@ -3,6 +3,11 @@ $usuarioCorreo = $usuarioCorreo ?? '';
 $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
+$usuariosPorRol = $usuariosPorRol ?? [];
+$totalUsuarios = array_sum(array_map(static fn (array $rol): int => (int) ($rol['cantidad'] ?? 0), $usuariosPorRol));
+$formatearRol = static function (string $rol): string {
+    return ucwords(str_replace('_', ' ', $rol));
+};
 ?>
 <!doctype html>
 <html lang="es">
@@ -81,10 +86,69 @@ $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
           <div class="im-encabezado-seccion">
             <div>
               <p class="im-sobrelinea">Inicio</p>
-              <h2>Bienvenido</h2>
-              <p>Panel inicial del administrador de Impulsa Emprende.</p>
+              <h2>Resumen de usuarios</h2>
+              <p>Usuarios registrados agrupados por rol dentro de Impulsa Emprende.</p>
             </div>
           </div>
+          <?php if ($totalUsuarios > 0): ?>
+            <div class="im-grilla im-grilla--metricas">
+              <article class="im-tarjeta im-tarjeta--metrica">
+                <span class="im-etiqueta">Total usuarios</span>
+                <strong><?= number_format($totalUsuarios, 0, ',', '.') ?></strong>
+                <small>Registrados</small>
+              </article>
+              <?php foreach ($usuariosPorRol as $rolResumen): ?>
+                <?php
+                $rol = (string) ($rolResumen['rol'] ?? '');
+                $cantidad = (int) ($rolResumen['cantidad'] ?? 0);
+                ?>
+                <article class="im-tarjeta im-tarjeta--metrica">
+                  <span class="im-etiqueta"><?= htmlspecialchars($formatearRol($rol), ENT_QUOTES, 'UTF-8') ?></span>
+                  <strong><?= number_format($cantidad, 0, ',', '.') ?></strong>
+                  <small><?= htmlspecialchars($rol, ENT_QUOTES, 'UTF-8') ?></small>
+                </article>
+              <?php endforeach; ?>
+            </div>
+
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera">
+                <div>
+                  <h3>Detalle por rol</h3>
+                  <p>Cantidad de usuarios asociados a cada rol registrado.</p>
+                </div>
+                <span class="im-chip"><?= number_format($totalUsuarios, 0, ',', '.') ?> usuarios</span>
+              </div>
+              <div class="im-tabla-contenedor">
+                <table class="im-tabla">
+                  <thead>
+                    <tr>
+                      <th>Rol</th>
+                      <th>Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($usuariosPorRol as $rolResumen): ?>
+                      <?php
+                      $rol = (string) ($rolResumen['rol'] ?? '');
+                      $cantidad = (int) ($rolResumen['cantidad'] ?? 0);
+                      ?>
+                      <tr>
+                        <td>
+                          <span class="im-chip"><?= htmlspecialchars($formatearRol($rol), ENT_QUOTES, 'UTF-8') ?></span>
+                        </td>
+                        <td><?= number_format($cantidad, 0, ',', '.') ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          <?php else: ?>
+            <article class="im-tarjeta">
+              <h3>No hay usuarios registrados para mostrar.</h3>
+              <p>Cuando existan registros en la tabla de usuarios, apareceran agrupados por rol en este panel.</p>
+            </article>
+          <?php endif; ?>
         </section>
       </main>
     </div>

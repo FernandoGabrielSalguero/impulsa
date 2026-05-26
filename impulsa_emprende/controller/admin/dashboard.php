@@ -1,10 +1,14 @@
 <?php
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
+require_once __DIR__ . '/../../model/admin/dashboardModel.php';
 
 $usuario = authRequiereRol('impulsa_administrador');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
+
+$dashboardModel = new DashboardModel($pdo);
+$usuariosPorRol = $dashboardModel->obtenerUsuariosPorRol();
 
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';
 
