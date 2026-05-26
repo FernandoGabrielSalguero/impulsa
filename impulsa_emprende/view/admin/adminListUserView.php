@@ -47,6 +47,10 @@ $formatearFecha = static function (?string $fecha): string {
     .im-perfil-check {
       color: var(--im-color-exito);
     }
+
+    .im-nav-item__icono[data-icon]::before {
+      content: attr(data-icon);
+    }
   </style>
 </head>
 <body>
@@ -67,11 +71,11 @@ $formatearFecha = static function (?string $fecha): string {
       </div>
       <nav class="im-navegacion">
         <a class="im-nav-item" href="/impulsa_emprende/controller/admin/dashboard.php">
-          <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">dashboard</span>
+          <span class="im-nav-item__icono" data-icon="dashboard" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
         <a class="im-nav-item activo" href="/impulsa_emprende/controller/admin/adminListUserController.php">
-          <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">groups</span>
+          <span class="im-nav-item__icono" data-icon="groups" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Usuarios</span>
         </a>
       </nav>
