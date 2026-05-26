@@ -14,7 +14,6 @@ if (!function_exists('visionCampo')) {
   <input type="hidden" name="vision_estructura" value="<?= visionCampo($visionDatos, 'vision_estructura') ?>" data-vision-estructura>
   <div class="im-tarjeta__cabecera">
     <div>
-      <h3>Vision</h3>
       <span class="im-etiqueta">Defini hacia donde queres llevar tu emprendimiento.</span>
     </div>
   </div>

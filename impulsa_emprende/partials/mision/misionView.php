@@ -14,7 +14,6 @@ if (!function_exists('misionCampo')) {
   <input type="hidden" name="mision_estructura" value="<?= misionCampo($misionDatos, 'mision_estructura') ?>" data-mision-estructura>
   <div class="im-tarjeta__cabecera">
     <div>
-      <h3>Mision</h3>
       <span class="im-etiqueta">Defini a quien ayudas, que problema resolves y como lo haces.</span>
     </div>
   </div>
@@ -57,7 +56,7 @@ if (!function_exists('misionCampo')) {
       const problema = get('que_problema_resuelvo');
       const como = get('como_lo_resuelvo');
       const texto = [aQuien, problema, como].some(Boolean)
-        ? `Nuestra mision es ayudar a ${aQuien || 'nuestros clientes'} a resolver ${problema || 'sus principales desafios'} mediante ${como || 'soluciones claras, utiles y sostenibles'}, creando valor real en cada etapa de su crecimiento.`
+        ? `Nuestra mision es ayudar a ${aQuien || 'nuestros clientes'} a resolver ${problema || 'sus principales desafios'} mediante ${como || 'soluciones claras, utiles y sostenibles'}, creando valor real en cada etapa del proceso.`
         : fallback;
       preview.textContent = texto;
       hidden.value = texto === fallback ? '' : texto;

@@ -14,12 +14,11 @@ if (!function_exists('buyerCampo')) {
   <input type="hidden" name="buyer_persona_estructura" value="<?= buyerCampo($buyerDatos, 'buyer_persona_estructura') ?>" data-buyer-estructura>
   <div class="im-tarjeta__cabecera">
     <div>
-      <h3>Buyer Persona</h3>
       <span class="im-etiqueta">Construi el perfil de la persona que tiene mas probabilidad de comprarte.</span>
     </div>
   </div>
   <label class="im-campo im-campo-material im-campo--ancho">
-    <span>Cliente ideal</span>
+    <span>Colocale un nonmbre a tu cliente ideal</span>
     <input type="text" name="cliente_ideal" value="<?= buyerCampo($buyerDatos, 'cliente_ideal') ?>" placeholder="Quien es tu cliente ideal" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">groups</i>
   </label>
