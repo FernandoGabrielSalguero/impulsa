@@ -14,25 +14,45 @@ $formatearFecha = static function (?string $fecha): string {
     return date('d/m/Y H:i', strtotime($fecha));
 };
 $preguntasSolicitud = [
-    'q1_nombre_comercial' => 'Nombre comercial',
-    'q2_actividad' => 'Actividad',
-    'q3_objetivo' => 'Objetivo',
-    'q4_publico' => 'Publico',
-    'q5_accion_principal' => 'Accion principal',
-    'q6_propuestas_destacar' => 'Propuestas a destacar',
-    'q7_diferencial' => 'Diferencial',
-    'q8_secciones' => 'Secciones',
-    'q9_textos' => 'Textos',
-    'q10_contacto' => 'Datos de contacto',
-    'q11_material_marca' => 'Material de marca',
-    'q12_estilo_visual' => 'Estilo visual',
-    'q13_referencias' => 'Referencias',
-    'q14_recursos_visuales' => 'Recursos visuales',
-    'q15_imagenes_apoyo' => 'Imagenes de apoyo',
-    'q16_dominio_hosting' => 'Dominio y hosting',
-    'q17_correos_corporativos' => 'Correos corporativos',
-    'q18_requerimientos_adicionales' => 'Requerimientos adicionales',
+    'nombre_emprendimiento' => 'Nombre del emprendimiento',
+    'fecha_inicio' => 'Fecha de inicio',
+    'descripcion' => 'Descripcion',
+    'nombre_fundador' => 'Nombre del fundador',
+    'telefono_contacto' => 'Telefono de contacto',
+    'cantidad_colaboradores' => 'Cantidad de colaboradores',
+    'rubro_categoria' => 'Rubro',
+    'rubro_subcategoria' => 'Subrubro',
+    'vende_productos' => 'Vende productos',
+    'vende_servicios' => 'Vende servicios',
+    'ya_factura' => 'Ya factura',
+    'dominio_registrado' => 'Dominio registrado',
+    'hosting_propio' => 'Hosting propio',
+    'espacio_fisico' => 'Tiene espacio fisico',
+    'pais' => 'Pais',
+    'provincia' => 'Provincia',
+    'localidad' => 'Localidad',
+    'calle' => 'Calle',
+    'numero' => 'Numero',
+    'completado' => 'Formulario completado',
 ];
+$camposBooleanosSolicitud = [
+    'vende_productos',
+    'vende_servicios',
+    'ya_factura',
+    'dominio_registrado',
+    'hosting_propio',
+    'espacio_fisico',
+    'completado',
+];
+$nombreSolicitante = static function (array $solicitud): string {
+    $nombreCompleto = trim((string) ($solicitud['usuario_nombre'] ?? '') . ' ' . (string) ($solicitud['usuario_apellido'] ?? ''));
+    if ($nombreCompleto !== '') {
+        return $nombreCompleto;
+    }
+
+    $apodo = trim((string) ($solicitud['usuario_apodo'] ?? ''));
+    return $apodo !== '' ? $apodo : 'Sin nombre';
+};
 ?>
 <!doctype html>
 <html lang="es">
@@ -152,7 +172,7 @@ $preguntasSolicitud = [
             <div>
               <p class="im-sobrelinea">Pagina web</p>
               <h2>Solicitudes recibidas</h2>
-              <p>Formularios enviados por potenciales clientes para coordinar reuniones fuera del sistema.</p>
+              <p>Solicitudes cargadas desde el formulario interno de landing page para coordinar reuniones fuera del sistema.</p>
             </div>
             <span class="im-chip"><?= number_format($totalSolicitudes, 0, ',', '.') ?> solicitudes</span>
           </div>
@@ -171,11 +191,12 @@ $preguntasSolicitud = [
                     <tr>
                       <th>ID</th>
                       <th>Fecha</th>
-                      <th>Proyecto</th>
-                      <th>Contacto</th>
+                      <th>Emprendimiento</th>
+                      <th>Solicitante</th>
                       <th>Correo</th>
-                      <th>WhatsApp</th>
-                      <th>Objetivo</th>
+                      <th>Telefono</th>
+                      <th>Rubro</th>
+                      <th>Estado</th>
                       <th class="im-tabla-tareas__acciones">Acciones</th>
                     </tr>
                   </thead>
@@ -185,13 +206,20 @@ $preguntasSolicitud = [
                         <td><?= (int) ($solicitud['id'] ?? 0) ?></td>
                         <td><?= $h($formatearFecha($solicitud['created_at'] ?? null)) ?></td>
                         <td class="im-tabla-tareas__nombre">
-                          <?= $h($solicitud['nombre_proyecto'] ?? '-') ?>
-                          <br><small><?= $h($solicitud['q1_nombre_comercial'] ?? '') ?></small>
+                          <?= $h($solicitud['nombre_emprendimiento'] ?? '-') ?>
+                          <br><small><?= $h($solicitud['descripcion'] ?? '') ?></small>
                         </td>
-                        <td><?= $h($solicitud['nombre'] ?? '-') ?></td>
-                        <td><?= $h($solicitud['correo'] ?? '-') ?></td>
-                        <td><?= $h($solicitud['whatsapp'] ?? '-') ?></td>
-                        <td><?= $h($solicitud['q3_objetivo'] ?? '-') ?></td>
+                        <td><?= $h($nombreSolicitante($solicitud)) ?></td>
+                        <td><?= $h($solicitud['usuario_correo'] ?? '-') ?></td>
+                        <td><?= $h($solicitud['telefono_contacto'] ?? '-') ?></td>
+                        <td><?= $h($solicitud['rubro_categoria'] ?? '-') ?></td>
+                        <td>
+                          <?php if ((int) ($solicitud['completado'] ?? 0) === 1): ?>
+                            <span class="im-chip im-chip--exito">Completada</span>
+                          <?php else: ?>
+                            <span class="im-chip im-chip--alerta">Pendiente</span>
+                          <?php endif; ?>
+                        </td>
                         <td class="im-tabla-tareas__acciones">
                           <button class="im-boton-icono im-accion--ver material-symbols-rounded im-tooltip" type="button" data-ver-solicitud="<?= (int) ($solicitud['id'] ?? 0) ?>" aria-label="Ver solicitud" data-tooltip="Ver detalle">visibility</button>
                         </td>
@@ -204,7 +232,7 @@ $preguntasSolicitud = [
           <?php else: ?>
             <article class="im-tarjeta">
               <h3>No hay solicitudes de pagina web para mostrar.</h3>
-              <p>Cuando ingresen formularios externos, apareceran en esta tabla.</p>
+              <p>Cuando ingresen solicitudes desde el formulario de landing page, apareceran en esta tabla.</p>
             </article>
           <?php endif; ?>
         </section>
@@ -225,7 +253,7 @@ $preguntasSolicitud = [
       <div class="im-chip-lista">
         <span class="im-chip" data-modal-contacto></span>
         <span class="im-chip" data-modal-correo></span>
-        <span class="im-chip" data-modal-whatsapp></span>
+        <span class="im-chip" data-modal-telefono></span>
       </div>
       <div class="im-solicitud-detalle" data-modal-detalle></div>
     </div>
@@ -240,6 +268,7 @@ $preguntasSolicitud = [
     (() => {
       const solicitudes = <?= json_encode($solicitudesPaginaWeb, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
       const preguntas = <?= json_encode($preguntasSolicitud, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+      const camposBooleanos = new Set(<?= json_encode($camposBooleanosSolicitud, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
       const modal = document.querySelector('[data-modal-solicitud]');
       const cortina = document.querySelector('[data-cerrar-solicitud].im-modal-cortina');
       const detalle = document.querySelector('[data-modal-detalle]');
@@ -247,9 +276,9 @@ $preguntasSolicitud = [
       const fecha = document.querySelector('[data-modal-fecha]');
       const contacto = document.querySelector('[data-modal-contacto]');
       const correo = document.querySelector('[data-modal-correo]');
-      const whatsapp = document.querySelector('[data-modal-whatsapp]');
+      const telefono = document.querySelector('[data-modal-telefono]');
 
-      if (!modal || !cortina || !detalle || !titulo || !fecha || !contacto || !correo || !whatsapp) {
+      if (!modal || !cortina || !detalle || !titulo || !fecha || !contacto || !correo || !telefono) {
         return;
       }
 
@@ -286,16 +315,33 @@ $preguntasSolicitud = [
         modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
       };
 
+      const nombreSolicitante = (solicitud) => {
+        const nombreCompleto = `${solicitud.usuario_nombre ?? ''} ${solicitud.usuario_apellido ?? ''}`.trim();
+        return nombreCompleto || solicitud.usuario_apodo || 'Sin nombre';
+      };
+
+      const valorDetalle = (solicitud, campo) => {
+        if (camposBooleanos.has(campo)) {
+          return Number(solicitud[campo] ?? 0) === 1 ? 'Si' : 'No';
+        }
+
+        if (campo === 'fecha_inicio') {
+          return formatearFecha(solicitud[campo]);
+        }
+
+        return solicitud[campo] || '-';
+      };
+
       const abrirSolicitud = (solicitud) => {
-        titulo.textContent = solicitud.nombre_proyecto || 'Solicitud de pagina web';
+        titulo.textContent = solicitud.nombre_emprendimiento || 'Solicitud de landing page';
         fecha.textContent = formatearFecha(solicitud.created_at);
-        contacto.textContent = solicitud.nombre || 'Sin nombre';
-        correo.textContent = solicitud.correo || 'Sin correo';
-        whatsapp.textContent = solicitud.whatsapp || 'Sin WhatsApp';
+        contacto.textContent = nombreSolicitante(solicitud);
+        correo.textContent = solicitud.usuario_correo || 'Sin correo';
+        telefono.textContent = solicitud.telefono_contacto || 'Sin telefono';
         detalle.innerHTML = Object.entries(preguntas).map(([campo, label]) => `
           <div class="im-solicitud-detalle__item">
             <strong>${escapeHtml(label)}</strong>
-            <p>${escapeHtml(solicitud[campo] || '-')}</p>
+            <p>${escapeHtml(valorDetalle(solicitud, campo))}</p>
           </div>
         `).join('');
         alternarModal(true);
