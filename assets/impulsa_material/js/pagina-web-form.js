@@ -132,6 +132,7 @@
       campo.hidden = !tieneEspacio;
       if (input) {
         input.required = tieneEspacio;
+        input.disabled = !tieneEspacio;
         if (!tieneEspacio) {
           input.value = "";
         }

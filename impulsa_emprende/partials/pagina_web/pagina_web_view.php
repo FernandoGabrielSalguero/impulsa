@@ -125,12 +125,12 @@ $paginaWebTieneEspacioFisico = (int) ($paginaWebSolicitud['espacio_fisico'] ?? 0
   </label>
   <label class="im-campo im-campo-material" data-pagina-web-direccion <?= $paginaWebTieneEspacioFisico ? '' : 'hidden' ?>>
     <span>Calle</span>
-    <input type="text" name="calle" value="<?= paginaWebCampo($paginaWebSolicitud, 'calle') ?>" placeholder="Calle" data-im-placeholder <?= $paginaWebTieneEspacioFisico ? 'required' : '' ?>>
+    <input type="text" name="calle" value="<?= paginaWebCampo($paginaWebSolicitud, 'calle') ?>" placeholder="Calle" data-im-placeholder <?= $paginaWebTieneEspacioFisico ? 'required' : 'disabled' ?>>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">route</i>
   </label>
   <label class="im-campo im-campo-material" data-pagina-web-direccion <?= $paginaWebTieneEspacioFisico ? '' : 'hidden' ?>>
     <span>Numero</span>
-    <input type="text" name="numero" value="<?= paginaWebCampo($paginaWebSolicitud, 'numero') ?>" placeholder="Numero" data-im-placeholder <?= $paginaWebTieneEspacioFisico ? 'required' : '' ?>>
+    <input type="text" name="numero" value="<?= paginaWebCampo($paginaWebSolicitud, 'numero') ?>" placeholder="Numero" data-im-placeholder <?= $paginaWebTieneEspacioFisico ? 'required' : 'disabled' ?>>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">pin</i>
   </label>
 
