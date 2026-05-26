@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingreso al sistema</title>
+  <style>
+    :root {
+      --bg-start: #eef5f2;
+      --bg-end: #f7f4ec;
+      --surface: #ffffff;
+      --text: #18211f;
+      --muted: #65716d;
+      --line: #dce4df;
+      --primary: #16846f;
+      --primary-dark: #0f6656;
+      --focus: rgba(22, 132, 111, 0.22);
+      --shadow: 0 18px 44px rgba(20, 35, 31, 0.12);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(22, 132, 111, 0.12), transparent 34rem),
+        linear-gradient(135deg, var(--bg-start), var(--bg-end));
+    }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    .content {
+      width: min(100%, 980px);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+
+    .header h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.1;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .forms-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid rgba(220, 228, 223, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .card h2 {
+      font-size: 1.35rem;
+      margin-bottom: 8px;
+    }
+
+    .card .intro {
+      min-height: 42px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+      margin-bottom: 22px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 13px;
+      color: var(--text);
+      background: #fbfdfc;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px var(--focus);
+    }
+
+    input::placeholder {
+      color: #98a29e;
+    }
+
+    .button {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 4px;
+      border: 0;
+      border-radius: 12px;
+      color: #ffffff;
+      background: var(--primary);
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .button:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 10px 24px rgba(22, 132, 111, 0.24);
+      transform: translateY(-1px);
+    }
+
+    .button:focus-visible {
+      outline: 4px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    /* En mobile las tarjetas se apilan para conservar lectura y espacio tactil. */
+    @media (max-width: 760px) {
+      .page {
+        align-items: flex-start;
+        padding: 24px 16px;
+      }
+
+      .header {
+        margin-bottom: 20px;
+      }
+
+      .forms-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .card {
+        padding: 22px;
+      }
+
+      .card .intro {
+        min-height: auto;
+      }
+    }
+
+    /* Ajuste para pantallas de escritorio bajas, evitando scroll en usos normales. */
+    @media (min-width: 761px) and (max-height: 720px) {
+      .page {
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+
+      .header {
+        margin-bottom: 18px;
+      }
+
+      .header h1 {
+        font-size: 2.2rem;
+      }
+
+      .card {
+        padding: 22px;
+      }
+
+      .form-group {
+        margin-bottom: 12px;
+      }
+
+      input,
+      .button {
+        min-height: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="content" aria-labelledby="page-title">
+      <header class="header">
+        <h1 id="page-title">Ingreso al sistema</h1>
+        <p>Accedé con tu cuenta o registrate para comenzar</p>
+      </header>
+
+      <div class="forms-grid">
+        <article class="card" aria-labelledby="login-title">
+          <h2 id="login-title">Iniciar sesión</h2>
+          <p class="intro">Ingresá tus datos para acceder a tu cuenta.</p>
+
+          <!-- Completar el atributo action cuando exista el endpoint de autenticacion. -->
+          <form action="" method="post">
+            <div class="form-group">
+              <label for="login-user">Email o usuario</label>
+              <input
+                type="text"
+                id="login-user"
+                name="usuario"
+                placeholder="tu@email.com"
+                autocomplete="username"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="login-password">Contraseña</label>
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                placeholder="Ingresá tu contraseña"
+                autocomplete="current-password"
+                minlength="6"
+                required
+              >
+            </div>
+
+            <button class="button" type="submit">Iniciar sesión</button>
+          </form>
+        </article>
+
+        <article class="card" aria-labelledby="register-title">
+          <h2 id="register-title">Registrarse</h2>
+          <p class="intro">Creá una cuenta nueva para empezar a usar el sistema.</p>
+
+          <!-- Completar el atributo action cuando exista el endpoint de registro. -->
+          <form action="" method="post">
+            <div class="form-group">
+              <label for="register-name">Nombre</label>
+              <input
+                type="text"
+                id="register-name"
+                name="nombre"
+                placeholder="Tu nombre"
+                autocomplete="name"
+                minlength="2"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="register-email">Email</label>
+              <input
+                type="email"
+                id="register-email"
+                name="email"
+                placeholder="tu@email.com"
+                autocomplete="email"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="register-password">Contraseña</label>
+              <input
+                type="password"
+                id="register-password"
+                name="password"
+                placeholder="Mínimo 6 caracteres"
+                autocomplete="new-password"
+                minlength="6"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="register-password-confirm">Confirmar contraseña</label>
+              <input
+                type="password"
+                id="register-password-confirm"
+                name="password_confirmacion"
+                placeholder="Repetí la contraseña"
+                autocomplete="new-password"
+                minlength="6"
+                required
+              >
+            </div>
+
+            <button class="button" type="submit">Registrarse</button>
+          </form>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
