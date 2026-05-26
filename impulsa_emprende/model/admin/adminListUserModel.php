@@ -9,7 +9,41 @@ class AdminListUserModel
     public function obtenerUsuarios(): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT ua.id,
+            $this->selectUsuariosSql() . '
+             ORDER BY ua.created_at DESC, ua.id DESC'
+        );
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function buscarUsuarios(string $busqueda): array
+    {
+        $busqueda = trim($busqueda);
+        if (mb_strlen($busqueda) < 4) {
+            return $this->obtenerUsuarios();
+        }
+
+        $stmt = $this->pdo->prepare(
+            $this->selectUsuariosSql() . "
+             WHERE ua.correo LIKE :busqueda
+                OR uc.correo LIKE :busqueda
+                OR ui.nombre LIKE :busqueda
+                OR ui.apellido LIKE :busqueda
+                OR ui.apodo LIKE :busqueda
+                OR CONCAT_WS(' ', ui.nombre, ui.apellido) LIKE :busqueda
+             ORDER BY ua.created_at DESC, ua.id DESC"
+        );
+        $stmt->execute([
+            'busqueda' => '%' . $busqueda . '%',
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function selectUsuariosSql(): string
+    {
+        return 'SELECT ua.id,
                     ua.correo AS correo_login,
                     ua.rol,
                     ua.email_verified_at,
@@ -25,11 +59,6 @@ class AdminListUserModel
              FROM user_auth ua
              LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
              LEFT JOIN user_contacto uc ON uc.user_auth_id = ua.id
-             LEFT JOIN user_params up ON up.user_auth_id = ua.id
-             ORDER BY ua.created_at DESC, ua.id DESC'
-        );
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+             LEFT JOIN user_params up ON up.user_auth_id = ua.id';
     }
 }

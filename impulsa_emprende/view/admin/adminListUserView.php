@@ -67,11 +67,11 @@ $formatearFecha = static function (?string $fecha): string {
       </div>
       <nav class="im-navegacion">
         <a class="im-nav-item" href="/impulsa_emprende/controller/admin/dashboard.php">
-          <span class="im-nav-item__icono" aria-hidden="true"></span>
+          <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
         <a class="im-nav-item activo" href="/impulsa_emprende/controller/admin/adminListUserController.php">
-          <span class="im-nav-item__icono" aria-hidden="true"></span>
+          <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">groups</span>
           <span class="im-nav-item__texto">Usuarios</span>
         </a>
       </nav>
@@ -110,6 +110,11 @@ $formatearFecha = static function (?string $fecha): string {
                   <h3>Usuarios registrados</h3>
                   <p>Ordenados por fecha de alta mas reciente.</p>
                 </div>
+                <label class="im-campo im-campo-material" data-im-campo="generico">
+                  <span>Buscar usuario</span>
+                  <input type="search" data-buscar-usuarios placeholder="Nombre o correo" autocomplete="off">
+                  <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">search</i>
+                </label>
               </div>
               <div class="im-tabla-tareas__scroll">
                 <table class="im-tabla-tareas">
@@ -125,7 +130,7 @@ $formatearFecha = static function (?string $fecha): string {
                       <th>Alta</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody data-tabla-usuarios>
                     <?php foreach ($usuarios as $usuarioListado): ?>
                       <?php
                       $nombreCompleto = trim((string) ($usuarioListado['nombre'] ?? '') . ' ' . (string) ($usuarioListado['apellido'] ?? ''));
@@ -166,6 +171,7 @@ $formatearFecha = static function (?string $fecha): string {
                   </tbody>
                 </table>
               </div>
+              <p data-usuarios-mensaje hidden>No se encontraron usuarios para esa busqueda.</p>
             </article>
           <?php else: ?>
             <article class="im-tarjeta">
@@ -179,5 +185,117 @@ $formatearFecha = static function (?string $fecha): string {
   </div>
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="../../../assets/impulsa_material/js/material.js"></script>
+  <script>
+    (() => {
+      const input = document.querySelector('[data-buscar-usuarios]');
+      const tbody = document.querySelector('[data-tabla-usuarios]');
+      const mensaje = document.querySelector('[data-usuarios-mensaje]');
+      if (!input || !tbody || !mensaje) {
+        return;
+      }
+
+      const filasIniciales = tbody.innerHTML;
+      let timeoutId = null;
+      let controller = null;
+
+      const escapeHtml = (value) => String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+
+      const formatearRol = (rol) => String(rol ?? '').replaceAll('_', ' ').replace(/\b\w/g, letra => letra.toUpperCase());
+
+      const formatearFecha = (fecha) => {
+        if (!fecha) {
+          return '-';
+        }
+
+        const date = new Date(String(fecha).replace(' ', 'T'));
+        if (Number.isNaN(date.getTime())) {
+          return '-';
+        }
+
+        return new Intl.DateTimeFormat('es-AR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(date);
+      };
+
+      const renderUsuarios = (usuarios) => {
+        mensaje.hidden = usuarios.length > 0;
+        tbody.innerHTML = usuarios.map((usuario) => {
+          const nombreCompleto = `${usuario.nombre ?? ''} ${usuario.apellido ?? ''}`.trim();
+          const apodo = String(usuario.apodo ?? '').trim();
+          const nombreVisible = nombreCompleto || apodo || 'Sin nombre';
+          const correoLogin = String(usuario.correo_login ?? '');
+          const correoContacto = String(usuario.correo_contacto ?? '');
+          const contactoHtml = correoContacto && correoContacto !== correoLogin
+            ? `<br><small>${escapeHtml(correoContacto)}</small>`
+            : '';
+          const apodoHtml = apodo && apodo !== nombreVisible
+            ? `<br><small>${escapeHtml(apodo)}</small>`
+            : '';
+          const verificado = Boolean(usuario.email_verified_at);
+
+          return `<tr>
+            <td>${Number(usuario.id ?? 0)}</td>
+            <td class="im-tabla-tareas__nombre">${escapeHtml(nombreVisible)}${apodoHtml}</td>
+            <td><span class="im-chip">${escapeHtml(formatearRol(usuario.rol))}</span></td>
+            <td>${escapeHtml(correoLogin)}${contactoHtml}</td>
+            <td>${escapeHtml(usuario.whatsapp || '-')}</td>
+            <td>${escapeHtml(usuario.pagina_inicio || '-')}</td>
+            <td><span class="im-chip ${verificado ? 'im-chip--exito' : 'im-chip--alerta'}">${verificado ? 'Verificado' : 'Pendiente'}</span></td>
+            <td>${escapeHtml(formatearFecha(usuario.created_at))}</td>
+          </tr>`;
+        }).join('');
+      };
+
+      const buscarUsuarios = async (busqueda) => {
+        if (controller) {
+          controller.abort();
+        }
+
+        controller = new AbortController();
+        const params = new URLSearchParams({
+          ajax: 'usuarios',
+          q: busqueda,
+        });
+
+        const response = await fetch(`${window.location.pathname}?${params.toString()}`, {
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+        const data = await response.json();
+        renderUsuarios(Array.isArray(data.usuarios) ? data.usuarios : []);
+      };
+
+      input.addEventListener('input', () => {
+        const busqueda = input.value.trim();
+        window.clearTimeout(timeoutId);
+
+        if (busqueda.length < 4) {
+          if (controller) {
+            controller.abort();
+          }
+          tbody.innerHTML = filasIniciales;
+          mensaje.hidden = true;
+          return;
+        }
+
+        timeoutId = window.setTimeout(() => {
+          buscarUsuarios(busqueda).catch((error) => {
+            if (error.name !== 'AbortError') {
+              mensaje.hidden = false;
+            }
+          });
+        }, 250);
+      });
+    })();
+  </script>
 </body>
 </html>

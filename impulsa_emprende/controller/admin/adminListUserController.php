@@ -8,6 +8,18 @@ $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
 $adminListUserModel = new AdminListUserModel($pdo);
+
+if (($_GET['ajax'] ?? '') === 'usuarios') {
+    header('Content-Type: application/json; charset=UTF-8');
+
+    $busqueda = trim((string) ($_GET['q'] ?? ''));
+    echo json_encode([
+        'ok' => true,
+        'usuarios' => $adminListUserModel->buscarUsuarios($busqueda),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 $usuarios = $adminListUserModel->obtenerUsuarios();
 
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';

@@ -60,11 +60,11 @@ $formatearRol = static function (string $rol): string {
       </div>
       <nav class="im-navegacion">
         <a class="im-nav-item activo" href="#dashboard">
-          <span class="im-nav-item__icono" aria-hidden="true"></span>
+          <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
         <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminListUserController.php">
-          <span class="im-nav-item__icono" aria-hidden="true"></span>
+          <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">groups</span>
           <span class="im-nav-item__texto">Usuarios</span>
         </a>
       </nav>
