@@ -9,16 +9,16 @@ if (!function_exists('buyerCampo')) {
     }
 }
 ?>
-<form class="im-formulario im-stepper__contenido" action="" method="post">
+<form class="im-formulario im-formulario--tres-columnas im-stepper__contenido" action="" method="post">
   <input type="hidden" name="buyer_accion" value="guardar_buyer">
   <input type="hidden" name="buyer_persona_estructura" value="<?= buyerCampo($buyerDatos, 'buyer_persona_estructura') ?>" data-buyer-estructura>
-  <div class="im-tarjeta__cabecera">
+  <div class="im-tarjeta__cabecera im-campo--ancho">
     <div>
       <span class="im-etiqueta">Construi el perfil de la persona que tiene mas probabilidad de comprarte.</span>
     </div>
   </div>
-  <label class="im-campo im-campo-material im-campo--ancho">
-    <span>Colocale un nonmbre a tu cliente ideal</span>
+  <label class="im-campo im-campo-material">
+    <span>Colocale un nombre a tu cliente ideal</span>
     <input type="text" name="cliente_ideal" value="<?= buyerCampo($buyerDatos, 'cliente_ideal') ?>" placeholder="Quien es tu cliente ideal" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">groups</i>
   </label>
@@ -32,47 +32,47 @@ if (!function_exists('buyerCampo')) {
     <input type="text" name="ocupacion_realidad_diaria" value="<?= buyerCampo($buyerDatos, 'ocupacion_realidad_diaria') ?>" placeholder="Trabajo, rutina, contexto" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">work</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Problema o necesidad</span>
     <input type="text" name="problema_necesidad" value="<?= buyerCampo($buyerDatos, 'problema_necesidad') ?>" placeholder="Que necesita resolver" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">help</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Preocupacion o frustracion</span>
     <input type="text" name="preocupacion_frustracion" value="<?= buyerCampo($buyerDatos, 'preocupacion_frustracion') ?>" placeholder="Que le preocupa o frustra" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">sentiment_dissatisfied</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Objetivo de mejora</span>
     <input type="text" name="objetivo_mejora" value="<?= buyerCampo($buyerDatos, 'objetivo_mejora') ?>" placeholder="Que quiere mejorar" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">trending_up</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Motivacion de busqueda</span>
     <input type="text" name="motivacion_busqueda" value="<?= buyerCampo($buyerDatos, 'motivacion_busqueda') ?>" placeholder="Que lo motiva a buscar una solucion" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">search</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Frenos o dudas</span>
     <input type="text" name="freno_dudas" value="<?= buyerCampo($buyerDatos, 'freno_dudas') ?>" placeholder="Que dudas le impiden avanzar" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">block</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Criterio de eleccion</span>
     <input type="text" name="criterio_eleccion" value="<?= buyerCampo($buyerDatos, 'criterio_eleccion') ?>" placeholder="Que compara antes de elegir" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">rule</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Busqueda de informacion</span>
     <input type="text" name="busqueda_informacion" value="<?= buyerCampo($buyerDatos, 'busqueda_informacion') ?>" placeholder="Donde se informa" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">travel_explore</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Decision de compra</span>
     <input type="text" name="decision_compra" value="<?= buyerCampo($buyerDatos, 'decision_compra') ?>" placeholder="Como toma la decision" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">shopping_cart_checkout</i>
   </label>
-  <label class="im-campo im-campo-material im-campo--ancho">
+  <label class="im-campo im-campo-material">
     <span>Motivo de eleccion</span>
     <input type="text" name="motivo_eleccion" value="<?= buyerCampo($buyerDatos, 'motivo_eleccion') ?>" placeholder="Por que te elegiria" data-im-placeholder>
     <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">verified</i>
