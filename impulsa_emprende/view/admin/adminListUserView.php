@@ -86,6 +86,19 @@ $formatearFecha = static function (?string $fecha): string {
     .im-usuario-accion-eliminar > span::before {
       content: "delete";
     }
+
+    .im-tabla-tareas__acciones {
+      overflow: visible;
+      position: relative;
+    }
+
+    .im-tabla-tareas__menu[data-usuario-menu].abierto {
+      z-index: 120;
+    }
+
+    .im-tabla-tareas__menu[data-usuario-menu] > .im-tabla-tareas__menu-panel {
+      z-index: 130;
+    }
   </style>
 </head>
 <body>
@@ -404,6 +417,7 @@ $formatearFecha = static function (?string $fecha): string {
 
       const cerrarMenus = () => {
         document.querySelectorAll('[data-usuario-menu]').forEach((menu) => {
+          menu.classList.remove('abierto');
           menu.querySelector('[data-usuario-menu-panel]')?.classList.remove('abierto');
           menu.querySelector('[data-usuario-menu-trigger]')?.setAttribute('aria-expanded', 'false');
         });
@@ -427,6 +441,7 @@ $formatearFecha = static function (?string $fecha): string {
           const panel = menu?.querySelector('[data-usuario-menu-panel]');
           const abrir = !panel?.classList.contains('abierto');
           cerrarMenus();
+          menu?.classList.toggle('abierto', abrir);
           panel?.classList.toggle('abierto', abrir);
           trigger.setAttribute('aria-expanded', String(abrir));
           return;
