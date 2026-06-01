@@ -4,7 +4,16 @@ $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
 $usuarios = $usuarios ?? [];
+$estado = $estado ?? '';
 $totalUsuarios = count($usuarios);
+$h = static fn ($valor): string => htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
+$mensajesEstado = [
+    'usuario_eliminado' => ['tipo' => 'exito', 'texto' => 'Usuario eliminado correctamente.'],
+    'usuario_error_eliminar' => ['tipo' => 'error', 'texto' => 'No se pudo eliminar el usuario. Revisa las relaciones asociadas e intenta nuevamente.'],
+    'usuario_id_invalido' => ['tipo' => 'error', 'texto' => 'El usuario seleccionado no es valido.'],
+    'usuario_no_autodelete' => ['tipo' => 'error', 'texto' => 'No podes eliminar el usuario con el que tenes la sesion activa.'],
+];
+$mensajeEstado = $mensajesEstado[$estado] ?? null;
 $formatearRol = static function (string $rol): string {
     return ucwords(str_replace('_', ' ', $rol));
 };
@@ -50,6 +59,32 @@ $formatearFecha = static function (?string $fecha): string {
 
     .im-nav-item__icono[data-icon]::before {
       content: attr(data-icon);
+    }
+
+    .im-alerta--exito {
+      background: color-mix(in srgb, var(--im-color-exito) 14%, var(--im-color-superficie));
+      color: var(--im-color-exito);
+    }
+
+    .im-alerta--error {
+      background: #fdecec;
+      color: #ba1a1a;
+    }
+
+    .im-usuario-modal {
+      width: min(560px, calc(100vw - 2rem));
+    }
+
+    .im-usuario-modal form {
+      display: contents;
+    }
+
+    .im-usuario-accion-eliminar {
+      color: #ba1a1a;
+    }
+
+    .im-usuario-accion-eliminar > span::before {
+      content: "delete";
     }
   </style>
 </head>
@@ -111,6 +146,12 @@ $formatearFecha = static function (?string $fecha): string {
             <span class="im-chip"><?= number_format($totalUsuarios, 0, ',', '.') ?> usuarios</span>
           </div>
 
+          <?php if ($mensajeEstado): ?>
+            <div class="im-alerta im-alerta--<?= $h($mensajeEstado['tipo']) ?>" role="status">
+              <?= $h($mensajeEstado['texto']) ?>
+            </div>
+          <?php endif; ?>
+
           <?php if ($totalUsuarios > 0): ?>
             <article class="im-tabla-tareas__tarjeta">
               <div class="im-tabla-tareas__cabecera">
@@ -136,6 +177,7 @@ $formatearFecha = static function (?string $fecha): string {
                       <th>Pagina inicio</th>
                       <th>Verificacion</th>
                       <th>Alta</th>
+                      <th class="im-tabla-tareas__acciones">Acciones</th>
                     </tr>
                   </thead>
                   <tbody data-tabla-usuarios>
@@ -174,6 +216,17 @@ $formatearFecha = static function (?string $fecha): string {
                           <?php endif; ?>
                         </td>
                         <td><?= htmlspecialchars($formatearFecha($usuarioListado['created_at'] ?? null), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td class="im-tabla-tareas__acciones">
+                          <div class="im-tabla-tareas__menu" data-usuario-menu>
+                            <button class="im-boton-icono im-boton-icono--tabla-opciones material-symbols-rounded im-tooltip" type="button" data-usuario-menu-trigger aria-label="Acciones de usuario" aria-haspopup="menu" aria-expanded="false" data-tooltip="Acciones">more_horiz</button>
+                            <div class="im-menu-flotante im-tabla-tareas__menu-panel" role="menu" data-usuario-menu-panel>
+                              <button class="im-usuario-accion-eliminar" type="button" role="menuitem" data-eliminar-usuario="<?= (int) ($usuarioListado['id'] ?? 0) ?>" data-usuario-nombre="<?= $h($nombreVisible) ?>" data-usuario-correo="<?= $h($correoLogin) ?>">
+                                <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                                Eliminar usuario
+                              </button>
+                            </div>
+                          </div>
+                        </td>
                       </tr>
                     <?php endforeach; ?>
                   </tbody>
@@ -191,6 +244,31 @@ $formatearFecha = static function (?string $fecha): string {
       </main>
     </div>
   </div>
+
+  <div class="im-modal-cortina" data-cerrar-eliminar-usuario></div>
+  <section class="im-dialog im-usuario-modal" role="dialog" aria-modal="true" aria-labelledby="eliminar-usuario-titulo" aria-hidden="true" data-modal-eliminar-usuario>
+    <header class="im-dialog__cabecera">
+      <div>
+        <p class="im-sobrelinea">Accion irreversible</p>
+        <h3 id="eliminar-usuario-titulo">Eliminar usuario</h3>
+      </div>
+      <button class="im-boton-icono" type="button" data-cerrar-eliminar-usuario aria-label="Cerrar dialog"></button>
+    </header>
+    <form method="post" action="/impulsa_emprende/controller/admin/adminListUserController.php">
+      <input type="hidden" name="accion" value="eliminar_usuario">
+      <input type="hidden" name="usuario_id" value="" data-eliminar-usuario-id>
+      <div class="im-dialog__contenido">
+        <p><strong data-eliminar-usuario-nombre>Usuario seleccionado</strong></p>
+        <p data-eliminar-usuario-correo></p>
+        <p>Estas seguro de que deseas eliminar este usuario? Esta accion eliminara permanentemente el usuario y toda la informacion relacionada. No se puede deshacer.</p>
+      </div>
+      <footer class="im-dialog__acciones">
+        <button class="im-boton im-boton--texto" type="button" data-cerrar-eliminar-usuario>Cancelar</button>
+        <button class="im-boton im-boton--principal im-usuario-accion-eliminar" type="submit">Confirmar eliminacion</button>
+      </footer>
+    </form>
+  </section>
+
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="../../../assets/impulsa_material/js/material.js"></script>
   <script>
@@ -234,6 +312,17 @@ $formatearFecha = static function (?string $fecha): string {
         }).format(date);
       };
 
+      const renderAccionesUsuario = (usuario, nombreVisible, correoLogin) => `
+        <div class="im-tabla-tareas__menu" data-usuario-menu>
+          <button class="im-boton-icono im-boton-icono--tabla-opciones material-symbols-rounded im-tooltip" type="button" data-usuario-menu-trigger aria-label="Acciones de usuario" aria-haspopup="menu" aria-expanded="false" data-tooltip="Acciones">more_horiz</button>
+          <div class="im-menu-flotante im-tabla-tareas__menu-panel" role="menu" data-usuario-menu-panel>
+            <button class="im-usuario-accion-eliminar" type="button" role="menuitem" data-eliminar-usuario="${Number(usuario.id ?? 0)}" data-usuario-nombre="${escapeHtml(nombreVisible)}" data-usuario-correo="${escapeHtml(correoLogin)}">
+              <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+              Eliminar usuario
+            </button>
+          </div>
+        </div>`;
+
       const renderUsuarios = (usuarios) => {
         mensaje.hidden = usuarios.length > 0;
         tbody.innerHTML = usuarios.map((usuario) => {
@@ -259,6 +348,7 @@ $formatearFecha = static function (?string $fecha): string {
             <td>${escapeHtml(usuario.pagina_inicio || '-')}</td>
             <td><span class="im-chip ${verificado ? 'im-chip--exito' : 'im-chip--alerta'}">${verificado ? 'Verificado' : 'Pendiente'}</span></td>
             <td>${escapeHtml(formatearFecha(usuario.created_at))}</td>
+            <td class="im-tabla-tareas__acciones">${renderAccionesUsuario(usuario, nombreVisible, correoLogin)}</td>
           </tr>`;
         }).join('');
       };
@@ -302,6 +392,72 @@ $formatearFecha = static function (?string $fecha): string {
             }
           });
         }, 250);
+      });
+    })();
+
+    (() => {
+      const modal = document.querySelector('[data-modal-eliminar-usuario]');
+      const cortina = document.querySelector('[data-cerrar-eliminar-usuario].im-modal-cortina');
+      const inputId = document.querySelector('[data-eliminar-usuario-id]');
+      const nombre = document.querySelector('[data-eliminar-usuario-nombre]');
+      const correo = document.querySelector('[data-eliminar-usuario-correo]');
+
+      const cerrarMenus = () => {
+        document.querySelectorAll('[data-usuario-menu]').forEach((menu) => {
+          menu.querySelector('[data-usuario-menu-panel]')?.classList.remove('abierto');
+          menu.querySelector('[data-usuario-menu-trigger]')?.setAttribute('aria-expanded', 'false');
+        });
+      };
+
+      const alternarModal = (abrir) => {
+        if (!modal || !cortina) {
+          return;
+        }
+
+        modal.classList.toggle('abierto', abrir);
+        cortina.classList.toggle('abierto', abrir);
+        modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+      };
+
+      document.addEventListener('click', (evento) => {
+        const trigger = evento.target.closest('[data-usuario-menu-trigger]');
+        if (trigger) {
+          evento.stopPropagation();
+          const menu = trigger.closest('[data-usuario-menu]');
+          const panel = menu?.querySelector('[data-usuario-menu-panel]');
+          const abrir = !panel?.classList.contains('abierto');
+          cerrarMenus();
+          panel?.classList.toggle('abierto', abrir);
+          trigger.setAttribute('aria-expanded', String(abrir));
+          return;
+        }
+
+        const botonEliminar = evento.target.closest('[data-eliminar-usuario]');
+        if (botonEliminar) {
+          cerrarMenus();
+          if (inputId && nombre && correo) {
+            inputId.value = botonEliminar.dataset.eliminarUsuario || '';
+            nombre.textContent = botonEliminar.dataset.usuarioNombre || 'Usuario seleccionado';
+            correo.textContent = botonEliminar.dataset.usuarioCorreo || '';
+          }
+          alternarModal(true);
+          return;
+        }
+
+        if (!evento.target.closest('[data-usuario-menu]')) {
+          cerrarMenus();
+        }
+      });
+
+      document.querySelectorAll('[data-cerrar-eliminar-usuario]').forEach((boton) => {
+        boton.addEventListener('click', () => alternarModal(false));
+      });
+
+      document.addEventListener('keydown', (evento) => {
+        if (evento.key === 'Escape') {
+          cerrarMenus();
+          alternarModal(false);
+        }
       });
     })();
   </script>
