@@ -38,7 +38,7 @@ if (!function_exists('paginaWebFecha')) {
         <span class="im-marca__isotipo" aria-hidden="true"><?= paginaWebH($usuarioInicial) ?></span>
         <div class="im-marca__texto">
           <strong><?= paginaWebH($usuarioMarcaNombre) ?></strong>
-          <span>Cliente</span>
+          <span>Emprendedor</span>
         </div>
       </div>
       <nav class="im-navegacion">

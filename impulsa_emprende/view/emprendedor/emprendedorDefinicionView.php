@@ -29,7 +29,7 @@ if (!function_exists('definicionH')) {
         <span class="im-marca__isotipo" aria-hidden="true"><?= definicionH($usuarioInicial) ?></span>
         <div class="im-marca__texto">
           <strong><?= definicionH($usuarioMarcaNombre) ?></strong>
-          <span>Cliente</span>
+          <span>Emprendedor</span>
         </div>
       </div>
       <nav class="im-navegacion">

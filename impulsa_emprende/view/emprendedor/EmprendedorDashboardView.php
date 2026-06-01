@@ -86,7 +86,7 @@ if (!function_exists('userDashEstado')) {
         <span class="im-marca__isotipo" aria-hidden="true"><?= userDashH($usuarioInicial) ?></span>
         <div class="im-marca__texto">
           <strong><?= userDashH($usuarioMarcaNombre) ?></strong>
-          <span>Cliente</span>
+          <span>Emprendedor</span>
         </div>
       </div>
       <nav class="im-navegacion">
