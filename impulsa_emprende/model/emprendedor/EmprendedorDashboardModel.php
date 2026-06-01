@@ -1,6 +1,6 @@
 <?php
 
-class UserDashboardModel
+class EmprendedorDashboardModel
 {
     public function __construct(private PDO $pdo)
     {

@@ -33,7 +33,7 @@ if (!function_exists('definicionH')) {
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/user/UserDashboardController.php">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php">
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
@@ -41,7 +41,7 @@ if (!function_exists('definicionH')) {
           <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
           <span class="im-nav-item__texto">Definicion</span>
         </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/user/UserPaginaWebController.php">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php">
           <span class="material-symbols-rounded" aria-hidden="true">web</span>
           <span class="im-nav-item__texto">Pagina web</span>
         </a>

@@ -1,13 +1,13 @@
 <?php
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
-require_once __DIR__ . '/../../model/user/UserPaginaWebModel.php';
+require_once __DIR__ . '/../../model/emprendedor/EmprendedorPaginaWebModel.php';
 
-$usuario = authRequiereRol('impulsa_usuario');
+$usuario = authRequiereRol('impulsa_emprendedor');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
-$paginaWebModel = new UserPaginaWebModel($pdo);
+$paginaWebModel = new EmprendedorPaginaWebModel($pdo);
 $paginaWebUsuario = $paginaWebModel->obtenerUsuario((int) $usuario['id']);
 $paginaWebEstadoDefinicion = $paginaWebModel->obtenerEstadoDefinicion((int) $usuario['id']);
 $paginaWebDefinicionCompleta = $paginaWebModel->tieneDefinicionCompleta((int) $usuario['id']);
@@ -27,4 +27,4 @@ if ($usuarioMarcaNombre === '') {
 $paginaWebSnackbar = $_SESSION['pagina_web_snackbar'] ?? null;
 unset($_SESSION['pagina_web_snackbar']);
 
-require __DIR__ . '/../../view/user/UserPaginaWebView.php';
+require __DIR__ . '/../../view/emprendedor/EmprendedorPaginaWebView.php';

@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([
                     'correo' => $correo,
                     'password' => password_hash($password, PASSWORD_DEFAULT),
-                    'rol' => 'impulsa_usuario',
+                    'rol' => 'impulsa_emprendedor',
                     'verification_token' => $verificationToken,
                 ]);
 

@@ -1,13 +1,13 @@
 <?php
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
-require_once __DIR__ . '/../../model/user/UserDashboardModel.php';
+require_once __DIR__ . '/../../model/emprendedor/EmprendedorDashboardModel.php';
 
-$usuario = authRequiereRol('impulsa_usuario');
+$usuario = authRequiereRol('impulsa_emprendedor');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
-$dashboardModel = new UserDashboardModel($pdo);
+$dashboardModel = new EmprendedorDashboardModel($pdo);
 $dashboardData = $dashboardModel->obtenerDashboard((int) $usuario['id']);
 
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';
@@ -21,4 +21,4 @@ if ($usuarioMarcaNombre === '') {
     $usuarioMarcaNombre = 'Cliente';
 }
 
-require __DIR__ . '/../../view/user/UserDashboardView.php';
+require __DIR__ . '/../../view/emprendedor/EmprendedorDashboardView.php';

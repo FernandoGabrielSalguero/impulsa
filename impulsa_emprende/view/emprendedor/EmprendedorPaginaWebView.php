@@ -42,11 +42,11 @@ if (!function_exists('paginaWebFecha')) {
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/user/UserDashboardController.php">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php">
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/user/userDefinicionController.php">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php">
           <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
           <span class="im-nav-item__texto">Definicion</span>
         </a>
@@ -100,7 +100,7 @@ if (!function_exists('paginaWebFecha')) {
                 <span class="im-chip <?= $paginaWebEstadoDefinicion['buyer'] ? 'im-chip--completado' : 'im-chip--pendiente' ?>">Buyer persona</span>
               </div>
               <div class="im-formulario__acciones">
-                <a class="im-boton im-boton--principal" href="/impulsa_emprende/controller/user/userDefinicionController.php">Completar definicion</a>
+                <a class="im-boton im-boton--principal" href="/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php">Completar definicion</a>
               </div>
             </article>
           <?php elseif ($paginaWebSolicitud): ?>

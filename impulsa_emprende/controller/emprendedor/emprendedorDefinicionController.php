@@ -1,13 +1,13 @@
 <?php
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
-require_once __DIR__ . '/../../model/user/userDefinicionModel.php';
+require_once __DIR__ . '/../../model/emprendedor/emprendedorDefinicionModel.php';
 
-$usuario = authRequiereRol('impulsa_usuario');
+$usuario = authRequiereRol('impulsa_emprendedor');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
-$definicionModel = new UserDefinicionModel($pdo);
+$definicionModel = new EmprendedorDefinicionModel($pdo);
 $definicionUsuario = $definicionModel->obtenerUsuario((int) $usuario['id']);
 
 require __DIR__ . '/../../partials/mision/misionController.php';
@@ -27,4 +27,4 @@ if ($usuarioMarcaNombre === '') {
 $definicionSnackbar = $_SESSION['definicion_snackbar'] ?? null;
 unset($_SESSION['definicion_snackbar']);
 
-require __DIR__ . '/../../view/user/userDefinicionView.php';
+require __DIR__ . '/../../view/emprendedor/emprendedorDefinicionView.php';

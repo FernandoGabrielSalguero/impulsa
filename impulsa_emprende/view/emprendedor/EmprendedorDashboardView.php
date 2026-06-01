@@ -94,11 +94,11 @@ if (!function_exists('userDashEstado')) {
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/user/userDefinicionController.php">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php">
           <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
           <span class="im-nav-item__texto">Definicion</span>
         </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/user/UserPaginaWebController.php">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php">
           <span class="material-symbols-rounded" aria-hidden="true">web</span>
           <span class="im-nav-item__texto">Pagina web</span>
         </a>
@@ -203,7 +203,7 @@ if (!function_exists('userDashEstado')) {
               <?php elseif ($definicionCompleta): ?>
                 <p>Ya podes completar el formulario para solicitar tu pagina web.</p>
                 <div class="im-formulario__acciones">
-                  <a class="im-boton im-boton--principal" href="/impulsa_emprende/controller/user/UserPaginaWebController.php">Solicitar</a>
+                  <a class="im-boton im-boton--principal" href="/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php">Solicitar</a>
                 </div>
               <?php else: ?>
                 <p>Completa primero mision, vision y buyer persona para habilitar la solicitud.</p>

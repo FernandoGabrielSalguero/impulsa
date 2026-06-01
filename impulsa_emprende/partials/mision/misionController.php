@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['mision_accion'] ?? '') ===
             && isset($definicionModel)
             && method_exists($definicionModel, 'definicionCompleta')
             && $definicionModel->definicionCompleta((int) $usuario['id'])) {
-            header('Location: /impulsa_emprende/controller/user/UserDashboardController.php');
+            header('Location: /impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php');
             exit;
         }
     } catch (Throwable $e) {

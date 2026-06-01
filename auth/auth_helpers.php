@@ -49,7 +49,7 @@ function authDashboardPorRol(string $rol): ?string
 {
     $dashboards = [
         'impulsa_administrador' => '/impulsa_emprende/controller/admin/dashboard.php',
-        'impulsa_usuario' => '/impulsa_emprende/controller/user/UserDashboardController.php',
+        'impulsa_emprendedor' => '/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php',
     ];
 
     return $dashboards[$rol] ?? null;

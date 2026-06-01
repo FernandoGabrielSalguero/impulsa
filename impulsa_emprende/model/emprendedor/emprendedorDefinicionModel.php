@@ -1,6 +1,6 @@
 <?php
 
-class UserDefinicionModel
+class EmprendedorDefinicionModel
 {
     public function __construct(private PDO $pdo)
     {

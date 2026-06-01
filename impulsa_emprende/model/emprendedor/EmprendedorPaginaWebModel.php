@@ -1,6 +1,6 @@
 <?php
 
-class UserPaginaWebModel
+class EmprendedorPaginaWebModel
 {
     public function __construct(private PDO $pdo)
     {
