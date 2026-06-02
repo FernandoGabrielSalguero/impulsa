@@ -7,6 +7,7 @@ $error = '';
 $correoError = '';
 $correoValor = '';
 $nombreValor = '';
+$esEmbed = ($_GET['embed'] ?? '') === '1';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = trim((string) ($_POST['nombre'] ?? ''));
@@ -101,8 +102,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/impulsa_material/css/material.css">
+  <style>
+    body.auth-embed {
+      min-height: auto;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    body.auth-embed .im-contenido {
+      padding: .65rem;
+    }
+
+    body.auth-embed .im-formulario {
+      gap: .7rem;
+    }
+
+    body.auth-embed .im-campo-material input {
+      min-height: 50px;
+      padding-top: .9rem;
+      padding-bottom: .6rem;
+    }
+
+    body.auth-embed .im-campo-material .im-campo__boton-icono {
+      top: .4rem;
+    }
+
+    body.auth-embed .im-campo-material .im-campo__icono {
+      top: .85rem;
+    }
+
+    body.auth-embed .im-boton {
+      min-height: 44px;
+    }
+  </style>
 </head>
-<body>
+<body<?= $esEmbed ? ' class="auth-embed"' : '' ?>>
   <main class="im-contenido">
     <?php if ($error !== ''): ?>
       <div class="im-alerta im-alerta--info"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
