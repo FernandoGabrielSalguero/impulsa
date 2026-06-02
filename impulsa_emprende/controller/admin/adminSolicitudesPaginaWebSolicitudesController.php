@@ -9,6 +9,7 @@ $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
 $solicitudesPaginaWebModel = new AdminSolicitudesPaginaWebSolicitudesModel($pdo);
 $solicitudesPaginaWeb = $solicitudesPaginaWebModel->obtenerSolicitudes();
+$solicitudesPaginaWebExternas = $solicitudesPaginaWebModel->obtenerSolicitudesExternas();
 
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';
 

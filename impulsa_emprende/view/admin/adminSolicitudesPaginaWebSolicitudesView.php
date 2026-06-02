@@ -4,7 +4,10 @@ $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
 $solicitudesPaginaWeb = $solicitudesPaginaWeb ?? [];
+$solicitudesPaginaWebExternas = $solicitudesPaginaWebExternas ?? [];
 $totalSolicitudes = count($solicitudesPaginaWeb);
+$totalSolicitudesExternas = count($solicitudesPaginaWebExternas);
+$totalSolicitudesTodas = $totalSolicitudes + $totalSolicitudesExternas;
 $h = static fn ($valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
 $formatearFecha = static function (?string $fecha): string {
     if (!$fecha) {
@@ -43,6 +46,35 @@ $camposBooleanosSolicitud = [
     'hosting_propio',
     'espacio_fisico',
     'completado',
+];
+$preguntasSolicitudExterna = [
+    'id' => 'ID',
+    'nombre' => 'Nombre',
+    'nombre_proyecto' => 'Nombre del proyecto',
+    'correo' => 'Correo',
+    'whatsapp' => 'WhatsApp',
+    'q1_nombre_comercial' => 'Nombre comercial',
+    'q2_actividad' => 'Actividad',
+    'q3_objetivo' => 'Objetivo',
+    'q4_publico' => 'Publico',
+    'q5_accion_principal' => 'Accion principal',
+    'q6_propuestas_destacar' => 'Propuestas a destacar',
+    'q7_diferencial' => 'Diferencial',
+    'q8_secciones' => 'Secciones',
+    'q9_textos' => 'Textos',
+    'q10_contacto' => 'Contacto',
+    'q11_material_marca' => 'Material de marca',
+    'q12_estilo_visual' => 'Estilo visual',
+    'q13_referencias' => 'Referencias',
+    'q14_recursos_visuales' => 'Recursos visuales',
+    'q15_imagenes_apoyo' => 'Imagenes de apoyo',
+    'q16_dominio_hosting' => 'Dominio y hosting',
+    'q17_correos_corporativos' => 'Correos corporativos',
+    'q18_requerimientos_adicionales' => 'Requerimientos adicionales',
+    'form_source' => 'Origen del formulario',
+    'ip_address' => 'IP',
+    'user_agent' => 'Navegador',
+    'created_at' => 'Fecha de ingreso',
 ];
 $nombreSolicitante = static function (array $solicitud): string {
     $nombreCompleto = trim((string) ($solicitud['usuario_nombre'] ?? '') . ' ' . (string) ($solicitud['usuario_apellido'] ?? ''));
@@ -180,14 +212,14 @@ $nombreSolicitante = static function (array $solicitud): string {
               <h2>Solicitudes recibidas</h2>
               <p>Solicitudes cargadas desde el formulario interno de landing page para coordinar reuniones fuera del sistema.</p>
             </div>
-            <span class="im-chip"><?= number_format($totalSolicitudes, 0, ',', '.') ?> solicitudes</span>
+            <span class="im-chip"><?= number_format($totalSolicitudesTodas, 0, ',', '.') ?> solicitudes</span>
           </div>
 
           <?php if ($totalSolicitudes > 0): ?>
             <article class="im-tabla-tareas__tarjeta">
               <div class="im-tabla-tareas__cabecera">
                 <div>
-                  <h3>Solicitudes de pagina web</h3>
+                  <h3>Solicitudes de páginas web Impulsa Emprende</h3>
                   <p>Ordenadas por fecha de ingreso mas reciente.</p>
                 </div>
               </div>
@@ -234,8 +266,56 @@ $nombreSolicitante = static function (array $solicitud): string {
             </article>
           <?php else: ?>
             <article class="im-tarjeta">
-              <h3>No hay solicitudes de pagina web para mostrar.</h3>
+              <h3>No hay solicitudes de páginas web Impulsa Emprende para mostrar.</h3>
               <p>Cuando ingresen solicitudes desde el formulario de landing page, apareceran en esta tabla.</p>
+            </article>
+          <?php endif; ?>
+
+          <?php if ($totalSolicitudesExternas > 0): ?>
+            <article class="im-tabla-tareas__tarjeta">
+              <div class="im-tabla-tareas__cabecera">
+                <div>
+                  <h3>Solicitudes de páginas web Impulsa</h3>
+                  <p>Ordenadas por fecha de ingreso mas reciente.</p>
+                </div>
+              </div>
+              <div class="im-tabla-tareas__scroll">
+                <table class="im-tabla-tareas">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Fecha</th>
+                      <th>Proyecto</th>
+                      <th>Solicitante</th>
+                      <th>Correo</th>
+                      <th>WhatsApp</th>
+                      <th>Origen</th>
+                      <th class="im-tabla-tareas__acciones">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach ($solicitudesPaginaWebExternas as $solicitudExterna): ?>
+                      <tr>
+                        <td><?= (int) ($solicitudExterna['id'] ?? 0) ?></td>
+                        <td><?= $h($formatearFecha($solicitudExterna['created_at'] ?? null)) ?></td>
+                        <td class="im-tabla-tareas__nombre"><?= $h($solicitudExterna['nombre_proyecto'] ?? '-') ?></td>
+                        <td><?= $h($solicitudExterna['nombre'] ?? '-') ?></td>
+                        <td><?= $h($solicitudExterna['correo'] ?? '-') ?></td>
+                        <td><?= $h($solicitudExterna['whatsapp'] ?? '-') ?></td>
+                        <td><?= $h($solicitudExterna['form_source'] ?? '-') ?></td>
+                        <td class="im-tabla-tareas__acciones">
+                          <button class="im-boton-icono im-accion--ver material-symbols-rounded im-tooltip" type="button" data-ver-solicitud-impulsa="<?= (int) ($solicitudExterna['id'] ?? 0) ?>" aria-label="Ver solicitud Impulsa" data-tooltip="Ver detalle">visibility</button>
+                        </td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          <?php else: ?>
+            <article class="im-tarjeta">
+              <h3>No hay solicitudes de páginas web Impulsa para mostrar.</h3>
+              <p>Cuando ingresen solicitudes desde el formulario externo, apareceran en esta tabla.</p>
             </article>
           <?php endif; ?>
         </section>
@@ -265,12 +345,36 @@ $nombreSolicitante = static function (array $solicitud): string {
     </footer>
   </section>
 
+  <div class="im-modal-cortina" data-cerrar-solicitud-impulsa></div>
+  <section class="im-dialog im-solicitud-modal" role="dialog" aria-modal="true" aria-labelledby="solicitud-impulsa-modal-titulo" aria-hidden="true" data-modal-solicitud-impulsa>
+    <header class="im-dialog__cabecera">
+      <div>
+        <p class="im-sobrelinea" data-modal-impulsa-fecha></p>
+        <h3 id="solicitud-impulsa-modal-titulo" data-modal-impulsa-titulo>Solicitud</h3>
+      </div>
+      <button class="im-boton-icono" type="button" data-cerrar-solicitud-impulsa aria-label="Cerrar dialog"></button>
+    </header>
+    <div class="im-dialog__contenido">
+      <div class="im-chip-lista">
+        <span class="im-chip" data-modal-impulsa-contacto></span>
+        <span class="im-chip" data-modal-impulsa-correo></span>
+        <span class="im-chip" data-modal-impulsa-telefono></span>
+      </div>
+      <div class="im-solicitud-detalle" data-modal-impulsa-detalle></div>
+    </div>
+    <footer class="im-dialog__acciones">
+      <button class="im-boton im-boton--texto" type="button" data-cerrar-solicitud-impulsa>Cerrar</button>
+    </footer>
+  </section>
+
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="../../../assets/impulsa_material/js/material.js"></script>
   <script>
     (() => {
       const solicitudes = <?= json_encode($solicitudesPaginaWeb, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+      const solicitudesImpulsa = <?= json_encode($solicitudesPaginaWebExternas, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
       const preguntas = <?= json_encode($preguntasSolicitud, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+      const preguntasImpulsa = <?= json_encode($preguntasSolicitudExterna, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
       const camposBooleanos = new Set(<?= json_encode($camposBooleanosSolicitud, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
       const modal = document.querySelector('[data-modal-solicitud]');
       const cortina = document.querySelector('[data-cerrar-solicitud].im-modal-cortina');
@@ -280,12 +384,21 @@ $nombreSolicitante = static function (array $solicitud): string {
       const contacto = document.querySelector('[data-modal-contacto]');
       const correo = document.querySelector('[data-modal-correo]');
       const telefono = document.querySelector('[data-modal-telefono]');
+      const modalImpulsa = document.querySelector('[data-modal-solicitud-impulsa]');
+      const cortinaImpulsa = document.querySelector('[data-cerrar-solicitud-impulsa].im-modal-cortina');
+      const detalleImpulsa = document.querySelector('[data-modal-impulsa-detalle]');
+      const tituloImpulsa = document.querySelector('[data-modal-impulsa-titulo]');
+      const fechaImpulsa = document.querySelector('[data-modal-impulsa-fecha]');
+      const contactoImpulsa = document.querySelector('[data-modal-impulsa-contacto]');
+      const correoImpulsa = document.querySelector('[data-modal-impulsa-correo]');
+      const telefonoImpulsa = document.querySelector('[data-modal-impulsa-telefono]');
 
-      if (!modal || !cortina || !detalle || !titulo || !fecha || !contacto || !correo || !telefono) {
+      if (!modal || !cortina || !detalle || !titulo || !fecha || !contacto || !correo || !telefono || !modalImpulsa || !cortinaImpulsa || !detalleImpulsa || !tituloImpulsa || !fechaImpulsa || !contactoImpulsa || !correoImpulsa || !telefonoImpulsa) {
         return;
       }
 
       const solicitudesPorId = new Map(solicitudes.map((solicitud) => [String(solicitud.id), solicitud]));
+      const solicitudesImpulsaPorId = new Map(solicitudesImpulsa.map((solicitud) => [String(solicitud.id), solicitud]));
       const escapeHtml = (value) => String(value ?? '')
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
@@ -318,6 +431,12 @@ $nombreSolicitante = static function (array $solicitud): string {
         modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
       };
 
+      const alternarModalImpulsa = (abrir) => {
+        modalImpulsa.classList.toggle('abierto', abrir);
+        cortinaImpulsa.classList.toggle('abierto', abrir);
+        modalImpulsa.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+      };
+
       const nombreSolicitante = (solicitud) => {
         const nombreCompleto = `${solicitud.usuario_nombre ?? ''} ${solicitud.usuario_apellido ?? ''}`.trim();
         return nombreCompleto || solicitud.usuario_apodo || 'Sin nombre';
@@ -329,6 +448,14 @@ $nombreSolicitante = static function (array $solicitud): string {
         }
 
         if (campo === 'fecha_inicio') {
+          return formatearFecha(solicitud[campo]);
+        }
+
+        return solicitud[campo] || '-';
+      };
+
+      const valorDetalleImpulsa = (solicitud, campo) => {
+        if (campo === 'created_at') {
           return formatearFecha(solicitud[campo]);
         }
 
@@ -350,6 +477,21 @@ $nombreSolicitante = static function (array $solicitud): string {
         alternarModal(true);
       };
 
+      const abrirSolicitudImpulsa = (solicitud) => {
+        tituloImpulsa.textContent = solicitud.nombre_proyecto || 'Solicitud de landing page';
+        fechaImpulsa.textContent = formatearFecha(solicitud.created_at);
+        contactoImpulsa.textContent = solicitud.nombre || 'Sin nombre';
+        correoImpulsa.textContent = solicitud.correo || 'Sin correo';
+        telefonoImpulsa.textContent = solicitud.whatsapp || 'Sin WhatsApp';
+        detalleImpulsa.innerHTML = Object.entries(preguntasImpulsa).map(([campo, label]) => `
+          <div class="im-solicitud-detalle__item">
+            <strong>${escapeHtml(label)}</strong>
+            <p>${escapeHtml(valorDetalleImpulsa(solicitud, campo))}</p>
+          </div>
+        `).join('');
+        alternarModalImpulsa(true);
+      };
+
       document.querySelectorAll('[data-ver-solicitud]').forEach((boton) => {
         boton.addEventListener('click', () => {
           const solicitud = solicitudesPorId.get(String(boton.dataset.verSolicitud));
@@ -359,13 +501,27 @@ $nombreSolicitante = static function (array $solicitud): string {
         });
       });
 
+      document.querySelectorAll('[data-ver-solicitud-impulsa]').forEach((boton) => {
+        boton.addEventListener('click', () => {
+          const solicitud = solicitudesImpulsaPorId.get(String(boton.dataset.verSolicitudImpulsa));
+          if (solicitud) {
+            abrirSolicitudImpulsa(solicitud);
+          }
+        });
+      });
+
       document.querySelectorAll('[data-cerrar-solicitud]').forEach((elemento) => {
         elemento.addEventListener('click', () => alternarModal(false));
+      });
+
+      document.querySelectorAll('[data-cerrar-solicitud-impulsa]').forEach((elemento) => {
+        elemento.addEventListener('click', () => alternarModalImpulsa(false));
       });
 
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
           alternarModal(false);
+          alternarModalImpulsa(false);
         }
       });
     })();
