@@ -143,31 +143,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       const password = form.querySelector('[name="password"]');
       const confirmacion = form.querySelector('[name="password_confirmacion"]');
+      const correo = form.querySelector('[name="correo"]');
+      const campoCorreo = correo?.closest('[data-im-campo]');
+      const avisoCorreo = campoCorreo?.querySelector('[data-im-error], small');
       const campoConfirmacion = form.querySelector('[data-register-confirm-field]');
       const aviso = form.querySelector('[data-register-password-error]');
+      const botonSubmit = form.querySelector('[type="submit"]');
 
-      const limpiarAviso = () => {
+      const limpiarAvisoPassword = () => {
         campoConfirmacion?.classList.remove('im-campo--error');
         if (aviso) {
           aviso.textContent = 'Confirmá la contraseña.';
         }
       };
 
-      form.addEventListener('submit', (evento) => {
-        if (!password || !confirmacion || password.value === confirmacion.value) {
-          return;
+      const limpiarAvisoCorreo = () => {
+        campoCorreo?.classList.remove('im-campo--error');
+        if (avisoCorreo) {
+          avisoCorreo.textContent = 'Correo requerido.';
         }
+      };
 
-        evento.preventDefault();
+      const mostrarErrorCorreo = (mensaje) => {
+        campoCorreo?.classList.add('im-campo--error');
+        if (avisoCorreo) {
+          avisoCorreo.textContent = mensaje;
+        }
+        correo?.focus();
+      };
+
+      const mostrarErrorPassword = () => {
         campoConfirmacion?.classList.add('im-campo--error');
         if (aviso) {
           aviso.textContent = 'Las contraseñas no coinciden.';
         }
         confirmacion.focus();
+      };
+
+      const validarCorreoDisponible = async () => {
+        if (!correo || !correo.value.trim()) {
+          return true;
+        }
+
+        try {
+          const respuesta = await fetch('/auth/check_email.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'X-Requested-With': 'fetch',
+            },
+            body: new URLSearchParams({ valor: correo.value.trim(), campo: 'email' }),
+          });
+          const payload = await respuesta.json();
+
+          if (!payload.valido) {
+            mostrarErrorCorreo(payload.mensaje || 'Ya existe un usuario registrado con ese correo.');
+            return false;
+          }
+
+          limpiarAvisoCorreo();
+          return true;
+        } catch (error) {
+          mostrarErrorCorreo('No pudimos validar el correo en este momento.');
+          return false;
+        }
+      };
+
+      form.addEventListener('submit', async (evento) => {
+        evento.preventDefault();
+
+        if (password && confirmacion && password.value !== confirmacion.value) {
+          mostrarErrorPassword();
+          return;
+        }
+
+        if (botonSubmit) {
+          botonSubmit.disabled = true;
+        }
+
+        const correoDisponible = await validarCorreoDisponible();
+        if (!correoDisponible) {
+          if (botonSubmit) {
+            botonSubmit.disabled = false;
+          }
+          return;
+        }
+
+        form.submit();
       });
 
-      password?.addEventListener('input', limpiarAviso);
-      confirmacion?.addEventListener('input', limpiarAviso);
+      correo?.addEventListener('input', limpiarAvisoCorreo);
+      password?.addEventListener('input', limpiarAvisoPassword);
+      confirmacion?.addEventListener('input', limpiarAvisoPassword);
     })();
   </script>
 </body>
