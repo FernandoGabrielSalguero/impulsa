@@ -11,5 +11,4 @@ if (ini_get('session.use_cookies')) {
 
 session_destroy();
 
-authRedirect('/auth/login.php?estado=logout');
-
+authRedirect('/');

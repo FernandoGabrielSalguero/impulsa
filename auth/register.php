@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if ($error !== ''): ?>
       <div class="im-alerta im-alerta--info"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
     <?php endif; ?>
-    <form class="im-formulario" action="/auth/register.php" method="post" target="_top">
+    <form class="im-formulario" action="/auth/register.php" method="post" target="_top" data-register-form>
       <label class="im-campo im-campo-material im-campo--ancho">
         <span>Nombre</span>
         <input type="text" name="nombre" autocomplete="name" minlength="2" value="<?= htmlspecialchars($nombreValor, ENT_QUOTES, 'UTF-8') ?>" required>
@@ -119,19 +119,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i>
         <small data-im-error><?= htmlspecialchars($correoError !== '' ? $correoError : 'Correo requerido.', ENT_QUOTES, 'UTF-8') ?></small>
       </label>
-      <label class="im-campo im-campo-material im-campo--ancho">
+      <label class="im-campo im-campo-material im-campo--ancho" data-register-password-field>
         <span>Contraseña</span>
         <input type="password" name="password" autocomplete="new-password" minlength="6" required>
         <button class="im-campo__boton-icono material-symbols-rounded" type="button" data-im-toggle-password aria-label="Mostrar contraseña">visibility</button>
       </label>
-      <label class="im-campo im-campo-material im-campo--ancho">
+      <label class="im-campo im-campo-material im-campo--ancho" data-register-confirm-field>
         <span>Confirmar contraseña</span>
         <input type="password" name="password_confirmacion" autocomplete="new-password" minlength="6" required>
         <button class="im-campo__boton-icono material-symbols-rounded" type="button" data-im-toggle-password aria-label="Mostrar contraseña">visibility</button>
+        <small data-register-password-error>Confirmá la contraseña.</small>
       </label>
       <button class="im-boton im-boton--principal im-campo--ancho" type="submit">Crear cuenta</button>
     </form>
   </main>
   <script src="../assets/impulsa_material/js/material-validaciones.js"></script>
+  <script>
+    (() => {
+      const form = document.querySelector('[data-register-form]');
+      if (!form) {
+        return;
+      }
+
+      const password = form.querySelector('[name="password"]');
+      const confirmacion = form.querySelector('[name="password_confirmacion"]');
+      const campoConfirmacion = form.querySelector('[data-register-confirm-field]');
+      const aviso = form.querySelector('[data-register-password-error]');
+
+      const limpiarAviso = () => {
+        campoConfirmacion?.classList.remove('im-campo--error');
+        if (aviso) {
+          aviso.textContent = 'Confirmá la contraseña.';
+        }
+      };
+
+      form.addEventListener('submit', (evento) => {
+        if (!password || !confirmacion || password.value === confirmacion.value) {
+          return;
+        }
+
+        evento.preventDefault();
+        campoConfirmacion?.classList.add('im-campo--error');
+        if (aviso) {
+          aviso.textContent = 'Las contraseñas no coinciden.';
+        }
+        confirmacion.focus();
+      });
+
+      password?.addEventListener('input', limpiarAviso);
+      confirmacion?.addEventListener('input', limpiarAviso);
+    })();
+  </script>
 </body>
 </html>
