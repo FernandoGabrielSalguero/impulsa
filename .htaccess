@@ -1,0 +1,3 @@
+RewriteEngine On
+
+RewriteRule ^paginasweb/?$ impulsa_emprende/partials/request_page_external/request_page_external_controller.php [L,QSA]

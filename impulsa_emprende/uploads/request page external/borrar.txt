@@ -1,0 +1,1 @@
+En esta carpeta se van a subir los archivos que los clientes que soliciten una página web carguen en la solicitud
