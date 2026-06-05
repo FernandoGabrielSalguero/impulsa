@@ -22,27 +22,26 @@ $csrfToken = (string) $_SESSION['request_page_external_csrf'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $campos = [
-        'nombre' => 150,
+        'nombre_apellido' => 150,
         'nombre_proyecto' => 180,
-        'correo' => 190,
+        'correo_electronico' => 190,
         'whatsapp' => 80,
-        'q1_nombre_comercial' => 5000,
-        'q2_actividad' => 5000,
-        'q3_objetivo' => 5000,
-        'q4_publico' => 5000,
-        'q5_accion_principal' => 5000,
-        'q6_propuestas_destacar' => 5000,
-        'q7_diferencial' => 5000,
-        'q8_secciones' => 5000,
-        'q9_textos' => 5000,
-        'q10_contacto' => 5000,
-        'q11_material_marca' => 5000,
-        'q12_estilo_visual' => 5000,
-        'q13_referencias' => 5000,
-        'q14_recursos_visuales' => 5000,
-        'q16_dominio_hosting' => 5000,
-        'q17_correos_corporativos' => 5000,
-        'q18_requerimientos_adicionales' => 5000,
+        'actividad' => 5000,
+        'objetivo' => 5000,
+        'publico' => 5000,
+        'accion_principal' => 5000,
+        'propuesta_destacar' => 5000,
+        'secciones' => 5000,
+        'textos_armados' => 2,
+        'contacto_usuarios' => 5000,
+        'material_marca' => 2,
+        'estilo_visual' => 5000,
+        'referencias' => 5000,
+        'recursos_visuales' => 2,
+        'tiene_dominio' => 2,
+        'tiene_hosting' => 2,
+        'necesita_correos_institucionales' => 2,
+        'comentarios_adicionales' => 5000,
     ];
 
     foreach ($campos as $campo => $maximo) {
@@ -50,9 +49,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $datos[$campo] = $valor;
 
         if ($valor === '') {
-            $errores[] = 'Completá todos los campos del formulario.';
+            $errores[] = 'Completá todos los campos obligatorios del formulario.';
         } elseif (mb_strlen($valor) > $maximo) {
             $errores[] = 'Uno de los campos supera la longitud permitida.';
+        }
+    }
+
+    foreach (['textos_armados', 'material_marca', 'recursos_visuales', 'tiene_dominio', 'tiene_hosting', 'necesita_correos_institucionales'] as $campoCerrado) {
+        if (!in_array($datos[$campoCerrado] ?? '', ['Sí', 'No'], true)) {
+            $errores[] = 'Seleccioná una opción válida en todas las preguntas cerradas.';
         }
     }
 
@@ -62,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ((string) ($_POST['website'] ?? '') !== '') {
         $errores[] = 'No fue posible procesar la solicitud.';
     }
-    if (!filter_var($datos['correo'] ?? '', FILTER_VALIDATE_EMAIL)) {
+    if (!filter_var($datos['correo_electronico'] ?? '', FILTER_VALIDATE_EMAIL)) {
         $errores[] = 'Ingresá un correo electrónico válido.';
     }
     if (!preg_match('/^[0-9+()\s.-]{6,80}$/', $datos['whatsapp'] ?? '')) {
@@ -74,14 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$errores) {
         try {
-            $archivosGuardados = guardarArchivosSolicitud($_FILES['archivos'] ?? null, $datos['nombre_proyecto']);
-            $datos['q15_imagenes_apoyo'] = implode("\n", $archivosGuardados);
-            $datos['form_source'] = 'public-new-page';
-            $datos['ip_address'] = substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45) ?: null;
-            $datos['user_agent'] = substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255) ?: null;
-
+            $archivosGuardados = guardarArchivosSolicitud($_FILES['imagenes_apoyo'] ?? null, $datos['nombre_proyecto']);
             $model = new RequestPageExternalModel($pdo);
-            $model->crear($datos);
+            $model->crear(mapearSolicitudExterna($datos, $archivosGuardados));
 
             $_SESSION['request_page_external_csrf'] = bin2hex(random_bytes(32));
             header('Location: ' . $pageUrl . '?enviado=1', true, 303);
@@ -96,6 +96,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 require __DIR__ . '/request_page_external_view.php';
+
+function mapearSolicitudExterna(array $datos, array $archivosGuardados): array
+{
+    return [
+        'nombre' => $datos['nombre_apellido'],
+        'nombre_proyecto' => $datos['nombre_proyecto'],
+        'correo' => $datos['correo_electronico'],
+        'whatsapp' => $datos['whatsapp'],
+        'q1_nombre_comercial' => $datos['nombre_proyecto'],
+        'q2_actividad' => $datos['actividad'],
+        'q3_objetivo' => $datos['objetivo'],
+        'q4_publico' => $datos['publico'],
+        'q5_accion_principal' => $datos['accion_principal'],
+        'q6_propuestas_destacar' => $datos['propuesta_destacar'],
+        'q7_diferencial' => 'No informado en esta versión del formulario.',
+        'q8_secciones' => $datos['secciones'],
+        'q9_textos' => $datos['textos_armados'],
+        'q10_contacto' => $datos['contacto_usuarios'],
+        'q11_material_marca' => $datos['material_marca'],
+        'q12_estilo_visual' => $datos['estilo_visual'],
+        'q13_referencias' => $datos['referencias'],
+        'q14_recursos_visuales' => $datos['recursos_visuales'],
+        'q15_imagenes_apoyo' => implode("\n", $archivosGuardados),
+        'q16_dominio_hosting' => 'Dominio: ' . $datos['tiene_dominio'] . ' | Hosting: ' . $datos['tiene_hosting'],
+        'q17_correos_corporativos' => $datos['necesita_correos_institucionales'],
+        'q18_requerimientos_adicionales' => $datos['comentarios_adicionales'],
+        'form_source' => 'public-new-page',
+        'ip_address' => substr((string) ($_SERVER['REMOTE_ADDR'] ?? ''), 0, 45) ?: null,
+        'user_agent' => substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255) ?: null,
+    ];
+}
 
 function guardarArchivosSolicitud(?array $archivos, string $proyecto): array
 {
