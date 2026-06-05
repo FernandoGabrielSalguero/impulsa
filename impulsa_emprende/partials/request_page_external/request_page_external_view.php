@@ -1,0 +1,1 @@
+vista solicitud de página externa
