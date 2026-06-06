@@ -209,8 +209,17 @@
         </section>
 
         <section class="im-seccion-documento" id="bottom-sheet" data-panel="bottom-sheet">
-          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Superficie inferior</p><h2>Bottom sheet</h2><p>Panel temporal desde abajo para acciones contextuales.</p></div></div>
-          <article class="im-tarjeta im-muestra"><button class="im-boton im-boton--principal" type="button" data-abrir-bottom-sheet>Abrir bottom sheet</button></article>
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Superficies temporales</p><h2>Bottom sheet y Drawer</h2><p>Componentes modales independientes para acciones inferiores e informacion lateral.</p></div></div>
+          <div class="im-grilla im-grilla--dos-columnas">
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera"><div><h3>Bottom sheet</h3><p>Panel temporal que se desliza desde abajo para acciones contextuales.</p></div></div>
+              <button class="im-boton im-boton--principal" type="button" data-abrir-bottom-sheet>Abrir bottom sheet</button>
+            </article>
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera"><div><h3>Drawer</h3><p>Panel lateral derecho para mostrar detalle, formularios o acciones.</p></div></div>
+              <button class="im-boton im-boton--principal" type="button" data-abrir-drawer>Abrir drawer</button>
+            </article>
+          </div>
         </section>
 
         <section class="im-seccion-documento" id="boton" data-panel="boton">
@@ -412,6 +421,7 @@ https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</co
                     <tr><td>Chips/badges</td><td><code>.im-chip</code>, <code>.im-badge</code></td><td><code>data-badge</code></td><td>Estados, etiquetas y contadores.</td></tr>
                     <tr><td>Dialog</td><td><code>.im-dialog</code></td><td><code>[data-abrir-dialog]</code>, <code>[data-cerrar-dialog]</code></td><td>Confirmaciones o edicion modal.</td></tr>
                     <tr><td>Bottom sheet</td><td><code>.im-bottom-sheet</code></td><td><code>[data-abrir-bottom-sheet]</code>, <code>[data-cerrar-bottom-sheet]</code></td><td>Acciones rapidas desde la parte inferior.</td></tr>
+                    <tr><td>Drawer</td><td><code>.im-drawer</code>, <code>.im-drawer__cabecera</code>, <code>.im-drawer__contenido</code>, <code>.im-drawer__acciones</code></td><td><code>[data-abrir-drawer]</code>, <code>[data-cerrar-drawer]</code></td><td>Detalle, formularios o acciones desde el lateral derecho.</td></tr>
                     <tr><td>Tabs</td><td><code>.im-tabs</code>, <code>.im-tab-panel</code></td><td><code>[data-tabs]</code></td><td>Cambiar vistas dentro de una tarjeta.</td></tr>
                     <tr><td>Stepper</td><td><code>.im-stepper</code></td><td><code>[data-stepper]</code>, <code>[data-stepper-prev]</code>, <code>[data-stepper-next]</code></td><td>Procesos guiados por pasos.</td></tr>
                     <tr><td>Formularios</td><td><code>.im-formulario</code>, <code>.im-campo</code>, <code>.im-campo-material</code>, <code>.im-campo--ancho</code></td><td>-</td><td>Captura de datos con estructura consistente.</td></tr>
@@ -504,6 +514,7 @@ https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</co
 
 &lt;button class="im-boton im-boton--principal" type="button" data-abrir-dialog&gt;Abrir dialog&lt;/button&gt;
 &lt;button class="im-boton im-boton--tonal" type="button" data-abrir-bottom-sheet&gt;Abrir bottom sheet&lt;/button&gt;
+&lt;button class="im-boton im-boton--tonal" type="button" data-abrir-drawer&gt;Abrir drawer&lt;/button&gt;
 
 &lt;div class="im-tabs" data-tabs&gt;
   &lt;button class="activo" type="button"&gt;Resumen&lt;/button&gt;

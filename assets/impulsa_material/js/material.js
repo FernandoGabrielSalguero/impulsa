@@ -213,9 +213,29 @@
       </form>
     </section>
   `);
+  const drawerCortina = crearNodo('<div class="im-drawer-cortina" data-cerrar-drawer></div>');
+  const drawer = crearNodo(`
+    <aside class="im-drawer" role="dialog" aria-modal="true" aria-labelledby="im-drawer-titulo">
+      <header class="im-drawer__cabecera">
+        <h3 id="im-drawer-titulo">Detalle del proyecto</h3>
+        <button class="im-boton-icono material-symbols-rounded" type="button" data-cerrar-drawer aria-label="Cerrar drawer">close</button>
+      </header>
+      <div class="im-drawer__contenido">
+        <p>El Drawer muestra informacion complementaria sin abandonar la vista actual.</p>
+        <form class="im-formulario">
+          <label class="im-campo"><span>Nombre</span><input type="text" value="Impulsa Material"></label>
+          <label class="im-campo"><span>Estado</span><select><option>Activo</option><option>En revision</option></select></label>
+        </form>
+      </div>
+      <footer class="im-drawer__acciones">
+        <button class="im-boton im-boton--texto" type="button" data-cerrar-drawer>Cancelar</button>
+        <button class="im-boton im-boton--principal" type="button" data-cerrar-drawer>Guardar</button>
+      </footer>
+    </aside>
+  `);
   const snackbar = crearNodo('<div class="im-snackbar" role="status"><span>Operacion realizada correctamente.</span><button type="button" data-cerrar-snackbar>Cerrar</button></div>');
 
-  document.body.append(modalCortina, dialog, bottomSheetCortina, bottomSheet, configTemaSheet, snackbar);
+  document.body.append(modalCortina, dialog, bottomSheetCortina, bottomSheet, configTemaSheet, drawerCortina, drawer, snackbar);
 
   const alternarOverlay = (elementos, abrir) => {
     elementos.forEach((elemento) => elemento.classList.toggle("abierto", abrir));
@@ -249,6 +269,18 @@
 
   document.querySelectorAll("[data-cerrar-bottom-sheet]").forEach((boton) => {
     boton.addEventListener("click", cerrarBottomSheets);
+  });
+
+  const cerrarDrawer = () => {
+    alternarOverlay([drawerCortina, drawer], false);
+  };
+
+  document.querySelectorAll("[data-abrir-drawer]").forEach((boton) => {
+    boton.addEventListener("click", () => alternarOverlay([drawerCortina, drawer], true));
+  });
+
+  document.querySelectorAll("[data-cerrar-drawer]").forEach((boton) => {
+    boton.addEventListener("click", cerrarDrawer);
   });
 
   let temporizadorSnackbar;
@@ -645,6 +677,8 @@
   document.addEventListener("keydown", (evento) => {
     if (evento.key === "Escape") {
       cerrarMenusFlotantes();
+      cerrarBottomSheets();
+      cerrarDrawer();
       ocultarTooltip();
     }
   });
