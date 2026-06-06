@@ -7,9 +7,9 @@ $solicitudProyectoAccion = (string) ($solicitudAccion['nombre_proyecto'] ?? '');
 $clienteUserIdAccion = (int) ($solicitudAccion['cliente_user_id'] ?? 0);
 $proyectoIdAccion = (int) ($solicitudAccion['proyecto_id'] ?? 0);
 ?>
-<div class="im-tabla-tareas__menu" data-im-menu>
-  <button class="im-boton-icono im-boton-icono--tabla-opciones material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
-  <div class="im-menu-flotante im-tabla-tareas__menu-panel" role="menu" data-im-menu-panel>
+<div class="im-menu-tabla" data-im-menu>
+  <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
+  <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
     <button type="button" role="menuitem" data-ver-solicitud-impulsa="<?= $solicitudIdAccion ?>">
       <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
       Ver detalle

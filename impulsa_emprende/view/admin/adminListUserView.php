@@ -92,11 +92,11 @@ $formatearFecha = static function (?string $fecha): string {
       position: relative;
     }
 
-    .im-tabla-tareas__menu[data-usuario-menu].abierto {
+    .im-menu-tabla[data-im-menu].abierto {
       z-index: 120;
     }
 
-    .im-tabla-tareas__menu[data-usuario-menu] > .im-tabla-tareas__menu-panel {
+    .im-menu-tabla[data-im-menu] > .im-menu-tabla__panel {
       z-index: 130;
     }
   </style>
@@ -230,9 +230,9 @@ $formatearFecha = static function (?string $fecha): string {
                         </td>
                         <td><?= htmlspecialchars($formatearFecha($usuarioListado['created_at'] ?? null), ENT_QUOTES, 'UTF-8') ?></td>
                         <td class="im-tabla-tareas__acciones">
-                          <div class="im-tabla-tareas__menu" data-usuario-menu>
-                            <button class="im-boton-icono im-boton-icono--tabla-opciones material-symbols-rounded im-tooltip" type="button" data-usuario-menu-trigger aria-label="Acciones de usuario" aria-haspopup="menu" aria-expanded="false" data-tooltip="Acciones">more_horiz</button>
-                            <div class="im-menu-flotante im-tabla-tareas__menu-panel" role="menu" data-usuario-menu-panel>
+                          <div class="im-menu-tabla" data-im-menu>
+                            <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
+                            <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
                               <button class="im-usuario-accion-eliminar" type="button" role="menuitem" data-eliminar-usuario="<?= (int) ($usuarioListado['id'] ?? 0) ?>" data-usuario-nombre="<?= $h($nombreVisible) ?>" data-usuario-correo="<?= $h($correoLogin) ?>">
                                 <span class="material-symbols-rounded" aria-hidden="true">delete</span>
                                 Eliminar usuario
@@ -326,9 +326,9 @@ $formatearFecha = static function (?string $fecha): string {
       };
 
       const renderAccionesUsuario = (usuario, nombreVisible, correoLogin) => `
-        <div class="im-tabla-tareas__menu" data-usuario-menu>
-          <button class="im-boton-icono im-boton-icono--tabla-opciones material-symbols-rounded im-tooltip" type="button" data-usuario-menu-trigger aria-label="Acciones de usuario" aria-haspopup="menu" aria-expanded="false" data-tooltip="Acciones">more_horiz</button>
-          <div class="im-menu-flotante im-tabla-tareas__menu-panel" role="menu" data-usuario-menu-panel>
+        <div class="im-menu-tabla" data-im-menu data-im-menu-dinamico>
+          <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
+          <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
             <button class="im-usuario-accion-eliminar" type="button" role="menuitem" data-eliminar-usuario="${Number(usuario.id ?? 0)}" data-usuario-nombre="${escapeHtml(nombreVisible)}" data-usuario-correo="${escapeHtml(correoLogin)}">
               <span class="material-symbols-rounded" aria-hidden="true">delete</span>
               Eliminar usuario
@@ -416,10 +416,10 @@ $formatearFecha = static function (?string $fecha): string {
       const correo = document.querySelector('[data-eliminar-usuario-correo]');
 
       const cerrarMenus = () => {
-        document.querySelectorAll('[data-usuario-menu]').forEach((menu) => {
+        document.querySelectorAll('[data-im-menu]').forEach((menu) => {
           menu.classList.remove('abierto');
-          menu.querySelector('[data-usuario-menu-panel]')?.classList.remove('abierto');
-          menu.querySelector('[data-usuario-menu-trigger]')?.setAttribute('aria-expanded', 'false');
+          menu.querySelector('[data-im-menu-panel]')?.classList.remove('abierto');
+          menu.querySelector('[data-im-menu-trigger]')?.setAttribute('aria-expanded', 'false');
         });
       };
 
@@ -434,11 +434,11 @@ $formatearFecha = static function (?string $fecha): string {
       };
 
       document.addEventListener('click', (evento) => {
-        const trigger = evento.target.closest('[data-usuario-menu-trigger]');
+        const trigger = evento.target.closest('[data-im-menu-dinamico] [data-im-menu-trigger]');
         if (trigger) {
           evento.stopPropagation();
-          const menu = trigger.closest('[data-usuario-menu]');
-          const panel = menu?.querySelector('[data-usuario-menu-panel]');
+          const menu = trigger.closest('[data-im-menu]');
+          const panel = menu?.querySelector('[data-im-menu-panel]');
           const abrir = !panel?.classList.contains('abierto');
           cerrarMenus();
           menu?.classList.toggle('abierto', abrir);
@@ -459,7 +459,7 @@ $formatearFecha = static function (?string $fecha): string {
           return;
         }
 
-        if (!evento.target.closest('[data-usuario-menu]')) {
+        if (!evento.target.closest('[data-im-menu-dinamico]')) {
           cerrarMenus();
         }
       });

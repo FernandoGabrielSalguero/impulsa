@@ -263,7 +263,15 @@ $nombreSolicitante = static function (array $solicitud): string {
                           <?php endif; ?>
                         </td>
                         <td class="im-tabla-tareas__acciones">
-                          <button class="im-boton-icono im-accion--ver material-symbols-rounded im-tooltip" type="button" data-ver-solicitud="<?= (int) ($solicitud['id'] ?? 0) ?>" aria-label="Ver solicitud" data-tooltip="Ver detalle">visibility</button>
+                          <div class="im-menu-tabla" data-im-menu>
+                            <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
+                            <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
+                              <button type="button" role="menuitem" data-ver-solicitud="<?= (int) ($solicitud['id'] ?? 0) ?>">
+                                <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+                                Ver detalle
+                              </button>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     <?php endforeach; ?>
