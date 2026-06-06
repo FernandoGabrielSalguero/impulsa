@@ -43,6 +43,7 @@ $estadoProyecto = static function (?string $estado): string {
     .im-marca__isotipo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
     .im-accion-salir { color: #ba1a1a; }
     .im-bottom-sheet--perfil { max-width: 860px; max-height: min(760px, calc(100vh - 2rem)); overflow: auto; }
+    .im-nav-item__icono[data-icon]::before { content: attr(data-icon); }
     .im-proyecto-modal { width: min(860px, calc(100vw - 2rem)); max-height: min(760px, calc(100vh - 2rem)); grid-template-rows: auto minmax(0, 1fr) auto; }
     .im-proyecto-modal form { display: contents; }
     .im-proyecto-modal .im-dialog__contenido { min-height: 0; overflow-y: auto; }
