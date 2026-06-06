@@ -745,23 +745,33 @@ a {
   font-weight: 600;
 }
 
+.im-menu-tabla,
 .im-tabla-tareas__menu {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
+.im-boton-icono--menu-tabla,
 .im-boton-icono--tabla-opciones {
+  flex: 0 0 44px;
   width: 44px;
+  height: 44px;
   min-height: 44px;
   border-radius: var(--im-radio);
   background: var(--im-color-principal-suave);
   color: var(--im-color-principal);
 }
 
+.im-boton-icono--menu-tabla:hover,
+.im-boton-icono--menu-tabla:focus-visible,
 .im-boton-icono--tabla-opciones:hover,
 .im-boton-icono--tabla-opciones:focus-visible {
   background: color-mix(in srgb, var(--im-color-principal-suave) 82%, var(--im-color-principal));
 }
 
+.im-menu-tabla > .im-menu-tabla__panel,
 .im-tabla-tareas__menu > .im-tabla-tareas__menu-panel {
   position: absolute;
   top: calc(100% + .5rem);
@@ -772,6 +782,7 @@ a {
   margin: 0;
 }
 
+.im-menu-tabla > .im-menu-tabla__panel.abierto,
 .im-tabla-tareas__menu > .im-tabla-tareas__menu-panel.abierto {
   display: grid;
 }

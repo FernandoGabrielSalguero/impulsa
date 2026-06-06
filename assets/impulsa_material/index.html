@@ -167,9 +167,9 @@
                 <h3>Mis tareas</h3>
                 <p>Lista de tareas pendientes</p>
               </div>
-              <div class="im-tabla-tareas__menu" data-im-menu>
-                <button class="im-boton-icono im-boton-icono--tabla-opciones material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
-                <div class="im-menu-flotante im-tabla-tareas__menu-panel" role="menu" data-im-menu-panel>
+              <div class="im-menu-tabla im-tabla-tareas__menu" data-im-menu>
+                <button class="im-boton-icono im-boton-icono--menu-tabla im-boton-icono--tabla-opciones material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
+                <div class="im-menu-flotante im-menu-tabla__panel im-tabla-tareas__menu-panel" role="menu" data-im-menu-panel>
                   <button type="button" role="menuitem">Actualizar</button>
                   <button type="button" role="menuitem">Descargar</button>
                   <button type="button" role="menuitem">Filtrar</button>
@@ -348,7 +348,7 @@
             <article class="im-tarjeta"><h3>Progress</h3><div class="im-muestra im-muestra--vertical"><div class="im-progress-bar" aria-label="Carga al 64"><span></span></div><div class="im-progress-bar im-progress-bar--indeterminado" aria-label="Cargando"></div><div class="im-spinner" aria-label="Cargando"></div></div></article>
             <article class="im-tarjeta"><h3>Sidenav</h3><div class="im-sidenav-demo" data-sidenav-demo><aside>Filtros<br>Estado<br>Fecha</aside><main><button class="im-boton im-boton--tonal" type="button" data-alternar-sidenav-demo>Alternar sidenav</button><p>Contenido del panel principal.</p></main></div></article>
             <article class="im-tarjeta"><h3>SnackBar</h3><button class="im-boton im-boton--principal" type="button" data-abrir-snackbar>Mostrar snack-bar</button></article>
-            <article class="im-tarjeta"><h3>Toolbar</h3><div class="im-toolbar"><button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Menu">menu</button><strong>Barra</strong><button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Mas opciones">more_horiz</button></div></article>
+            <article class="im-tarjeta"><h3>Toolbar</h3><div class="im-toolbar"><button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Menu">menu</button><strong>Barra</strong><div class="im-menu-tabla" data-im-menu><button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button><div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">refresh</span>Actualizar</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">download</span>Exportar</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">view_column</span>Columnas</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>Filtrar</button></div></div></div></article>
             <article class="im-tarjeta"><h3>Tooltip</h3><button class="im-boton im-boton--tonal im-tooltip" data-tooltip="Texto explicativo breve" type="button">Hover</button></article>
             <article class="im-tarjeta"><h3>Tree</h3><ul class="im-tree"><li>Componentes<ul><li>Botones</li><li>Campos</li></ul></li><li>CDN<ul><li>CSS</li><li>JS</li></ul></li></ul></article>
           </div>
@@ -417,7 +417,7 @@ https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</co
                     <tr><td>Botones</td><td><code>.im-boton</code>, <code>.im-boton--principal</code>, <code>.im-boton--tonal</code>, <code>.im-boton--texto</code>, <code>.im-boton-icono</code>, <code>.im-fab</code></td><td>-</td><td>Acciones primarias, secundarias e iconicas.</td></tr>
                     <tr><td>Tarjetas</td><td><code>.im-tarjeta</code>, <code>.im-tarjeta__cabecera</code>, <code>.im-tarjeta--metrica</code></td><td>-</td><td>Bloques de contenido, metricas y paneles.</td></tr>
                     <tr><td>Grillas</td><td><code>.im-grilla</code>, <code>.im-grilla--dos-columnas</code>, <code>.im-grilla--tres-columnas</code>, <code>.im-grilla--metricas</code>, <code>.im-grilla--dashboard</code></td><td>-</td><td>Distribuciones responsive.</td></tr>
-                    <tr><td>Tablas</td><td><code>.im-tabla-contenedor</code>, <code>.im-tabla</code>, <code>.im-tabla-tareas</code>, <code>.im-tabla-tareas__tarjeta</code></td><td><code>[data-im-menu]</code>, <code>[data-im-menu-trigger]</code></td><td>Listados administrativos y tablas con menu contextual.</td></tr>
+                    <tr><td>Tablas</td><td><code>.im-tabla-contenedor</code>, <code>.im-tabla</code>, <code>.im-tabla-tareas</code>, <code>.im-tabla-tareas__tarjeta</code>, <code>.im-menu-tabla</code>, <code>.im-menu-tabla__panel</code></td><td><code>[data-im-menu]</code>, <code>[data-im-menu-trigger]</code>, <code>[data-im-menu-panel]</code></td><td>Listados administrativos y tablas con menu contextual.</td></tr>
                     <tr><td>Chips/badges</td><td><code>.im-chip</code>, <code>.im-badge</code></td><td><code>data-badge</code></td><td>Estados, etiquetas y contadores.</td></tr>
                     <tr><td>Dialog</td><td><code>.im-dialog</code></td><td><code>[data-abrir-dialog]</code>, <code>[data-cerrar-dialog]</code></td><td>Confirmaciones o edicion modal.</td></tr>
                     <tr><td>Bottom sheet</td><td><code>.im-bottom-sheet</code></td><td><code>[data-abrir-bottom-sheet]</code>, <code>[data-cerrar-bottom-sheet]</code></td><td>Acciones rapidas desde la parte inferior.</td></tr>
