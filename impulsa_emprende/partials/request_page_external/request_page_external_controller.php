@@ -31,12 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'publico' => 5000,
         'accion_principal' => 5000,
         'propuesta_destacar' => 5000,
-        'secciones' => 5000,
         'textos_armados' => 2,
-        'contacto_usuarios' => 5000,
         'material_marca' => 2,
         'estilo_visual' => 5000,
-        'referencias' => 5000,
         'recursos_visuales' => 2,
         'tiene_dominio' => 2,
         'tiene_hosting' => 2,
@@ -52,6 +49,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errores[] = 'Completá todos los campos obligatorios del formulario.';
         } elseif (mb_strlen($valor) > $maximo) {
             $errores[] = 'Uno de los campos supera la longitud permitida.';
+        }
+    }
+
+    $opcionesMultiples = [
+        'secciones' => ['Quiénes somos', 'Contacto', 'Inicio', 'Nuestra experiencia', 'Otro'],
+        'contacto_usuarios' => ['Formulario en la web', 'Redes sociales', 'WhatsApp Business', 'Otro'],
+    ];
+    foreach ($opcionesMultiples as $campo => $permitidas) {
+        $seleccionadas = array_values(array_intersect(
+            $permitidas,
+            array_map('strval', (array) ($_POST[$campo] ?? []))
+        ));
+        $datos[$campo] = $seleccionadas;
+        if (!$seleccionadas) {
+            $errores[] = 'Seleccioná al menos una opción en todos los listados.';
+        }
+    }
+
+    $datos['referencias'] = array_values(array_filter(
+        array_map(static fn(mixed $url): string => trim((string) $url), (array) ($_POST['referencias'] ?? [])),
+        static fn(string $url): bool => $url !== ''
+    ));
+    if (!$datos['referencias']) {
+        $errores[] = 'Ingresá al menos una URL de referencia.';
+    }
+    foreach ($datos['referencias'] as $referencia) {
+        if (mb_strlen($referencia) > 2048 || !filter_var($referencia, FILTER_VALIDATE_URL)) {
+            $errores[] = 'Ingresá URLs de referencia válidas.';
+            break;
         }
     }
 
@@ -111,12 +137,12 @@ function mapearSolicitudExterna(array $datos, array $archivosGuardados): array
         'q5_accion_principal' => $datos['accion_principal'],
         'q6_propuestas_destacar' => $datos['propuesta_destacar'],
         'q7_diferencial' => 'No informado en esta versión del formulario.',
-        'q8_secciones' => $datos['secciones'],
+        'q8_secciones' => implode("\n", $datos['secciones']),
         'q9_textos' => $datos['textos_armados'],
-        'q10_contacto' => $datos['contacto_usuarios'],
+        'q10_contacto' => implode("\n", $datos['contacto_usuarios']),
         'q11_material_marca' => $datos['material_marca'],
         'q12_estilo_visual' => $datos['estilo_visual'],
-        'q13_referencias' => $datos['referencias'],
+        'q13_referencias' => implode("\n", $datos['referencias']),
         'q14_recursos_visuales' => $datos['recursos_visuales'],
         'q15_imagenes_apoyo' => implode("\n", $archivosGuardados),
         'q16_dominio_hosting' => 'Dominio: ' . $datos['tiene_dominio'] . ' | Hosting: ' . $datos['tiene_hosting'],
