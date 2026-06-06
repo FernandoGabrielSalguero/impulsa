@@ -27,6 +27,20 @@ class AdminProyectManagerModel
         );
     }
 
+    public function obtenerResponsables(): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT ua.id, ua.correo, ui.nombre, ui.apellido
+             FROM user_auth ua
+             LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
+             WHERE ua.rol IN ('impulsa_administrador', 'impulsa_colaborador', 'impulsa_marketing')
+             ORDER BY ui.nombre IS NULL ASC, ui.nombre ASC, ua.correo ASC"
+        );
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function existeProyecto(int $projectId): bool
     {
         $stmt = $this->pdo->prepare('SELECT id FROM projects WHERE id = :id LIMIT 1');
@@ -53,6 +67,52 @@ class AdminProyectManagerModel
         $stmt->execute(['id' => $objectiveId, 'project_id' => $projectId]);
 
         return (bool) $stmt->fetchColumn();
+    }
+
+    public function responsableExiste(int $responsableId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT id
+             FROM user_auth
+             WHERE id = :id
+               AND rol IN ('impulsa_administrador', 'impulsa_colaborador', 'impulsa_marketing')
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $responsableId]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public function actualizarProyecto(int $projectId, array $datos): void
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE projects
+             SET project_name = :project_name,
+                 manager_user_id = :manager_user_id,
+                 summary = :summary,
+                 scope_summary = :scope_summary,
+                 status = :status,
+                 priority = :priority,
+                 start_date = :start_date,
+                 target_delivery_date = :target_delivery_date,
+                 progress_percent = :progress_percent,
+                 client_visible = :client_visible,
+                 updated_at = NOW()
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'project_name' => $datos['project_name'],
+            'manager_user_id' => (int) $datos['manager_user_id'],
+            'summary' => $datos['summary'] !== '' ? $datos['summary'] : null,
+            'scope_summary' => $datos['scope_summary'] !== '' ? $datos['scope_summary'] : null,
+            'status' => $datos['status'],
+            'priority' => $datos['priority'],
+            'start_date' => $datos['start_date'] !== '' ? $datos['start_date'] : null,
+            'target_delivery_date' => $datos['target_delivery_date'] !== '' ? $datos['target_delivery_date'] : null,
+            'progress_percent' => max(0, min(100, (int) $datos['progress_percent'])),
+            'client_visible' => (int) $datos['client_visible'],
+            'id' => $projectId,
+        ]);
     }
 
     public function existeFaseConTitulo(int $projectId, string $title, int $exceptId = 0): bool

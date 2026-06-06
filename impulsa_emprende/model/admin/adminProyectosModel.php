@@ -9,7 +9,7 @@ class AdminProyectosModel
     public function obtenerProyectos(): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT p.id, p.project_name, p.project_type, p.client_user_id, p.manager_user_id,
+            'SELECT p.id, p.source_type, p.source_id, p.project_name, p.project_type, p.client_user_id, p.manager_user_id,
                     p.client_name, p.client_email, p.client_whatsapp, p.summary, p.scope_summary,
                     p.status, p.priority, p.start_date, p.target_delivery_date, p.progress_percent,
                     p.client_visible, p.created_at, p.updated_at,

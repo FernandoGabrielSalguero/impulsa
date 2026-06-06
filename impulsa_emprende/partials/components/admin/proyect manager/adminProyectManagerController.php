@@ -3,6 +3,8 @@
 require_once __DIR__ . '/adminProyectManagerModel.php';
 
 $adminProyectManagerModel = new AdminProyectManagerModel($pdo);
+$pmProyectoEstados = ['draft', 'planned', 'in_progress', 'paused', 'in_review', 'completed', 'cancelled'];
+$pmProyectoPrioridades = ['low', 'medium', 'high', 'urgent'];
 $pmFaseEstados = ['pending', 'in_progress', 'blocked', 'done'];
 $pmObjetivoEstados = ['pending', 'in_progress', 'ready_for_review', 'delivered'];
 $pmObjetivoTipos = ['document', 'design', 'development', 'deployment', 'training', 'other'];
@@ -18,7 +20,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_starts_with((string) ($_POST['a
             throw new RuntimeException('El proyecto seleccionado no es valido.');
         }
 
-        if ($accion === 'pm_crear_fase' || $accion === 'pm_editar_fase') {
+        if ($accion === 'pm_actualizar_proyecto') {
+            $nombre = trim((string) ($_POST['project_name'] ?? ''));
+            $status = (string) ($_POST['status'] ?? 'planned');
+            $priority = (string) ($_POST['priority'] ?? 'medium');
+            $responsableId = (int) ($_POST['manager_user_id'] ?? 0);
+
+            if ($nombre === '') {
+                throw new RuntimeException('Ingresa un nombre para el proyecto.');
+            }
+            if (!in_array($status, $pmProyectoEstados, true)) {
+                $status = 'planned';
+            }
+            if (!in_array($priority, $pmProyectoPrioridades, true)) {
+                $priority = 'medium';
+            }
+            if ($responsableId <= 0 || !$adminProyectManagerModel->responsableExiste($responsableId)) {
+                throw new RuntimeException('Selecciona un responsable valido para el proyecto.');
+            }
+
+            $adminProyectManagerModel->actualizarProyecto($projectId, [
+                'project_name' => $nombre,
+                'manager_user_id' => $responsableId,
+                'summary' => trim((string) ($_POST['summary'] ?? '')),
+                'scope_summary' => trim((string) ($_POST['scope_summary'] ?? '')),
+                'status' => $status,
+                'priority' => $priority,
+                'start_date' => trim((string) ($_POST['start_date'] ?? '')),
+                'target_delivery_date' => trim((string) ($_POST['target_delivery_date'] ?? '')),
+                'progress_percent' => (int) ($_POST['progress_percent'] ?? 0),
+                'client_visible' => isset($_POST['client_visible']) ? 1 : 0,
+            ]);
+
+            $mensaje = 'Datos del proyecto actualizados correctamente.';
+            $estado = 'ok';
+        } elseif ($accion === 'pm_crear_fase' || $accion === 'pm_editar_fase') {
             $phaseId = (int) ($_POST['phase_id'] ?? 0);
             $titulo = trim((string) ($_POST['title'] ?? ''));
             $status = (string) ($_POST['status'] ?? 'pending');
@@ -114,3 +150,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_starts_with((string) ($_POST['a
 
 $fasesPorProyecto = $adminProyectManagerModel->obtenerFasesPorProyecto();
 $objetivosPorProyecto = $adminProyectManagerModel->obtenerObjetivosPorProyecto();
+$pmResponsables = $adminProyectManagerModel->obtenerResponsables();
