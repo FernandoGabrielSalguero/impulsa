@@ -388,7 +388,7 @@ https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</co
               <h3>Instrucciones para IA / Codex</h3>
               <ul class="im-lista-ayuda">
                 <li>Usar siempre clases existentes del framework antes de crear CSS nuevo.</li>
-                <li>Preferir componentes documentados: botones, tarjetas, tablas, dialogs, bottom sheets, tabs, steppers, form fields, chips, badges, snackbar, toolbar, sidenav, progress, spinner, grid list y expansion.</li>
+                <li>Preferir componentes documentados: botones, tarjetas, tablas, menu de tabla, dialogs, bottom sheets, drawer, tabs, steppers, form fields, chips, badges, snackbar, toolbar, sidenav, progress, spinner, grid list y expansion.</li>
                 <li>Usar prefijo <code>im-</code> para cualquier extension nueva.</li>
                 <li>No inventar clases sin revisar <code>material.css</code>.</li>
                 <li>No usar estilos inline salvo casos excepcionales.</li>
@@ -422,6 +422,64 @@ https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</co
                   </tbody>
                 </table>
               </div>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Menu de tabla</h3>
+              <p>Usar <code>.im-menu-tabla</code> para acciones contextuales dentro de tablas, toolbars o columnas sticky. El panel usa <code>data-im-menu-panel</code> y, al abrirse, <code>material.js</code> lo mueve temporalmente al <code>body</code> para que se vea completo por encima de cualquier tabla, scroll interno, celda sticky u otro contenedor.</p>
+              <pre class="im-codigo"><code>&lt;div class="im-menu-tabla" data-im-menu&gt;
+  &lt;button
+    class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded"
+    type="button"
+    data-im-menu-trigger
+    aria-label="Opciones de tabla"
+    aria-haspopup="menu"
+    aria-expanded="false"&gt;more_horiz&lt;/button&gt;
+
+  &lt;div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel&gt;
+    &lt;button type="button" role="menuitem"&gt;
+      &lt;span class="material-symbols-rounded" aria-hidden="true"&gt;visibility&lt;/span&gt;Ver
+    &lt;/button&gt;
+    &lt;button type="button" role="menuitem"&gt;
+      &lt;span class="material-symbols-rounded" aria-hidden="true"&gt;edit&lt;/span&gt;Editar
+    &lt;/button&gt;
+    &lt;button type="button" role="menuitem"&gt;
+      &lt;span class="material-symbols-rounded" aria-hidden="true"&gt;delete&lt;/span&gt;Eliminar
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+              <ul class="im-lista-ayuda">
+                <li>Usar siempre <code>data-im-menu</code>, <code>data-im-menu-trigger</code> y <code>data-im-menu-panel</code>.</li>
+                <li>El boton debe ser <code>type="button"</code> y tener <code>aria-label</code>, <code>aria-haspopup="menu"</code> y <code>aria-expanded="false"</code>.</li>
+                <li>Las acciones internas deben ser botones con <code>role="menuitem"</code>.</li>
+                <li>No usar estilos inline ni posicionar el panel a mano; el JS calcula la posicion y lo mantiene dentro del viewport.</li>
+              </ul>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Drawer</h3>
+              <p>El drawer es una superficie lateral derecha para detalle, formularios o acciones secundarias sin abandonar la pantalla. En esta version del CDN, <code>material.js</code> crea el drawer base y su cortina al cargar la pagina; para abrirlo desde un proyecto consumidor alcanza con agregar un boton con <code>data-abrir-drawer</code>. Los elementos con <code>data-cerrar-drawer</code> lo cierran.</p>
+              <pre class="im-codigo"><code>&lt;button class="im-boton im-boton--principal" type="button" data-abrir-drawer&gt;
+  Abrir drawer
+&lt;/button&gt;</code></pre>
+              <p>Estructura interna usada por el componente:</p>
+              <pre class="im-codigo"><code>&lt;div class="im-drawer-cortina" data-cerrar-drawer&gt;&lt;/div&gt;
+&lt;aside class="im-drawer" role="dialog" aria-modal="true" aria-labelledby="im-drawer-titulo"&gt;
+  &lt;header class="im-drawer__cabecera"&gt;
+    &lt;h3 id="im-drawer-titulo"&gt;Detalle&lt;/h3&gt;
+    &lt;button class="im-boton-icono material-symbols-rounded" type="button" data-cerrar-drawer aria-label="Cerrar drawer"&gt;close&lt;/button&gt;
+  &lt;/header&gt;
+  &lt;div class="im-drawer__contenido"&gt;Contenido del drawer&lt;/div&gt;
+  &lt;footer class="im-drawer__acciones"&gt;
+    &lt;button class="im-boton im-boton--texto" type="button" data-cerrar-drawer&gt;Cancelar&lt;/button&gt;
+    &lt;button class="im-boton im-boton--principal" type="button" data-cerrar-drawer&gt;Guardar&lt;/button&gt;
+  &lt;/footer&gt;
+&lt;/aside&gt;</code></pre>
+              <ul class="im-lista-ayuda">
+                <li>Usar el drawer para detalle lateral, edicion breve o acciones relacionadas con un registro.</li>
+                <li>El contenido scrollea dentro de <code>.im-drawer__contenido</code>; cabecera y acciones quedan separadas.</li>
+                <li>La cortina y el drawer son overlays fijos; no deben ir dentro de tablas ni tarjetas.</li>
+              </ul>
             </article>
 
             <article class="im-tarjeta">
@@ -507,6 +565,14 @@ https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</co
 &lt;button class="im-boton im-boton--tonal" type="button" data-abrir-bottom-sheet&gt;Abrir bottom sheet&lt;/button&gt;
 &lt;button class="im-boton im-boton--tonal" type="button" data-abrir-drawer&gt;Abrir drawer&lt;/button&gt;
 
+&lt;div class="im-menu-tabla" data-im-menu&gt;
+  &lt;button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false"&gt;more_horiz&lt;/button&gt;
+  &lt;div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel&gt;
+    &lt;button type="button" role="menuitem"&gt;Ver&lt;/button&gt;
+    &lt;button type="button" role="menuitem"&gt;Editar&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
 &lt;div class="im-tabs" data-tabs&gt;
   &lt;button class="activo" type="button"&gt;Resumen&lt;/button&gt;
   &lt;button type="button"&gt;Detalle&lt;/button&gt;
@@ -528,7 +594,7 @@ https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</co
                 <li>Cargar JS al final del <code>body</code> o con <code>defer</code>.</li>
                 <li>No mezclar nombres de clases de otros frameworks.</li>
                 <li>Mantener estructura semantica y labels reales.</li>
-                <li>Verificar mobile y scroll interno en tablas.</li>
+                <li>Verificar mobile, scroll interno en tablas y menus de tabla abiertos sobre columnas sticky.</li>
                 <li>Usar <code>material-symbols-rounded</code> para iconos.</li>
                 <li>Mantener textos accesibles y botones con <code>type="button"</code>.</li>
               </ul>
@@ -543,7 +609,7 @@ https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</co
                 <li>Probar responsive.</li>
                 <li>Probar formularios validados.</li>
                 <li>Probar navegacion por hash.</li>
-                <li>Probar overlays: dialog, bottom sheet y snackbar.</li>
+                <li>Probar overlays: dialog, bottom sheet, drawer, snackbar y menu de tabla.</li>
                 <li>Mantener esta seccion sincronizada con <code>material.css</code> y JS.</li>
               </ul>
             </article>
