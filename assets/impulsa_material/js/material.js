@@ -560,6 +560,82 @@
     });
   });
 
+  const tooltip = document.createElement("div");
+  const selectorTooltip = ".im-tooltip[data-tooltip], .im-tabla-tareas__acciones .im-boton-icono[aria-label]";
+  const margenTooltip = 8;
+  const separacionTooltip = 14;
+  let elementoTooltip = null;
+
+  tooltip.className = "im-tooltip-flotante";
+  tooltip.setAttribute("role", "tooltip");
+  tooltip.setAttribute("aria-hidden", "true");
+  document.body.appendChild(tooltip);
+
+  const textoTooltip = (elemento) => elemento?.dataset.tooltip || elemento?.getAttribute("aria-label") || "";
+
+  const posicionarTooltip = (x, y) => {
+    const ancho = tooltip.offsetWidth;
+    const alto = tooltip.offsetHeight;
+    const maxX = Math.max(margenTooltip, window.innerWidth - ancho - margenTooltip);
+    const maxY = Math.max(margenTooltip, window.innerHeight - alto - margenTooltip);
+    const izquierda = Math.min(Math.max(x + separacionTooltip, margenTooltip), maxX);
+    let arriba = y + separacionTooltip;
+
+    if (arriba + alto + margenTooltip > window.innerHeight) {
+      arriba = y - alto - separacionTooltip;
+    }
+
+    arriba = Math.min(Math.max(arriba, margenTooltip), maxY);
+    tooltip.style.setProperty("--im-tooltip-x", `${izquierda}px`);
+    tooltip.style.setProperty("--im-tooltip-y", `${arriba}px`);
+  };
+
+  const mostrarTooltip = (elemento, x, y) => {
+    const texto = textoTooltip(elemento);
+    if (!texto) return;
+
+    elementoTooltip = elemento;
+    tooltip.textContent = texto;
+    tooltip.classList.add("visible");
+    tooltip.setAttribute("aria-hidden", "false");
+    posicionarTooltip(x, y);
+  };
+
+  const ocultarTooltip = () => {
+    elementoTooltip = null;
+    tooltip.classList.remove("visible");
+    tooltip.setAttribute("aria-hidden", "true");
+  };
+
+  document.addEventListener("pointerover", (evento) => {
+    const elemento = evento.target.closest(selectorTooltip);
+    if (elemento) mostrarTooltip(elemento, evento.clientX, evento.clientY);
+  });
+
+  document.addEventListener("pointermove", (evento) => {
+    if (elementoTooltip) posicionarTooltip(evento.clientX, evento.clientY);
+  });
+
+  document.addEventListener("pointerout", (evento) => {
+    if (elementoTooltip && !evento.relatedTarget?.closest?.(selectorTooltip)) ocultarTooltip();
+  });
+
+  document.addEventListener("focusin", (evento) => {
+    const elemento = evento.target.closest(selectorTooltip);
+    if (!elemento) return;
+
+    const limites = elemento.getBoundingClientRect();
+    mostrarTooltip(elemento, limites.left + limites.width / 2, limites.bottom);
+  });
+
+  document.addEventListener("focusout", (evento) => {
+    if (elementoTooltip === evento.target) ocultarTooltip();
+  });
+
+  window.addEventListener("blur", ocultarTooltip);
+  window.addEventListener("resize", ocultarTooltip);
+  window.addEventListener("scroll", ocultarTooltip, true);
+
   document.addEventListener("click", (evento) => {
     if (!evento.target.closest("[data-im-menu]")) {
       cerrarMenusFlotantes();
@@ -569,6 +645,7 @@
   document.addEventListener("keydown", (evento) => {
     if (evento.key === "Escape") {
       cerrarMenusFlotantes();
+      ocultarTooltip();
     }
   });
 })();
