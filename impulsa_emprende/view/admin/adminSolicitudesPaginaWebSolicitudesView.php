@@ -187,6 +187,10 @@ $nombreSolicitante = static function (array $solicitud): string {
           <span class="im-nav-item__icono" data-icon="language" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Solicitudes web</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminProyectosController.php">
+          <span class="im-nav-item__icono" data-icon="work" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Proyectos</span>
+        </a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>

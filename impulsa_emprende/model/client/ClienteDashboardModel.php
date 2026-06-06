@@ -12,6 +12,8 @@ class ClienteDashboardModel
             'usuario' => $this->obtenerUsuario($userId),
             'resumen' => $this->obtenerResumen($userId),
             'proyectos' => $this->obtenerProyectos($userId),
+            'fases' => $this->obtenerFases($userId),
+            'objetivos' => $this->obtenerObjetivos($userId),
             'actualizaciones' => $this->obtenerActualizaciones($userId),
             'contratos' => $this->obtenerContratos($userId),
         ];
@@ -111,10 +113,45 @@ class ClienteDashboardModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    private function obtenerFases(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT pp.id, pp.project_id, pp.title, pp.description, pp.duration_days,
+                    pp.phase_order, pp.status, pp.due_date, pp.completed_at
+             FROM project_phases pp
+             INNER JOIN projects p ON p.id = pp.project_id
+             WHERE p.client_user_id = :user_id
+               AND p.client_visible = 1
+             ORDER BY pp.project_id ASC, pp.phase_order ASC, pp.id ASC'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        return $this->agruparPorProyecto($stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    private function obtenerObjetivos(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT pd.id, pd.project_id, pd.phase_id, pd.title, pd.description,
+                    pd.deliverable_type, pd.status, pd.due_date, pd.delivered_at,
+                    pp.title AS phase_title
+             FROM project_deliverables pd
+             INNER JOIN projects p ON p.id = pd.project_id
+             LEFT JOIN project_phases pp ON pp.id = pd.phase_id
+             WHERE p.client_user_id = :user_id
+               AND p.client_visible = 1
+               AND pd.client_visible = 1
+             ORDER BY pd.project_id ASC, pd.due_date IS NULL ASC, pd.due_date ASC, pd.id ASC'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        return $this->agruparPorProyecto($stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
     private function obtenerContratos(int $userId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT pc.id, pc.contract_name, pc.version_number, pc.is_signed, pc.signed_at,
+            'SELECT pc.id, pc.project_id, pc.contract_name, pc.version_number, pc.is_signed, pc.signed_at,
                     p.project_name
              FROM project_contracts pc
              INNER JOIN projects p ON p.id = pc.project_id
@@ -133,5 +170,15 @@ class ClienteDashboardModel
         $stmt->execute(['user_id' => $userId]);
 
         return (int) $stmt->fetchColumn();
+    }
+
+    private function agruparPorProyecto(array $filas): array
+    {
+        $agrupado = [];
+        foreach ($filas as $fila) {
+            $agrupado[(int) $fila['project_id']][] = $fila;
+        }
+
+        return $agrupado;
     }
 }

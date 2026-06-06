@@ -6,8 +6,14 @@ $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Cliente';
 $dashboardData = $dashboardData ?? [];
 $resumen = $dashboardData['resumen'] ?? [];
 $proyectos = $dashboardData['proyectos'] ?? [];
+$fasesPorProyecto = $dashboardData['fases'] ?? [];
+$objetivosPorProyecto = $dashboardData['objetivos'] ?? [];
 $actualizaciones = $dashboardData['actualizaciones'] ?? [];
 $contratos = $dashboardData['contratos'] ?? [];
+$contratosPorProyecto = [];
+foreach ($contratos as $contrato) {
+    $contratosPorProyecto[(int) ($contrato['project_id'] ?? 0)] = $contrato;
+}
 
 $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 $fecha = static function (?string $valor): string {
@@ -32,6 +38,7 @@ $estadoProyecto = static function (?string $estado): array {
 
     return $mapa[$estado ?? ''] ?? [ucfirst(str_replace('_', ' ', (string) $estado)), 'im-chip'];
 };
+$estadoSimple = static fn (?string $estado): string => ucfirst(str_replace('_', ' ', (string) ($estado ?? '')));
 ?>
 <!doctype html>
 <html lang="es">
@@ -187,7 +194,13 @@ $estadoProyecto = static function (?string $estado): array {
 
           <div class="im-grilla im-grilla--dos-columnas">
             <?php foreach ($proyectos as $proyecto): ?>
-              <?php [$estadoTexto, $estadoClase] = $estadoProyecto($proyecto['status'] ?? ''); ?>
+              <?php
+                $projectId = (int) ($proyecto['id'] ?? 0);
+                $fases = $fasesPorProyecto[$projectId] ?? [];
+                $objetivos = $objetivosPorProyecto[$projectId] ?? [];
+                $contratoProyecto = $contratosPorProyecto[$projectId] ?? null;
+                [$estadoTexto, $estadoClase] = $estadoProyecto($proyecto['status'] ?? '');
+              ?>
               <article class="im-tarjeta">
                 <div class="im-tarjeta__cabecera">
                   <div>
@@ -203,6 +216,43 @@ $estadoProyecto = static function (?string $estado): array {
                   <span class="im-chip"><?= (int) ($proyecto['actualizaciones_total'] ?? 0) ?> actualizaciones</span>
                 </div>
                 <p>Entrega objetivo: <?= $fecha($proyecto['target_delivery_date'] ?? '') ?></p>
+                <div class="im-grilla im-grilla--dos-columnas">
+                  <div>
+                    <h4>Fases</h4>
+                    <?php if (!$fases): ?>
+                      <p>No hay fases visibles cargadas todavia.</p>
+                    <?php else: ?>
+                      <ul class="im-lista">
+                        <?php foreach ($fases as $fase): ?>
+                          <li>
+                            <strong><?= $h(($fase['phase_order'] ?? '') . '. ' . ($fase['title'] ?? '')) ?></strong>
+                            <span><?= $h($estadoSimple($fase['status'] ?? '')) ?> - vence <?= $fecha($fase['due_date'] ?? '') ?></span>
+                          </li>
+                        <?php endforeach; ?>
+                      </ul>
+                    <?php endif; ?>
+                  </div>
+                  <div>
+                    <h4>Objetivos</h4>
+                    <?php if (!$objetivos): ?>
+                      <p>No hay objetivos visibles cargados todavia.</p>
+                    <?php else: ?>
+                      <ul class="im-lista">
+                        <?php foreach ($objetivos as $objetivo): ?>
+                          <li>
+                            <strong><?= $h($objetivo['title'] ?? '') ?></strong>
+                            <span><?= $h($estadoSimple($objetivo['status'] ?? '')) ?><?= !empty($objetivo['phase_title']) ? ' - ' . $h($objetivo['phase_title']) : '' ?></span>
+                          </li>
+                        <?php endforeach; ?>
+                      </ul>
+                    <?php endif; ?>
+                  </div>
+                </div>
+                <?php if ($contratoProyecto): ?>
+                  <div class="im-alerta im-alerta--info">
+                    Contrato: <?= $h($contratoProyecto['contract_name'] ?? '') ?> - <?= (int) ($contratoProyecto['is_signed'] ?? 0) === 1 ? 'firmado' : 'pendiente de firma' ?>.
+                  </div>
+                <?php endif; ?>
               </article>
             <?php endforeach; ?>
             <?php if (!$proyectos): ?>
