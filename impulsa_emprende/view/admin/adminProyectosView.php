@@ -19,6 +19,17 @@ $estadoProyecto = static function (?string $estado): string {
         'cancelled' => 'Cancelado',
     ][$estado ?? ''] ?? ucfirst(str_replace('_', ' ', (string) $estado));
 };
+$claseEstadoProyecto = static function (?string $estado): string {
+    return [
+        'draft' => 'im-chip--estado-borrador',
+        'planned' => 'im-chip--estado-planificado',
+        'in_progress' => 'im-chip--estado-progreso',
+        'paused' => 'im-chip--estado-pausado',
+        'in_review' => 'im-chip--estado-revision',
+        'completed' => 'im-chip--estado-completado',
+        'cancelled' => 'im-chip--estado-cancelado',
+    ][$estado ?? ''] ?? 'im-chip--estado-borrador';
+};
 ?>
 <!doctype html>
 <html lang="es">
@@ -35,6 +46,15 @@ $estadoProyecto = static function (?string $estado): string {
     .im-accion-salir { color: #ba1a1a; }
     .im-bottom-sheet--perfil { max-width: 860px; max-height: min(760px, calc(100vh - 2rem)); overflow: auto; }
     .im-nav-item__icono[data-icon]::before { content: attr(data-icon); }
+    .im-chip--estado-borrador { background: var(--im-color-superficie-2); color: var(--im-color-texto-suave); }
+    .im-chip--estado-planificado { background: var(--im-color-secundario-suave); color: var(--im-color-secundario); }
+    .im-chip--estado-progreso { background: var(--im-color-principal-suave); color: var(--im-color-principal); }
+    .im-chip--estado-pausado,
+    .im-chip--estado-revision { background: var(--im-color-alerta-suave); color: var(--im-color-alerta); }
+    .im-chip--estado-completado { background: var(--im-color-exito-suave); color: var(--im-color-exito); }
+    .im-chip--estado-cancelado { background: #f3d8df; color: #ba1a1a; }
+    .im-snackbar[data-estado="error"] { background: #ba1a1a; color: #fff; }
+    .im-snackbar[data-estado="error"] button { color: #fff; }
     .im-proyecto-modal { width: min(1280px, calc(100vw - 2rem)); max-height: min(880px, calc(100vh - 2rem)); grid-template-rows: auto minmax(0, 1fr) auto; }
     .im-proyecto-modal .im-dialog__contenido { min-height: 0; overflow: auto; }
     .im-pm-contenido { display: grid; gap: 1rem; }
@@ -144,10 +164,6 @@ $estadoProyecto = static function (?string $estado): string {
             <span class="im-chip"><?= number_format(count($proyectos), 0, ',', '.') ?> proyectos</span>
           </div>
 
-          <?php if (is_array($mensajeEstadoProyectos) && trim((string) ($mensajeEstadoProyectos['mensaje'] ?? '')) !== ''): ?>
-            <div class="im-alerta im-alerta--info" role="status"><?= $h($mensajeEstadoProyectos['mensaje'] ?? '') ?></div>
-          <?php endif; ?>
-
           <?php if (!$proyectos): ?>
             <article class="im-tarjeta"><h3>No hay proyectos para mostrar.</h3><p>Cuando se creen proyectos desde solicitudes o carga interna, apareceran en esta vista.</p></article>
           <?php else: ?>
@@ -191,7 +207,7 @@ $estadoProyecto = static function (?string $estado): string {
                           <?= $h($proyecto['client_name'] ?? '') ?>
                           <br><small><?= $h($proyecto['client_email'] ?? '') ?></small>
                         </td>
-                        <td><span class="im-chip"><?= $h($estadoProyecto($proyecto['status'] ?? '')) ?></span></td>
+                        <td><span class="im-chip <?= $h($claseEstadoProyecto($proyecto['status'] ?? '')) ?>"><?= $h($estadoProyecto($proyecto['status'] ?? '')) ?></span></td>
                         <td><?= (int) ($proyecto['progress_percent'] ?? 0) ?>%</td>
                         <td><?= count($fases) ?></td>
                         <td><?= count($objetivos) ?></td>
@@ -227,5 +243,24 @@ $estadoProyecto = static function (?string $estado): string {
   <?php require __DIR__ . '/../../partials/components/admin/contratos/adminContratoView.php'; ?>
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="../../../assets/impulsa_material/js/material.js"></script>
+  <?php if (is_array($mensajeEstadoProyectos) && trim((string) ($mensajeEstadoProyectos['mensaje'] ?? '')) !== ''): ?>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const snackbar = document.querySelector('.im-snackbar');
+        const mensaje = <?= json_encode((string) ($mensajeEstadoProyectos['mensaje'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        const estado = <?= json_encode((string) ($mensajeEstadoProyectos['estado'] ?? 'ok'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+        if (!snackbar || !mensaje) {
+          return;
+        }
+
+        snackbar.dataset.estado = estado === 'error' ? 'error' : 'ok';
+        snackbar.querySelector('span').textContent = mensaje;
+        snackbar.classList.add('abierto');
+        window.clearTimeout(window.imProyectosSnackbarTimer);
+        window.imProyectosSnackbarTimer = window.setTimeout(() => snackbar.classList.remove('abierto'), 4200);
+      });
+    </script>
+  <?php endif; ?>
 </body>
 </html>

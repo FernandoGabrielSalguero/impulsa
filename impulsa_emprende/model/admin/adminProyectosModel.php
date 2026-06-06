@@ -24,7 +24,7 @@ class AdminProyectosModel
              LEFT JOIN user_auth client ON client.id = p.client_user_id
              INNER JOIN user_auth manager ON manager.id = p.manager_user_id
              LEFT JOIN project_contracts pc ON pc.project_id = p.id
-             ORDER BY p.updated_at DESC, p.id DESC'
+             ORDER BY CASE WHEN p.status = \'cancelled\' THEN 1 ELSE 0 END ASC, p.updated_at DESC, p.id DESC'
         );
         $stmt->execute();
 
