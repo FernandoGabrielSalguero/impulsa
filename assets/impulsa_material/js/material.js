@@ -275,12 +275,15 @@
     alternarOverlay([drawerCortina, drawer], false);
   };
 
-  document.querySelectorAll("[data-abrir-drawer]").forEach((boton) => {
-    boton.addEventListener("click", () => alternarOverlay([drawerCortina, drawer], true));
-  });
+  document.addEventListener("click", (evento) => {
+    if (evento.target.closest("[data-abrir-drawer]")) {
+      alternarOverlay([drawerCortina, drawer], true);
+      return;
+    }
 
-  document.querySelectorAll("[data-cerrar-drawer]").forEach((boton) => {
-    boton.addEventListener("click", cerrarDrawer);
+    if (evento.target.closest("[data-cerrar-drawer]")) {
+      cerrarDrawer();
+    }
   });
 
   let temporizadorSnackbar;

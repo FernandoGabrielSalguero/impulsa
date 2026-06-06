@@ -2015,15 +2015,18 @@ html[data-alto-contraste="true"] :focus-visible {
   z-index: 80;
   background: rgba(29, 27, 32, .4);
   opacity: 0;
+  pointer-events: none;
   visibility: hidden;
-  transition: opacity .2s ease, visibility .2s ease;
+  transition: opacity .32s ease, visibility 0s linear .32s;
 }
 
 .im-modal-cortina.abierto,
 .im-bottom-sheet-cortina.abierto,
 .im-drawer-cortina.abierto {
   opacity: 1;
+  pointer-events: auto;
   visibility: visible;
+  transition-delay: 0s;
 }
 
 .im-dialog {
@@ -2084,13 +2087,18 @@ html[data-alto-contraste="true"] :focus-visible {
   opacity: 0;
   transform: translateY(calc(100% + 2rem));
   visibility: hidden;
-  transition: opacity .2s ease, transform .22s ease, visibility .22s ease;
+  will-change: transform, opacity;
+  transition:
+    opacity .3s ease,
+    transform .36s cubic-bezier(.22, 1, .36, 1),
+    visibility 0s linear .36s;
 }
 
 .im-bottom-sheet.abierto {
   opacity: 1;
   transform: translateY(0);
   visibility: visible;
+  transition-delay: 0s;
 }
 
 .im-bottom-sheet__acciones {
@@ -2151,13 +2159,18 @@ html[data-alto-contraste="true"] :focus-visible {
   opacity: 0;
   transform: translateX(100%);
   visibility: hidden;
-  transition: opacity .2s ease, transform .22s ease, visibility .22s ease;
+  will-change: transform, opacity;
+  transition:
+    opacity .3s ease,
+    transform .36s cubic-bezier(.22, 1, .36, 1),
+    visibility 0s linear .36s;
 }
 
 .im-drawer.abierto {
   opacity: 1;
   transform: translateX(0);
   visibility: visible;
+  transition-delay: 0s;
 }
 
 .im-drawer__cabecera,
