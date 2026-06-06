@@ -20,6 +20,27 @@ if (empty($_SESSION['request_page_external_csrf'])) {
 }
 $csrfToken = (string) $_SESSION['request_page_external_csrf'];
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['request_page_external_action'] ?? '') === 'enviar_correo') {
+    header('Content-Type: application/json; charset=UTF-8');
+
+    $mailToken = (string) ($_POST['mail_token'] ?? '');
+    $sesionToken = (string) ($_SESSION['request_page_external_mail_token'] ?? '');
+    $mailData = $_SESSION['request_page_external_mail_data'] ?? null;
+
+    if ($sesionToken === '' || !hash_equals($sesionToken, $mailToken) || !is_array($mailData)) {
+        http_response_code(409);
+        echo json_encode(['ok' => false], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    unset($_SESSION['request_page_external_mail_token'], $_SESSION['request_page_external_mail_data']);
+    require_once __DIR__ . '/../../mail/Mail.php';
+    $resultado = \SVE\Mail\Mailer::enviarSolicitudPaginaWebExterna($mailData);
+
+    echo json_encode(['ok' => (bool) ($resultado['ok'] ?? false)], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $campos = [
         'nombre_apellido' => 150,
@@ -109,6 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $model = new RequestPageExternalModel($pdo);
             $model->crear(mapearSolicitudExterna($datos, $archivosGuardados));
 
+            $_SESSION['request_page_external_mail_token'] = bin2hex(random_bytes(32));
+            $_SESSION['request_page_external_mail_data'] = construirDatosCorreoSolicitud($datos, $archivosGuardados);
             $_SESSION['request_page_external_csrf'] = bin2hex(random_bytes(32));
             header('Location: ' . $pageUrl . '?enviado=1', true, 303);
             exit;
@@ -121,7 +144,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$mailToken = $exito ? (string) ($_SESSION['request_page_external_mail_token'] ?? '') : '';
 require __DIR__ . '/request_page_external_view.php';
+
+function construirDatosCorreoSolicitud(array $datos, array $archivosGuardados): array
+{
+    return [
+        'correo' => $datos['correo_electronico'],
+        'nombre' => $datos['nombre_apellido'],
+        'nombre_proyecto' => $datos['nombre_proyecto'],
+        'respuestas' => [
+            'Nombre y apellido' => $datos['nombre_apellido'],
+            'Nombre del proyecto' => $datos['nombre_proyecto'],
+            'Correo electrónico' => $datos['correo_electronico'],
+            'WhatsApp' => $datos['whatsapp'],
+            '¿A qué te dedicás?' => $datos['actividad'],
+            '¿Para qué querés la web?' => $datos['objetivo'],
+            '¿A qué público estará dirigida?' => $datos['publico'],
+            'Acción principal del visitante' => $datos['accion_principal'],
+            'Propuesta a destacar' => $datos['propuesta_destacar'],
+            'Secciones necesarias' => $datos['secciones'],
+            '¿Ya tienen los textos preparados?' => $datos['textos_armados'],
+            '¿Cómo les gustaría que se contacten los usuarios?' => $datos['contacto_usuarios'],
+            '¿Tienen manual de marca o lineamientos visuales?' => $datos['material_marca'],
+            'Estilo visual' => $datos['estilo_visual'],
+            'Referencias' => $datos['referencias'],
+            '¿Tienen fotos o videos propios?' => $datos['recursos_visuales'],
+            '¿Ya tienen dominio?' => $datos['tiene_dominio'],
+            '¿Ya tienen hosting?' => $datos['tiene_hosting'],
+            '¿Necesitan correos institucionales?' => $datos['necesita_correos_institucionales'],
+            'Comentarios adicionales' => $datos['comentarios_adicionales'],
+        ],
+        'archivos' => array_map('basename', $archivosGuardados),
+    ];
+}
 
 function mapearSolicitudExterna(array $datos, array $archivosGuardados): array
 {

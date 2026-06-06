@@ -4,6 +4,7 @@ $errores = $errores ?? [];
 $exito = $exito ?? false;
 $pageUrl = $pageUrl ?? '';
 $csrfToken = $csrfToken ?? '';
+$mailToken = $mailToken ?? '';
 
 function requestPageExternalValor(array $datos, string $campo): string
 {
@@ -64,6 +65,18 @@ $referencias = $referencias ?: [''];
         <h2>Recibimos tu información</h2>
         <p>Vamos a revisar el proyecto y nos comunicaremos con vos.</p>
       </article>
+      <div class="im-modal-cortina abierto" data-request-thanks-backdrop></div>
+      <section class="im-dialog abierto" role="dialog" aria-modal="true" aria-labelledby="request-thanks-title">
+        <header class="im-dialog__cabecera">
+          <h3 id="request-thanks-title">Gracias por compartirnos la información</h3>
+        </header>
+        <div class="im-dialog__contenido">
+          <p>En las próximas horas nos vamos a comunicar para coordinar una reunión.</p>
+        </div>
+        <footer class="im-dialog__acciones">
+          <button class="im-boton im-boton--principal" type="button" data-request-accept>Aceptar</button>
+        </footer>
+      </section>
     <?php else: ?>
       <?php if ($errores): ?>
         <div class="im-alerta im-alerta--info" role="alert"><?= htmlspecialchars(implode(' ', $errores), ENT_QUOTES, 'UTF-8') ?></div>
@@ -239,6 +252,27 @@ $referencias = $referencias ?: [''];
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      const aceptar = document.querySelector("[data-request-accept]");
+      if (aceptar) {
+        aceptar.addEventListener("click", async () => {
+          aceptar.disabled = true;
+          aceptar.textContent = "Enviando...";
+          try {
+            await fetch(<?= json_encode($pageUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+              body: new URLSearchParams({
+                request_page_external_action: "enviar_correo",
+                mail_token: <?= json_encode($mailToken, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+              }),
+              keepalive: true,
+            });
+          } finally {
+            window.location.href = "https://impulsagroup.com/";
+          }
+        });
+      }
+
       const stepper = document.querySelector("[data-request-stepper]");
       if (!stepper) return;
 

@@ -321,6 +321,103 @@ final class Mailer
     /**
      * @return array{ok: bool, error?: string}
      */
+    public static function enviarSolicitudPaginaWebExterna(array $data): array
+    {
+        $debugLog = [];
+        $mail = null;
+        $html = '';
+        $correo = trim((string) ($data['correo'] ?? ''));
+
+        if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            return ['ok' => false, 'error' => 'Correo de destino invalido.'];
+        }
+
+        $respuestaHtml = static function (mixed $valor): string {
+            $valores = is_array($valor) ? $valor : [(string) $valor];
+            $valores = array_values(array_filter(array_map('strval', $valores), static fn(string $item): bool => trim($item) !== ''));
+            if (!$valores) {
+                return 'No informado';
+            }
+            return implode('<br>', array_map(
+                static fn(string $item): string => nl2br(htmlspecialchars($item, ENT_QUOTES, 'UTF-8')),
+                $valores
+            ));
+        };
+
+        $filas = '';
+        $textoPlano = '';
+        foreach ((array) ($data['respuestas'] ?? []) as $pregunta => $respuesta) {
+            $preguntaSegura = htmlspecialchars((string) $pregunta, ENT_QUOTES, 'UTF-8');
+            $filas .= '<tr><td class="question">' . $preguntaSegura . '</td><td>' . $respuestaHtml($respuesta) . '</td></tr>';
+            $textoPlano .= (string) $pregunta . ': ' . implode(', ', array_map('strval', (array) $respuesta)) . "\n";
+        }
+
+        $archivos = array_values(array_filter(array_map('basename', (array) ($data['archivos'] ?? []))));
+        $archivosHtml = $archivos
+            ? '<ul>' . implode('', array_map(static fn(string $archivo): string => '<li>' . htmlspecialchars($archivo, ENT_QUOTES, 'UTF-8') . '</li>', $archivos)) . '</ul>'
+            : '<p>No se adjuntaron archivos.</p>';
+
+        try {
+            $tplPath = __DIR__ . '/template/request_page_external.html';
+            if (!is_file($tplPath)) {
+                throw new \RuntimeException('Template request_page_external.html no encontrado.');
+            }
+
+            $html = strtr((string) file_get_contents($tplPath), [
+                '{{title}}' => 'Recibimos tu solicitud de página web',
+                '{{nombre}}' => htmlspecialchars((string) ($data['nombre'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                '{{nombre_proyecto}}' => htmlspecialchars((string) ($data['nombre_proyecto'] ?? ''), ENT_QUOTES, 'UTF-8'),
+                '{{detalle_formulario}}' => $filas,
+                '{{archivos}}' => $archivosHtml,
+            ]);
+
+            $mail = self::baseMailer($debugLog);
+            $subject = 'Recibimos tu solicitud de página web';
+            $mail->Subject = $subject;
+            $mail->Body = $html;
+            $mail->AltBody =
+                "Hola " . ($data['nombre'] ?? '') . ",\n\n" .
+                "Gracias por compartirnos la informacion sobre " . ($data['nombre_proyecto'] ?? 'tu proyecto') . ".\n" .
+                "Recibimos tu solicitud y en las proximas horas nos vamos a comunicar para coordinar una reunion.\n\n" .
+                $textoPlano .
+                "\nArchivos: " . ($archivos ? implode(', ', $archivos) : 'No se adjuntaron archivos.') . "\n\nImpulsa Group";
+            $mail->addAddress($correo);
+            $mail->send();
+
+            self::logEmail([
+                'correo' => $correo,
+                'asunto' => $subject,
+                'template' => 'request_page_external',
+                'mensaje_html' => $html,
+                'mensaje_text' => $mail->AltBody,
+                'estado' => 'enviado',
+            ]);
+
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            $mailError = $mail instanceof PHPMailer ? trim((string) $mail->ErrorInfo) : '';
+            $errorMsg = $e->getMessage();
+            if ($mailError !== '' && stripos($errorMsg, $mailError) === false) {
+                $errorMsg .= ' | ErrorInfo: ' . $mailError;
+            }
+
+            self::logEmail([
+                'correo' => $correo,
+                'asunto' => 'Recibimos tu solicitud de página web',
+                'template' => 'request_page_external',
+                'mensaje_html' => $html ?: null,
+                'mensaje_text' => $mail instanceof PHPMailer ? ($mail->AltBody ?? null) : null,
+                'estado' => 'fallido',
+                'error' => $errorMsg,
+            ]);
+
+            return ['ok' => false, 'error' => $errorMsg];
+        }
+    }
+
+    /**
+     * @return array{ok: bool, error?: string}
+     */
     public static function enviarSolicitudNuevoProyecto(array $data): array
     {
         $debugLog = [];
