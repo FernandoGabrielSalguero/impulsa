@@ -571,12 +571,36 @@
     });
   });
 
+  const registrosMenusFlotantes = [];
+
+  const restaurarPanelMenu = (registro) => {
+    if (!registro?.esMenuTabla || !registro.panel || registro.panel.parentNode !== document.body) {
+      return;
+    }
+
+    if (registro.siguienteOriginal?.parentNode === registro.padreOriginal) {
+      registro.padreOriginal.insertBefore(registro.panel, registro.siguienteOriginal);
+      return;
+    }
+
+    registro.padreOriginal?.appendChild(registro.panel);
+  };
+
+  const portalizarPanelMenu = (registro) => {
+    if (!registro?.esMenuTabla || !registro.panel || registro.panel.parentNode === document.body) {
+      return;
+    }
+
+    document.body.appendChild(registro.panel);
+  };
+
   const cerrarMenusFlotantes = () => {
-    document.querySelectorAll("[data-im-menu]").forEach((menu) => {
-      menu.querySelector("[data-im-menu-panel]")?.classList.remove("abierto");
-      menu.querySelector("[data-im-menu-trigger]")?.setAttribute("aria-expanded", "false");
-      menu.querySelectorAll("[data-im-submenu-panel]").forEach((panel) => panel.classList.remove("abierto"));
-      menu.querySelectorAll("[data-im-submenu-trigger]").forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
+    registrosMenusFlotantes.forEach((registro) => {
+      registro.panel?.classList.remove("abierto");
+      registro.trigger?.setAttribute("aria-expanded", "false");
+      registro.menu?.querySelectorAll("[data-im-submenu-panel]").forEach((panel) => panel.classList.remove("abierto"));
+      registro.menu?.querySelectorAll("[data-im-submenu-trigger]").forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
+      restaurarPanelMenu(registro);
     });
   };
 
@@ -608,10 +632,9 @@
   };
 
   const reposicionarMenusTablaAbiertos = () => {
-    document.querySelectorAll(".im-menu-tabla[data-im-menu]").forEach((menu) => {
-      const panel = menu.querySelector("[data-im-menu-panel].abierto");
-      if (panel) {
-        posicionarMenuTabla(menu, panel);
+    registrosMenusFlotantes.forEach((registro) => {
+      if (registro.esMenuTabla && registro.panel?.classList.contains("abierto")) {
+        posicionarMenuTabla(registro.menu, registro.panel);
       }
     });
   };
@@ -619,11 +642,24 @@
   document.querySelectorAll("[data-im-menu]").forEach((menu) => {
     const trigger = menu.querySelector("[data-im-menu-trigger]");
     const panel = menu.querySelector("[data-im-menu-panel]");
+    const registro = {
+      menu,
+      trigger,
+      panel,
+      esMenuTabla: menu.classList.contains("im-menu-tabla"),
+      padreOriginal: panel?.parentNode,
+      siguienteOriginal: panel?.nextSibling
+    };
+
+    registrosMenusFlotantes.push(registro);
 
     trigger?.addEventListener("click", (evento) => {
       evento.stopPropagation();
       const abrir = !panel?.classList.contains("abierto");
       cerrarMenusFlotantes();
+      if (abrir) {
+        portalizarPanelMenu(registro);
+      }
       panel?.classList.toggle("abierto", abrir);
       trigger.setAttribute("aria-expanded", String(abrir));
       if (abrir) {
@@ -734,7 +770,7 @@
   window.addEventListener("scroll", reposicionarMenusTablaAbiertos, true);
 
   document.addEventListener("click", (evento) => {
-    if (!evento.target.closest("[data-im-menu]")) {
+    if (!evento.target.closest("[data-im-menu]") && !evento.target.closest("[data-im-menu-panel]")) {
       cerrarMenusFlotantes();
     }
   });

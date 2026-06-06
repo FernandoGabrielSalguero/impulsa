@@ -771,6 +771,7 @@ a {
   background: color-mix(in srgb, var(--im-color-principal-suave) 82%, var(--im-color-principal));
 }
 
+.im-menu-tabla__panel,
 .im-menu-tabla > .im-menu-tabla__panel {
   position: fixed;
   top: var(--im-menu-tabla-top, 0);
@@ -795,6 +796,7 @@ a {
   margin: 0;
 }
 
+.im-menu-tabla__panel.abierto,
 .im-menu-tabla > .im-menu-tabla__panel.abierto,
 .im-tabla-tareas__menu > .im-tabla-tareas__menu-panel.abierto {
   display: grid;
