@@ -575,6 +575,8 @@
     document.querySelectorAll("[data-im-menu]").forEach((menu) => {
       menu.querySelector("[data-im-menu-panel]")?.classList.remove("abierto");
       menu.querySelector("[data-im-menu-trigger]")?.setAttribute("aria-expanded", "false");
+      menu.querySelectorAll("[data-im-submenu-panel]").forEach((panel) => panel.classList.remove("abierto"));
+      menu.querySelectorAll("[data-im-submenu-trigger]").forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
     });
   };
 
@@ -590,7 +592,26 @@
       trigger.setAttribute("aria-expanded", String(abrir));
     });
 
+    menu.querySelectorAll("[data-im-submenu-trigger]").forEach((submenuTrigger) => {
+      const submenu = submenuTrigger.nextElementSibling?.matches("[data-im-submenu-panel]")
+        ? submenuTrigger.nextElementSibling
+        : null;
+
+      submenuTrigger.addEventListener("click", (evento) => {
+        evento.stopPropagation();
+        const abrir = !submenu?.classList.contains("abierto");
+        menu.querySelectorAll("[data-im-submenu-panel]").forEach((panelSubmenu) => panelSubmenu.classList.remove("abierto"));
+        menu.querySelectorAll("[data-im-submenu-trigger]").forEach((triggerSubmenu) => triggerSubmenu.setAttribute("aria-expanded", "false"));
+        submenu?.classList.toggle("abierto", abrir);
+        submenuTrigger.setAttribute("aria-expanded", String(abrir));
+      });
+    });
+
     panel?.querySelectorAll("button").forEach((opcion) => {
+      if (opcion.matches("[data-im-submenu-trigger]")) {
+        return;
+      }
+
       opcion.addEventListener("click", cerrarMenusFlotantes);
     });
   });

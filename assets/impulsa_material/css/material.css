@@ -417,8 +417,7 @@ a {
   margin-top: 0;
 }
 
-#dashboard .im-menu-demo:hover .im-menu-flotante,
-#dashboard .im-menu-demo:focus-within .im-menu-flotante {
+#dashboard .im-menu-demo .im-menu-flotante.abierto {
   display: grid;
 }
 
@@ -1972,6 +1971,10 @@ html[data-alto-contraste="true"] :focus-visible {
   border: 0;
   background: transparent;
   color: var(--im-color-texto);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
   padding: .75rem 1rem;
   text-align: left;
 }
@@ -1982,14 +1985,21 @@ html[data-alto-contraste="true"] :focus-visible {
   background: var(--im-color-superficie-2);
 }
 
-.im-menu-flotante button > span {
+.im-menu-flotante button > span:not(.material-symbols-rounded) {
   display: inline-grid;
   width: 1.25rem;
   place-items: center;
   font-size: 0;
 }
 
-.im-menu-flotante button > span::before {
+.im-menu-flotante button > .material-symbols-rounded {
+  flex: 0 0 1.25rem;
+  width: 1.25rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.im-menu-flotante button > span:not(.material-symbols-rounded)::before {
   content: "edit";
   font-family: "Material Symbols Rounded";
   font-feature-settings: "liga";
@@ -1999,11 +2009,11 @@ html[data-alto-contraste="true"] :focus-visible {
   line-height: 1;
 }
 
-.im-menu-flotante button:nth-child(2) > span::before {
+.im-menu-flotante button:nth-child(2) > span:not(.material-symbols-rounded)::before {
   content: "download";
 }
 
-.im-menu-flotante button:nth-child(3) > span::before {
+.im-menu-flotante button:nth-child(3) > span:not(.material-symbols-rounded)::before {
   content: "chevron_right";
 }
 
@@ -2396,14 +2406,14 @@ html[data-alto-contraste="true"] :focus-visible {
 }
 
 .im-submenu {
-  position: absolute;
-  right: -180px;
-  bottom: 1rem;
+  position: static;
   display: none;
+  width: auto;
+  margin: 0 .5rem .5rem 2.25rem;
+  box-shadow: none;
 }
 
-.im-menu-con-submenu:hover + .im-submenu,
-.im-submenu:hover {
+.im-submenu.abierto {
   display: grid;
 }
 
@@ -2433,12 +2443,16 @@ html[data-alto-contraste="true"] :focus-visible {
 }
 
 .im-spinner {
+  box-sizing: border-box;
+  flex: 0 0 auto;
   width: 48px;
   height: 48px;
+  aspect-ratio: 1 / 1;
   border: 5px solid var(--im-color-principal-suave);
   border-top-color: var(--im-color-principal);
   border-radius: 50%;
   animation: im-girar .9s linear infinite;
+  align-self: flex-start;
 }
 
 .im-radio-grupo {
