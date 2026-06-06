@@ -578,4 +578,91 @@ final class Mailer
             return ['ok' => false, 'error' => $errorMsg . $debugText];
         }
     }
+
+    /**
+     * @return array{ok: bool, error?: string}
+     */
+    public static function enviarNuevoUsuarioCliente(array $data): array
+    {
+        $debugLog = [];
+        $mail = null;
+        $html = '';
+
+        $correo = trim((string) ($data['correo'] ?? ''));
+        $password = (string) ($data['password'] ?? '');
+        $link = trim((string) ($data['link'] ?? 'https://impulsagroup.com/ingreso.html'));
+        $nombre = trim((string) ($data['nombre'] ?? ''));
+
+        if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            return ['ok' => false, 'error' => 'Correo de destino invalido.'];
+        }
+        if ($password === '') {
+            return ['ok' => false, 'error' => 'La password generada esta vacia.'];
+        }
+
+        try {
+            $tplPath = __DIR__ . '/template/new_user_cliente.html';
+            if (!is_file($tplPath)) {
+                throw new \RuntimeException('Template new_user_cliente.html no encontrado.');
+            }
+
+            $html = strtr((string) file_get_contents($tplPath), [
+                '{{title}}' => 'Acceso a Impulsa',
+                '{{nombre}}' => htmlspecialchars($nombre !== '' ? $nombre : 'Cliente', ENT_QUOTES, 'UTF-8'),
+                '{{correo}}' => htmlspecialchars($correo, ENT_QUOTES, 'UTF-8'),
+                '{{password}}' => htmlspecialchars($password, ENT_QUOTES, 'UTF-8'),
+                '{{link}}' => htmlspecialchars($link, ENT_QUOTES, 'UTF-8'),
+            ]);
+
+            $mail = self::baseMailer($debugLog);
+            $subject = 'Tu acceso a Impulsa';
+            $mail->Subject = $subject;
+            $mail->Body = $html;
+            $mail->AltBody =
+                "Hola " . ($nombre !== '' ? $nombre : 'Cliente') . ",\n\n" .
+                "Creamos tu usuario para acceder al panel de Impulsa.\n" .
+                "Usuario: {$correo}\n" .
+                "Contrasena: {$password}\n" .
+                "Ingreso: {$link}\n\n" .
+                "Por seguridad, cambia la contrasena si el sistema te lo solicita.";
+            $mail->addAddress($correo);
+            $mail->send();
+
+            self::logEmail([
+                'user_auth_id' => $data['user_auth_id'] ?? null,
+                'correo' => $correo,
+                'asunto' => $subject,
+                'template' => 'new_user_cliente',
+                'mensaje_html' => $html,
+                'mensaje_text' => $mail->AltBody,
+                'estado' => 'enviado',
+            ]);
+
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            $mailError = $mail instanceof PHPMailer ? trim((string) $mail->ErrorInfo) : '';
+            $debugText = '';
+            if (!empty($debugLog)) {
+                $debugText = ' SMTP Log: ' . implode(' | ', array_slice($debugLog, -10));
+            }
+
+            $errorMsg = $e->getMessage();
+            if ($mailError !== '' && stripos($errorMsg, $mailError) === false) {
+                $errorMsg .= ' | ErrorInfo: ' . $mailError;
+            }
+
+            self::logEmail([
+                'user_auth_id' => $data['user_auth_id'] ?? null,
+                'correo' => $correo,
+                'asunto' => 'Tu acceso a Impulsa',
+                'template' => 'new_user_cliente',
+                'mensaje_html' => $html ?: null,
+                'mensaje_text' => $mail instanceof PHPMailer ? ($mail->AltBody ?? null) : null,
+                'estado' => 'fallido',
+                'error' => $errorMsg . $debugText,
+            ]);
+
+            return ['ok' => false, 'error' => $errorMsg . $debugText];
+        }
+    }
 }

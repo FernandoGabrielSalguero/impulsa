@@ -597,7 +597,7 @@ Columna	Tipo	Nulo	Clave	Default	Extra
 id	int(10) unsigned	NO	PRI		auto_increment
 correo	varchar(255)	NO	UNI		
 password	varchar(255)	NO			
-rol	enum('impulsa_administrador','impulsa_colaborador','impulsa_emprendedor','impulsa_cliente','impulsa_marketing')	NO			
+rol	enum('impulsa_administrador','impulsa_colaborador','impulsa_emprendedor','impulsa_usuario','impulsa_marketing','impulsa_cliente')	NO			
 verification_token	varchar(100)	YES			
 email_verified_at	timestamp	YES			
 created_at	timestamp	NO		current_timestamp()	
