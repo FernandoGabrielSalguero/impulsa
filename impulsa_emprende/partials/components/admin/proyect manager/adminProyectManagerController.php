@@ -47,8 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_starts_with((string) ($_POST['a
                 'status' => $status,
                 'priority' => $priority,
                 'start_date' => trim((string) ($_POST['start_date'] ?? '')),
-                'target_delivery_date' => trim((string) ($_POST['target_delivery_date'] ?? '')),
-                'progress_percent' => (int) ($_POST['progress_percent'] ?? 0),
                 'client_visible' => isset($_POST['client_visible']) ? 1 : 0,
             ]);
 
@@ -79,7 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_starts_with((string) ($_POST['a
                 'duration_days' => trim((string) ($_POST['duration_days'] ?? '')),
                 'phase_order' => (int) ($_POST['phase_order'] ?? 1),
                 'status' => $status,
-                'due_date' => trim((string) ($_POST['due_date'] ?? '')),
             ];
 
             if ($accion === 'pm_editar_fase') {
@@ -137,6 +134,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_starts_with((string) ($_POST['a
             }
 
             $estado = 'ok';
+        }
+
+        if ($estado === 'ok') {
+            $adminProyectManagerModel->recalcularProyecto($projectId);
         }
     } catch (Throwable $e) {
         $estado = 'error';

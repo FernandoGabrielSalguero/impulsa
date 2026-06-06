@@ -94,8 +94,6 @@ class AdminProyectManagerModel
                  status = :status,
                  priority = :priority,
                  start_date = :start_date,
-                 target_delivery_date = :target_delivery_date,
-                 progress_percent = :progress_percent,
                  client_visible = :client_visible,
                  updated_at = NOW()
              WHERE id = :id'
@@ -108,11 +106,99 @@ class AdminProyectManagerModel
             'status' => $datos['status'],
             'priority' => $datos['priority'],
             'start_date' => $datos['start_date'] !== '' ? $datos['start_date'] : null,
-            'target_delivery_date' => $datos['target_delivery_date'] !== '' ? $datos['target_delivery_date'] : null,
-            'progress_percent' => max(0, min(100, (int) $datos['progress_percent'])),
             'client_visible' => (int) $datos['client_visible'],
             'id' => $projectId,
         ]);
+    }
+
+    public function recalcularProyecto(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare('SELECT start_date FROM projects WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $projectId]);
+        $proyecto = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        $stmt = $this->pdo->prepare(
+            'SELECT id, duration_days, phase_order, status
+             FROM project_phases
+             WHERE project_id = :project_id
+             ORDER BY phase_order ASC, id ASC'
+        );
+        $stmt->execute(['project_id' => $projectId]);
+        $fases = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmt = $this->pdo->prepare(
+            'SELECT id, phase_id, status, due_date
+             FROM project_deliverables
+             WHERE project_id = :project_id
+             ORDER BY due_date IS NULL ASC, due_date ASC, id ASC'
+        );
+        $stmt->execute(['project_id' => $projectId]);
+        $objetivos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $objetivosPorFase = [];
+        foreach ($objetivos as $objetivo) {
+            $objetivosPorFase[(int) ($objetivo['phase_id'] ?? 0)][] = $objetivo;
+        }
+
+        $fechaFinal = null;
+        $fechaCursor = $this->crearFecha($proyecto['start_date'] ?? null);
+        foreach ($fases as $fase) {
+            $phaseId = (int) $fase['id'];
+            $fechaFase = null;
+
+            if ($fechaCursor instanceof DateTimeImmutable) {
+                $dias = max(0, (int) ($fase['duration_days'] ?? 0));
+                $fechaFase = $fechaCursor->modify('+' . $dias . ' days');
+            }
+
+            foreach ($objetivosPorFase[$phaseId] ?? [] as $objetivo) {
+                $fechaObjetivo = $this->crearFecha($objetivo['due_date'] ?? null);
+                if ($fechaObjetivo instanceof DateTimeImmutable && (!$fechaFase || $fechaObjetivo > $fechaFase)) {
+                    $fechaFase = $fechaObjetivo;
+                }
+            }
+
+            $stmt = $this->pdo->prepare('UPDATE project_phases SET due_date = :due_date, updated_at = NOW() WHERE id = :id AND project_id = :project_id');
+            $stmt->execute([
+                'due_date' => $fechaFase ? $fechaFase->format('Y-m-d') : null,
+                'id' => $phaseId,
+                'project_id' => $projectId,
+            ]);
+
+            if ($fechaFase instanceof DateTimeImmutable) {
+                $fechaCursor = $fechaFase;
+                if (!$fechaFinal || $fechaFase > $fechaFinal) {
+                    $fechaFinal = $fechaFase;
+                }
+            }
+        }
+
+        foreach ($objetivos as $objetivo) {
+            $fechaObjetivo = $this->crearFecha($objetivo['due_date'] ?? null);
+            if ($fechaObjetivo instanceof DateTimeImmutable && (!$fechaFinal || $fechaObjetivo > $fechaFinal)) {
+                $fechaFinal = $fechaObjetivo;
+            }
+        }
+
+        $progreso = $this->calcularProgreso($fases, $objetivos);
+        $stmt = $this->pdo->prepare(
+            'UPDATE projects
+             SET target_delivery_date = :target_delivery_date,
+                 progress_percent = :progress_percent,
+                 updated_at = NOW()
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'target_delivery_date' => $fechaFinal ? $fechaFinal->format('Y-m-d') : null,
+            'progress_percent' => $progreso['percent'],
+            'id' => $projectId,
+        ]);
+
+        return [
+            'target_delivery_date' => $fechaFinal ? $fechaFinal->format('Y-m-d') : null,
+            'progress_percent' => $progreso['percent'],
+            'progress_detail' => $progreso['detail'],
+        ];
     }
 
     public function existeFaseConTitulo(int $projectId, string $title, int $exceptId = 0): bool
@@ -225,7 +311,7 @@ class AdminProyectManagerModel
             'duration_days' => $datos['duration_days'] !== '' ? (int) $datos['duration_days'] : null,
             'phase_order' => max(1, (int) $datos['phase_order']),
             'status' => $datos['status'],
-            'due_date' => $datos['due_date'] !== '' ? $datos['due_date'] : null,
+            'due_date' => null,
         ];
     }
 
@@ -254,5 +340,42 @@ class AdminProyectManagerModel
         }
 
         return $agrupado;
+    }
+
+    private function crearFecha(mixed $valor): ?DateTimeImmutable
+    {
+        $valor = trim((string) ($valor ?? ''));
+        if ($valor === '') {
+            return null;
+        }
+
+        $fecha = DateTimeImmutable::createFromFormat('Y-m-d', $valor);
+
+        return $fecha instanceof DateTimeImmutable ? $fecha : null;
+    }
+
+    private function calcularProgreso(array $fases, array $objetivos): array
+    {
+        if ($objetivos) {
+            $total = count($objetivos);
+            $finalizados = count(array_filter($objetivos, static fn (array $objetivo): bool => ($objetivo['status'] ?? '') === 'delivered'));
+
+            return [
+                'percent' => (int) round(($finalizados / $total) * 100),
+                'detail' => $finalizados . ' de ' . $total . ' objetivos finalizados',
+            ];
+        }
+
+        if ($fases) {
+            $total = count($fases);
+            $finalizadas = count(array_filter($fases, static fn (array $fase): bool => ($fase['status'] ?? '') === 'done'));
+
+            return [
+                'percent' => (int) round(($finalizadas / $total) * 100),
+                'detail' => $finalizadas . ' de ' . $total . ' fases finalizadas',
+            ];
+        }
+
+        return ['percent' => 0, 'detail' => 'Sin fases ni objetivos'];
     }
 }

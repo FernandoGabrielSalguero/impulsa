@@ -22,6 +22,7 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
         </div>
         <div class="im-pm-progreso" aria-live="polite">
           <strong data-pm-progreso-calculado>0%</strong>
+          <div class="im-pm-progreso__barra" aria-hidden="true"><span data-pm-progreso-barra></span></div>
           <span data-pm-progreso-detalle>Sin objetivos todavia</span>
         </div>
       </div>
@@ -71,14 +72,14 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
           <span>Fecha de inicio</span>
           <input type="date" name="start_date">
         </label>
-        <label class="im-campo im-campo-material">
+        <div class="im-pm-dato-calculado" aria-live="polite">
           <span>Finalizacion estimada</span>
-          <input type="date" name="target_delivery_date">
-        </label>
-        <label class="im-campo im-campo-material">
-          <span>Avance manual</span>
-          <input type="number" name="progress_percent" min="0" max="100">
-        </label>
+          <strong data-pm-final-estimada>Sin calcular</strong>
+        </div>
+        <div class="im-pm-dato-calculado" aria-live="polite">
+          <span>Avance calculado</span>
+          <strong data-pm-avance-estimado>0%</strong>
+        </div>
         <label class="im-slide-toggle im-pm-toggle">
           <input type="checkbox" name="client_visible">
           <span></span>Visible para cliente
@@ -117,7 +118,6 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
         <label class="im-campo im-campo-material im-campo--ancho"><span>Descripcion corta</span><textarea name="description" rows="2"></textarea></label>
         <label class="im-campo im-campo-material"><span>Orden</span><input type="number" name="phase_order" min="1" value="1" required></label>
         <label class="im-campo im-campo-material"><span>Duracion dias</span><input type="number" name="duration_days" min="1"></label>
-        <label class="im-campo im-campo-material"><span>Fecha estimada</span><input type="date" name="due_date"></label>
         <label class="im-campo im-campo-material"><span>Estado</span><select name="status"><option value="pending">Pendiente</option><option value="in_progress">En progreso</option><option value="blocked">Bloqueada</option><option value="done">Finalizada</option></select></label>
         <div class="im-formulario__acciones im-pm-form__acciones">
           <button class="im-boton im-boton--principal" type="submit">Guardar fase</button>
@@ -146,7 +146,10 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
     const nombreProyecto = document.querySelector('[data-pm-proyecto-nombre]');
     const contextoProyecto = document.querySelector('[data-pm-proyecto-contexto]');
     const progresoCalculado = document.querySelector('[data-pm-progreso-calculado]');
+    const progresoBarra = document.querySelector('[data-pm-progreso-barra]');
     const progresoDetalle = document.querySelector('[data-pm-progreso-detalle]');
+    const finalEstimada = document.querySelector('[data-pm-final-estimada]');
+    const avanceEstimado = document.querySelector('[data-pm-avance-estimado]');
     const formProyecto = document.querySelector('[data-pm-proyecto-form]');
     const inputFaseProject = document.querySelector('[data-pm-fase-project-id]');
     const formNuevaFase = document.querySelector('[data-pm-nueva-fase]');
@@ -186,6 +189,22 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
     const estadoLabel = (value) => estadoTexto[value] || String(value || '').replaceAll('_', ' ');
     const tipoLabel = (value) => tipoTexto[value] || 'Otro';
     const safeId = (prefix, id) => `${prefix}-${Number(id)}`;
+    const sumarDias = (dateString, dias) => {
+      if (!dateString) {
+        return null;
+      }
+      const fechaBase = new Date(`${dateString}T00:00:00`);
+      if (Number.isNaN(fechaBase.getTime())) {
+        return null;
+      }
+      fechaBase.setDate(fechaBase.getDate() + Math.max(0, Number(dias || 0)));
+      return fechaBase.toISOString().slice(0, 10);
+    };
+    const maxFecha = (a, b) => {
+      if (!a) return b || null;
+      if (!b) return a || null;
+      return a > b ? a : b;
+    };
 
     const alternar = (abrir) => {
       modal.classList.toggle('abierto', abrir);
@@ -209,22 +228,72 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       setFormValue(formProyecto, 'status', proyecto.status || 'planned');
       setFormValue(formProyecto, 'priority', proyecto.priority || 'medium');
       setFormValue(formProyecto, 'start_date', proyecto.start_date);
-      setFormValue(formProyecto, 'target_delivery_date', proyecto.target_delivery_date);
-      setFormValue(formProyecto, 'progress_percent', proyecto.progress_percent ?? 0);
       setFormValue(formProyecto, 'summary', proyecto.summary);
       setFormValue(formProyecto, 'scope_summary', proyecto.scope_summary);
       formProyecto.elements.client_visible.checked = Number(proyecto.client_visible || 0) === 1;
     };
 
+    const fasesActuales = (projectId) => (fases[projectId] || []).map((fase) => {
+      const form = modal.querySelector(`#${safeId('pm-fase-form', fase.id)}`);
+      if (!form) {
+        return fase;
+      }
+      return {
+        ...fase,
+        duration_days: form.elements.duration_days?.value || fase.duration_days,
+        phase_order: form.elements.phase_order?.value || fase.phase_order,
+        status: form.elements.status?.value || fase.status
+      };
+    });
+
+    const objetivosActuales = (projectId) => (objetivos[projectId] || []).map((objetivo) => {
+      const form = modal.querySelector(`#${safeId('pm-objetivo-form', objetivo.id)}`);
+      if (!form) {
+        return objetivo;
+      }
+      return {
+        ...objetivo,
+        phase_id: form.elements.phase_id?.value || objetivo.phase_id,
+        status: form.elements.status?.value || objetivo.status,
+        due_date: form.elements.due_date?.value || objetivo.due_date
+      };
+    });
+
     const renderProgreso = (projectId, proyecto) => {
-      const listaObjetivos = objetivos[projectId] || [];
-      const total = listaObjetivos.length;
-      const completados = listaObjetivos.filter((objetivo) => objetivo.status === 'delivered').length;
+      const listaObjetivos = objetivosActuales(projectId);
+      const listaFases = fasesActuales(projectId);
+      let total = listaObjetivos.length;
+      let completados = listaObjetivos.filter((objetivo) => objetivo.status === 'delivered').length;
+      let detalle = `${completados} de ${total} objetivos finalizados`;
+      if (total === 0) {
+        total = listaFases.length;
+        completados = listaFases.filter((fase) => fase.status === 'done').length;
+        detalle = total > 0 ? `${completados} de ${total} fases finalizadas` : 'Sin fases ni objetivos';
+      }
       const porcentaje = total > 0 ? Math.round((completados / total) * 100) : 0;
+      const fechaFinal = calcularFechaFinal(projectId, formProyecto.elements.start_date.value || proyecto.start_date);
       progresoCalculado.textContent = `${porcentaje}%`;
-      progresoDetalle.textContent = total > 0
-        ? `${completados} de ${total} objetivos completados - avance manual ${Number(proyecto.progress_percent || 0)}%`
-        : 'Este proyecto todavia no tiene objetivos cargados.';
+      progresoBarra.style.width = `${porcentaje}%`;
+      avanceEstimado.textContent = `${porcentaje}%`;
+      progresoDetalle.textContent = total > 0 ? detalle : 'Este proyecto todavia no tiene objetivos cargados.';
+      finalEstimada.textContent = fechaFinal || proyecto.target_delivery_date || 'Sin calcular';
+    };
+
+    const calcularFechaFinal = (projectId, startDate) => {
+      let cursor = startDate || null;
+      let final = null;
+      const fasesOrdenadas = fasesActuales(projectId).sort((a, b) => Number(a.phase_order || 1) - Number(b.phase_order || 1) || Number(a.id) - Number(b.id));
+      const listaObjetivos = objetivosActuales(projectId);
+      fasesOrdenadas.forEach((fase) => {
+        let fechaFase = cursor ? sumarDias(cursor, fase.duration_days || 0) : (fase.due_date || null);
+        listaObjetivos
+          .filter((objetivo) => Number(objetivo.phase_id) === Number(fase.id))
+          .forEach((objetivo) => { fechaFase = maxFecha(fechaFase, objetivo.due_date || null); });
+        final = maxFecha(final, fechaFase);
+        cursor = fechaFase || cursor;
+      });
+      listaObjetivos.forEach((objetivo) => { final = maxFecha(final, objetivo.due_date || null); });
+      return final;
     };
 
     const renderObjetivoForm = (projectId, objetivo, fasesProyecto) => `
@@ -301,7 +370,7 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
             <label class="im-campo im-campo-material im-campo--ancho"><span>Descripcion</span><textarea name="description" rows="2">${escapeHtml(fase.description || '')}</textarea></label>
             <label class="im-campo im-campo-material"><span>Orden</span><input type="number" name="phase_order" min="1" value="${Number(fase.phase_order || 1)}" required></label>
             <label class="im-campo im-campo-material"><span>Duracion dias</span><input type="number" name="duration_days" min="1" value="${escapeHtml(fase.duration_days || '')}"></label>
-            <label class="im-campo im-campo-material"><span>Fecha estimada</span><input type="date" name="due_date" value="${escapeHtml(fase.due_date || '')}"></label>
+            <div class="im-pm-dato-calculado im-pm-dato-calculado--compacto"><span>Fecha estimada</span><strong>${fecha(fase.due_date)}</strong></div>
             <label class="im-campo im-campo-material"><span>Estado</span><select name="status"><option value="pending"${selected(fase.status, 'pending')}>Pendiente</option><option value="in_progress"${selected(fase.status, 'in_progress')}>En progreso</option><option value="blocked"${selected(fase.status, 'blocked')}>Bloqueada</option><option value="done"${selected(fase.status, 'done')}>Finalizada</option></select></label>
             <div class="im-formulario__acciones im-pm-form__acciones"><button class="im-boton im-boton--tonal" type="submit">Guardar fase</button><button class="im-boton im-boton--texto" type="button" data-pm-toggle="#${safeId('pm-fase-form', fase.id)}">Cancelar</button></div>
           </form>
@@ -337,10 +406,10 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
         proyecto.source_type ? `Origen: ${proyecto.source_type}${proyecto.source_id ? ` #${proyecto.source_id}` : ''}` : ''
       ].filter(Boolean).join(' | ');
       setProjectForm(proyecto);
-      renderProgreso(projectId, proyecto);
       tablero.innerHTML = fasesProyecto.length
         ? fasesProyecto.map((fase) => renderFase(projectId, fase, fasesProyecto)).join('')
         : '<div class="im-pm-vacio"><span class="material-symbols-rounded" aria-hidden="true">account_tree</span><strong>Este proyecto todavia no tiene fases cargadas.</strong><p>Crea la primera fase para organizar sus objetivos.</p></div>';
+      renderProgreso(projectId, proyecto);
       alternar(true);
     };
 
@@ -351,7 +420,43 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       }
       const destino = document.querySelector(botonToggle.dataset.pmToggle);
       if (destino) {
-        destino.hidden = !destino.hidden;
+        const abrir = destino.hidden;
+        if (abrir && !destino.matches('[data-pm-nueva-fase]')) {
+          modal.querySelectorAll('.im-pm-form--compacto:not([data-pm-nueva-fase])').forEach((form) => {
+            if (form !== destino) form.hidden = true;
+          });
+        }
+        destino.hidden = !abrir;
+      }
+    });
+
+    formProyecto.elements.start_date?.addEventListener('change', () => {
+      const projectId = formProyecto.elements.project_id.value;
+      const proyecto = proyectosPorId.get(String(projectId));
+      if (proyecto) {
+        renderProgreso(projectId, proyecto);
+      }
+    });
+
+    modal.addEventListener('input', (event) => {
+      if (!event.target.closest('.im-pm-form')) {
+        return;
+      }
+      const projectId = formProyecto.elements.project_id.value;
+      const proyecto = proyectosPorId.get(String(projectId));
+      if (proyecto) {
+        renderProgreso(projectId, proyecto);
+      }
+    });
+
+    modal.addEventListener('change', (event) => {
+      if (!event.target.closest('.im-pm-form')) {
+        return;
+      }
+      const projectId = formProyecto.elements.project_id.value;
+      const proyecto = proyectosPorId.get(String(projectId));
+      if (proyecto) {
+        renderProgreso(projectId, proyecto);
       }
     });
 
