@@ -771,8 +771,21 @@ a {
   background: color-mix(in srgb, var(--im-color-principal-suave) 82%, var(--im-color-principal));
 }
 
-.im-menu-tabla > .im-menu-tabla__panel,
-.im-tabla-tareas__menu > .im-tabla-tareas__menu-panel {
+.im-menu-tabla > .im-menu-tabla__panel {
+  position: fixed;
+  top: var(--im-menu-tabla-top, 0);
+  left: var(--im-menu-tabla-left, 0);
+  right: auto;
+  z-index: 2147483000;
+  display: none;
+  min-width: 180px;
+  max-width: calc(100vw - 1rem);
+  max-height: calc(100vh - 1rem);
+  overflow-y: auto;
+  margin: 0;
+}
+
+.im-tabla-tareas__menu:not(.im-menu-tabla) > .im-tabla-tareas__menu-panel {
   position: absolute;
   top: calc(100% + .5rem);
   right: 0;

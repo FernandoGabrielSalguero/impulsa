@@ -580,6 +580,42 @@
     });
   };
 
+  const posicionarMenuTabla = (menu, panel) => {
+    if (!menu?.classList.contains("im-menu-tabla") || !panel) {
+      return;
+    }
+
+    const trigger = menu.querySelector("[data-im-menu-trigger]");
+    if (!trigger) {
+      return;
+    }
+
+    const margen = 8;
+    const separacion = 8;
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    const anchoPanel = panelRect.width || 180;
+    const altoPanel = panelRect.height || 0;
+    const espacioAbajo = window.innerHeight - triggerRect.bottom - separacion - margen;
+    const topAbajo = triggerRect.bottom + separacion;
+    const topArriba = Math.max(margen, triggerRect.top - altoPanel - separacion);
+    const top = espacioAbajo >= altoPanel ? topAbajo : topArriba;
+    const leftMax = Math.max(margen, window.innerWidth - anchoPanel - margen);
+    const left = Math.min(Math.max(margen, triggerRect.right - anchoPanel), leftMax);
+
+    panel.style.setProperty("--im-menu-tabla-top", `${top}px`);
+    panel.style.setProperty("--im-menu-tabla-left", `${left}px`);
+  };
+
+  const reposicionarMenusTablaAbiertos = () => {
+    document.querySelectorAll(".im-menu-tabla[data-im-menu]").forEach((menu) => {
+      const panel = menu.querySelector("[data-im-menu-panel].abierto");
+      if (panel) {
+        posicionarMenuTabla(menu, panel);
+      }
+    });
+  };
+
   document.querySelectorAll("[data-im-menu]").forEach((menu) => {
     const trigger = menu.querySelector("[data-im-menu-trigger]");
     const panel = menu.querySelector("[data-im-menu-panel]");
@@ -590,6 +626,9 @@
       cerrarMenusFlotantes();
       panel?.classList.toggle("abierto", abrir);
       trigger.setAttribute("aria-expanded", String(abrir));
+      if (abrir) {
+        posicionarMenuTabla(menu, panel);
+      }
     });
 
     menu.querySelectorAll("[data-im-submenu-trigger]").forEach((submenuTrigger) => {
@@ -691,6 +730,8 @@
   window.addEventListener("blur", ocultarTooltip);
   window.addEventListener("resize", ocultarTooltip);
   window.addEventListener("scroll", ocultarTooltip, true);
+  window.addEventListener("resize", reposicionarMenusTablaAbiertos);
+  window.addEventListener("scroll", reposicionarMenusTablaAbiertos, true);
 
   document.addEventListener("click", (evento) => {
     if (!evento.target.closest("[data-im-menu]")) {
