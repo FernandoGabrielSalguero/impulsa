@@ -4,6 +4,7 @@ $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Cliente';
 $dashboardData = $dashboardData ?? [];
+$mensajeContratoCliente = $mensajeContratoCliente ?? null;
 $resumen = $dashboardData['resumen'] ?? [];
 $proyectos = $dashboardData['proyectos'] ?? [];
 $fasesPorProyecto = $dashboardData['fases'] ?? [];
@@ -210,6 +211,56 @@ $tipoObjetivo = static function (?string $tipo): string {
       color: var(--im-color-texto-suave);
       background: var(--im-color-superficie-2);
     }
+
+    .im-cliente-contrato-barra {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .im-cliente-contrato-barra__texto {
+      display: grid;
+      gap: .2rem;
+      flex: 1 1 320px;
+    }
+
+    .im-cliente-contrato-barra__acciones {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .im-cliente-contrato-modal {
+      width: min(880px, calc(100vw - 2rem));
+    }
+
+    .im-cliente-contrato-modal .im-dialog__contenido {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .im-cliente-contrato-contenido {
+      max-height: min(60vh, 720px);
+      overflow: auto;
+      padding: 1rem;
+      border-radius: 16px;
+      border: 1px solid var(--im-color-borde);
+      background: var(--im-color-superficie-2);
+      color: var(--im-color-texto);
+      white-space: pre-wrap;
+    }
+
+    .im-cliente-contrato-contenido > *:first-child {
+      margin-top: 0;
+    }
+
+    .im-cliente-contrato-contenido > *:last-child {
+      margin-bottom: 0;
+    }
   </style>
 </head>
 <body>
@@ -261,6 +312,12 @@ $tipoObjetivo = static function (?string $tipo): string {
               <p>Vista general de tus fases, objetivos y avances visibles para tu cuenta.</p>
             </div>
           </div>
+
+          <?php if ($mensajeContratoCliente): ?>
+            <div class="im-alerta <?= ($mensajeContratoCliente['estado'] ?? '') === 'ok' ? 'im-alerta--exito' : 'im-alerta--info' ?>">
+              <?= $h($mensajeContratoCliente['mensaje'] ?? '') ?>
+            </div>
+          <?php endif; ?>
 
           <div class="im-grilla im-grilla--metricas">
             <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Proyectos</span><strong><?= (int) ($resumen['proyectos_total'] ?? 0) ?></strong><small>Visibles</small></article>
@@ -373,8 +430,23 @@ $tipoObjetivo = static function (?string $tipo): string {
                       <?php endif; ?>
 
                       <?php if ($contratoProyecto): ?>
-                        <div class="im-alerta im-alerta--info">
-                          Contrato: <?= $h($contratoProyecto['contract_name'] ?? '') ?> - <?= (int) ($contratoProyecto['is_signed'] ?? 0) === 1 ? 'firmado' : 'pendiente de firma' ?>.
+                        <div class="im-alerta im-alerta--info im-cliente-contrato-barra">
+                          <div class="im-cliente-contrato-barra__texto">
+                            <strong>Contrato: <?= $h($contratoProyecto['contract_name'] ?? '') ?> - <?= (int) ($contratoProyecto['is_signed'] ?? 0) === 1 ? 'firmado' : 'pendiente de firma' ?>.</strong>
+                          </div>
+                          <div class="im-cliente-contrato-barra__acciones">
+                            <?php if ((int) ($contratoProyecto['is_signed'] ?? 0) === 1): ?>
+                              <span class="im-chip im-chip--completado">Contrato firmado</span>
+                            <?php else: ?>
+                              <button
+                                class="im-boton im-boton--principal"
+                                type="button"
+                                data-abrir-contrato-cliente="<?= (int) ($contratoProyecto['id'] ?? 0) ?>"
+                              >
+                                Firmar contrato
+                              </button>
+                            <?php endif; ?>
+                          </div>
                         </div>
                       <?php endif; ?>
                     </article>
@@ -440,7 +512,88 @@ $tipoObjetivo = static function (?string $tipo): string {
     </div>
   </div>
 
+  <div class="im-modal-cortina" data-cerrar-contrato-cliente></div>
+  <section class="im-dialog im-cliente-contrato-modal" role="dialog" aria-modal="true" aria-labelledby="cliente-contrato-titulo" aria-hidden="true" data-modal-contrato-cliente>
+    <header class="im-dialog__cabecera">
+      <div>
+        <p class="im-sobrelinea" data-cliente-contrato-proyecto>Proyecto</p>
+        <h3 id="cliente-contrato-titulo">Contrato</h3>
+      </div>
+      <button class="im-boton-icono" type="button" data-cerrar-contrato-cliente aria-label="Cerrar dialog"></button>
+    </header>
+    <form method="post" action="/impulsa_emprende/controller/client/ClienteDashboardController.php" data-form-firma-contrato>
+      <input type="hidden" name="accion_cliente" value="firmar_contrato">
+      <input type="hidden" name="contract_id" value="" data-cliente-contrato-id>
+      <div class="im-dialog__contenido">
+        <div class="im-alerta im-alerta--info" data-cliente-contrato-estado>Revisa el contenido completo antes de confirmar la firma.</div>
+        <div class="im-cliente-contrato-contenido" data-cliente-contrato-contenido></div>
+      </div>
+      <footer class="im-dialog__acciones">
+        <button class="im-boton im-boton--texto" type="button" data-cerrar-contrato-cliente>Cerrar</button>
+        <button class="im-boton im-boton--principal" type="submit" data-cliente-contrato-confirmar>Confirmar firma</button>
+      </footer>
+    </form>
+  </section>
+
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="/assets/impulsa_material/js/material.js"></script>
+  <script>
+    (() => {
+      const contratos = <?= json_encode($contratos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+      const modal = document.querySelector('[data-modal-contrato-cliente]');
+      const cortina = document.querySelector('[data-cerrar-contrato-cliente].im-modal-cortina');
+      const formulario = document.querySelector('[data-form-firma-contrato]');
+
+      if (!modal || !cortina || !formulario) {
+        return;
+      }
+
+      const contratosPorId = new Map(contratos.map((contrato) => [String(contrato.id), contrato]));
+      const campoId = modal.querySelector('[data-cliente-contrato-id]');
+      const proyecto = modal.querySelector('[data-cliente-contrato-proyecto]');
+      const estado = modal.querySelector('[data-cliente-contrato-estado]');
+      const contenido = modal.querySelector('[data-cliente-contrato-contenido]');
+      const botonConfirmar = modal.querySelector('[data-cliente-contrato-confirmar]');
+
+      const alternar = (abrir) => {
+        modal.classList.toggle('abierto', abrir);
+        cortina.classList.toggle('abierto', abrir);
+        modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+      };
+
+      document.querySelectorAll('[data-abrir-contrato-cliente]').forEach((boton) => {
+        boton.addEventListener('click', () => {
+          const contrato = contratosPorId.get(String(boton.dataset.abrirContratoCliente));
+          if (!contrato) {
+            return;
+          }
+
+          campoId.value = contrato.id || '';
+          proyecto.textContent = contrato.project_name || 'Proyecto';
+          estado.textContent = `Contrato ${contrato.contract_name || ''} listo para firma. Esta accion no se puede deshacer desde tu cuenta.`;
+          contenido.innerHTML = contrato.contract_html || '';
+          if (!contenido.innerHTML.trim()) {
+            contenido.textContent = contrato.contract_text || 'No hay contenido disponible para este contrato.';
+          }
+          botonConfirmar.disabled = Number(contrato.is_signed || 0) === 1;
+          alternar(true);
+        });
+      });
+
+      formulario.addEventListener('submit', () => {
+        botonConfirmar.disabled = true;
+      });
+
+      document.querySelectorAll('[data-cerrar-contrato-cliente]').forEach((elemento) => {
+        elemento.addEventListener('click', () => alternar(false));
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          alternar(false);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

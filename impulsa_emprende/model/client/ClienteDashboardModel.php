@@ -19,6 +19,57 @@ class ClienteDashboardModel
         ];
     }
 
+    public function obtenerNombreFirmante(int $userId): string
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT ui.nombre, ui.apellido, ui.apodo, ua.correo
+             FROM user_auth ua
+             LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
+             WHERE ua.id = :user_id
+             LIMIT 1'
+        );
+        $stmt->execute(['user_id' => $userId]);
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        $nombreCompleto = trim(((string) ($usuario['nombre'] ?? '')) . ' ' . ((string) ($usuario['apellido'] ?? '')));
+        if ($nombreCompleto !== '') {
+            return $nombreCompleto;
+        }
+
+        $apodo = trim((string) ($usuario['apodo'] ?? ''));
+        if ($apodo !== '') {
+            return $apodo;
+        }
+
+        return trim((string) ($usuario['correo'] ?? 'Cliente'));
+    }
+
+    public function firmarContratoCliente(int $contractId, int $userId, string $signerFullName, ?string $signerIp): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE project_contracts pc
+             INNER JOIN projects p ON p.id = pc.project_id
+             SET pc.is_signed = 1,
+                 pc.signed_at = NOW(),
+                 pc.signed_by_user_id = :user_id,
+                 pc.signer_full_name = :signer_full_name,
+                 pc.signer_ip = :signer_ip,
+                 pc.updated_at = NOW()
+             WHERE pc.id = :contract_id
+               AND p.client_user_id = :user_id
+               AND p.client_visible = 1
+               AND pc.is_signed = 0'
+        );
+        $stmt->execute([
+            'contract_id' => $contractId,
+            'user_id' => $userId,
+            'signer_full_name' => $signerFullName,
+            'signer_ip' => $signerIp,
+        ]);
+
+        return $stmt->rowCount() > 0;
+    }
+
     private function obtenerUsuario(int $userId): array
     {
         $stmt = $this->pdo->prepare(
@@ -151,8 +202,9 @@ class ClienteDashboardModel
     private function obtenerContratos(int $userId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT pc.id, pc.project_id, pc.contract_name, pc.version_number, pc.is_signed, pc.signed_at,
-                    p.project_name
+            'SELECT pc.id, pc.project_id, pc.contract_name, pc.contract_html, pc.contract_text,
+                    pc.version_number, pc.is_signed, pc.signed_at, pc.signed_by_user_id,
+                    pc.signer_full_name, p.project_name
              FROM project_contracts pc
              INNER JOIN projects p ON p.id = pc.project_id
              WHERE p.client_user_id = :user_id
