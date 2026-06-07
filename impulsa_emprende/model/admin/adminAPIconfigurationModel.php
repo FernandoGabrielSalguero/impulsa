@@ -8,6 +8,69 @@ class AdminAPIconfigurationModel
     {
     }
 
+    public function obtenerOpcionesProyectoSitio(): array
+    {
+        $sql = "
+            SELECT nombre, origen, fecha_referencia
+            FROM (
+                SELECT DISTINCT
+                    TRIM(p.project_name) AS nombre,
+                    'Proyecto' AS origen,
+                    p.updated_at AS fecha_referencia
+                FROM projects p
+                WHERE TRIM(COALESCE(p.project_name, '')) <> ''
+
+                UNION ALL
+
+                SELECT DISTINCT
+                    TRIM(lpr.nombre_emprendimiento) AS nombre,
+                    'Solicitud interna' AS origen,
+                    lpr.updated_at AS fecha_referencia
+                FROM landing_page_request lpr
+                WHERE TRIM(COALESCE(lpr.nombre_emprendimiento, '')) <> ''
+
+                UNION ALL
+
+                SELECT DISTINCT
+                    TRIM(lpre.nombre_proyecto) AS nombre,
+                    'Solicitud externa' AS origen,
+                    lpre.created_at AS fecha_referencia
+                FROM landing_page_requests_external lpre
+                WHERE TRIM(COALESCE(lpre.nombre_proyecto, '')) <> ''
+            ) opciones
+            ORDER BY nombre ASC, fecha_referencia DESC
+        ";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        $filas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $opciones = [];
+        $vistos = [];
+
+        foreach ($filas as $fila) {
+            $nombre = trim((string) ($fila['nombre'] ?? ''));
+
+            if ($nombre === '') {
+                continue;
+            }
+
+            $clave = mb_strtolower($nombre, 'UTF-8');
+
+            if (isset($vistos[$clave])) {
+                continue;
+            }
+
+            $vistos[$clave] = true;
+            $opciones[] = [
+                'nombre' => $nombre,
+                'origen' => (string) ($fila['origen'] ?? ''),
+            ];
+        }
+
+        return $opciones;
+    }
+
     public function obtenerIntegraciones(): array
     {
         $sql = 'SELECT ai.*,

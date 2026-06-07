@@ -3,8 +3,8 @@ $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
 $integraciones = $integraciones ?? [];
+$opcionesProyectoSitio = $opcionesProyectoSitio ?? [];
 $flashIntegraciones = $flashIntegraciones ?? null;
-$migrationSql = $migrationSql ?? '';
 $appBaseUrl = $appBaseUrl ?? '';
 $totalIntegraciones = count($integraciones);
 $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
@@ -43,6 +43,7 @@ $estadoTexto = static function (string $estado): string {
     .im-api-form { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: .85rem; }
     .im-api-form .im-campo--full,
     .im-api-form__acciones { grid-column: 1 / -1; }
+    .im-api-ayuda { margin: -.15rem 0 0; color: var(--im-color-texto-suave); font-size: .82rem; }
     .im-api-lista { display: grid; gap: 1rem; }
     .im-api-card { display: grid; gap: 1rem; }
     .im-api-card__cabecera,
@@ -55,8 +56,7 @@ $estadoTexto = static function (string $estado): string {
     .im-api-metrica strong { display: block; margin-top: .25rem; font-size: 1.2rem; }
     .im-api-snippets { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: .85rem; }
     .im-api-snippet { display: grid; gap: .5rem; }
-    .im-api-snippet pre,
-    .im-api-migration pre { margin: 0; padding: 1rem; overflow: auto; border-radius: var(--im-radio-chico); background: #111827; color: #f9fafb; font-size: .85rem; }
+    .im-api-snippet pre { margin: 0; padding: 1rem; overflow: auto; border-radius: var(--im-radio-chico); background: #111827; color: #f9fafb; font-size: .85rem; }
     .im-api-secret { word-break: break-all; }
     .im-api-inline-form { display: contents; }
     .im-api-form-secundario { display: grid; gap: .85rem; padding-top: .75rem; border-top: 1px solid var(--im-color-borde); }
@@ -158,27 +158,24 @@ $estadoTexto = static function (string $estado): string {
                 <input type="hidden" name="api_integration_action" value="create">
                 <label class="im-campo im-campo-material" data-im-campo="generico">
                   <span>Proyecto o sitio</span>
-                  <input type="text" name="project_name" maxlength="180" required>
+                  <input type="text" name="project_name" maxlength="180" list="api-project-options" autocomplete="off" required>
                 </label>
                 <label class="im-campo im-campo-material" data-im-campo="generico">
                   <span>Dominio autorizado</span>
                   <input type="text" name="allowed_domain" placeholder="https://mi-landing.com" required>
                 </label>
+                <p class="im-api-ayuda">Escribi al menos 4 caracteres para filtrar coincidencias o abrí el desplegable completo.</p>
                 <div class="im-api-form__acciones">
                   <button class="im-boton im-boton--principal" type="submit">Crear integracion</button>
                 </div>
               </form>
-            </article>
-
-            <article class="im-tarjeta im-api-migration">
-              <div class="im-tarjeta__cabecera">
-                <div>
-                  <h3>Cambios de base de datos</h3>
-                  <p>SQL preparado para crear `api_integrations` y asociar visitas/contactos con cada integracion.</p>
-                </div>
-                <button class="im-boton im-boton--texto" type="button" data-copy-target="migration-sql">Copiar SQL</button>
-              </div>
-              <pre id="migration-sql"><code><?= $h($migrationSql) ?></code></pre>
+              <?php if ($opcionesProyectoSitio): ?>
+                <datalist id="api-project-options">
+                  <?php foreach ($opcionesProyectoSitio as $opcion): ?>
+                    <option value="<?= $h($opcion['nombre'] ?? '') ?>"><?= $h(($opcion['origen'] ?? '') . ' - ' . ($opcion['nombre'] ?? '')) ?></option>
+                  <?php endforeach; ?>
+                </datalist>
+              <?php endif; ?>
             </article>
 
             <?php if (!$integraciones): ?>

@@ -25,11 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['api_integration_action'] ?
 }
 
 $integraciones = $adminAPIconfigurationModel->obtenerIntegraciones();
+$opcionesProyectoSitio = $adminAPIconfigurationModel->obtenerOpcionesProyectoSitio();
 $flashIntegraciones = $_SESSION['admin_api_integrations_flash'] ?? null;
 unset($_SESSION['admin_api_integrations_flash']);
 
-$migrationPath = __DIR__ . '/../../../estructure/api_integrations_migration.sql';
-$migrationSql = is_file($migrationPath) ? (string) file_get_contents($migrationPath) : '';
 $appBaseUrl = obtenerBaseUrlAplicacion();
 
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';
