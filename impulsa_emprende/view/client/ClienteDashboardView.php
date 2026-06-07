@@ -284,6 +284,10 @@ $tipoObjetivo = static function (?string $tipo): string {
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteMetricasController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
+          <span class="im-nav-item__texto">Metricas</span>
+        </a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>

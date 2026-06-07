@@ -17,6 +17,18 @@ updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 🔗 Relaciones:
 Columna created_by_user_id referencia a user_auth.id
 Columna responsable_user_id referencia a user_auth.id
+📄 Tabla: api_integrations
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+project_name	varchar(180)	NO			
+allowed_domain	varchar(190)	NO	MUL		
+public_key	varchar(80)	NO	UNI		
+secret_key_hash	varchar(255)	YES			
+status	enum('active','inactive')	NO	MUL	active	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+last_used_at	datetime	YES			
+
 📄 Tabla: contacto_landing
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment
@@ -113,7 +125,6 @@ updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 
 🔗 Relaciones:
 Columna api_integration_id referencia a api_integrations.id
-
 📄 Tabla: landing_page_request
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	int(10) unsigned	NO	PRI		auto_increment
@@ -654,15 +665,3 @@ visited_at	timestamp	NO	MUL	current_timestamp()
 
 🔗 Relaciones:
 Columna api_integration_id referencia a api_integrations.id
-
-📄 Tabla: api_integrations
-Columna	Tipo	Nulo	Clave	Default	Extra
-id	bigint(20) unsigned	NO	PRI		auto_increment
-project_name	varchar(180)	NO			
-allowed_domain	varchar(190)	NO	MUL		
-public_key	varchar(80)	NO	UNI		
-secret_key_hash	varchar(255)	YES			
-status	enum('active','inactive')	NO	MUL	active	
-created_at	timestamp	NO		current_timestamp()	
-updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
-last_used_at	datetime	YES			
