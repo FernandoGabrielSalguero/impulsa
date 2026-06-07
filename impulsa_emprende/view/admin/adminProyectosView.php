@@ -94,6 +94,8 @@ $claseEstadoProyecto = static function (?string $estado): string {
     .im-pm-fase__cabecera h5 { margin: .45rem 0 .25rem; font-size: 1rem; }
     .im-pm-fase__cabecera p,
     .im-pm-objetivo p { margin: 0; color: var(--im-color-texto-suave); }
+    .im-pm-acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .35rem; }
+    .im-pm-accion-eliminar { color: #ba1a1a; }
     .im-pm-fase__meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem; color: var(--im-color-texto-suave); font-size: .82rem; }
     .im-pm-objetivos { display: grid; gap: .55rem; min-height: 0; padding-right: .15rem; }
     .im-pm-objetivos__titulo { font-weight: 700; color: var(--im-color-texto); }

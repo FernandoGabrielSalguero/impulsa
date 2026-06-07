@@ -302,6 +302,78 @@ class AdminProyectManagerModel
         $stmt->execute($params);
     }
 
+    public function eliminarFase(int $projectId, int $phaseId): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare(
+                'SELECT id
+                 FROM project_phases
+                 WHERE id = :id AND project_id = :project_id
+                 LIMIT 1
+                 FOR UPDATE'
+            );
+            $stmt->execute([
+                'id' => $phaseId,
+                'project_id' => $projectId,
+            ]);
+
+            if (!$stmt->fetchColumn()) {
+                throw new RuntimeException('La fase seleccionada no pertenece a este proyecto.');
+            }
+
+            $deliverableIds = $this->obtenerIdsPorCampo('project_deliverables', 'phase_id', [$phaseId]);
+
+            $this->eliminarPorIds('project_deliverable_tasks', 'deliverable_id', $deliverableIds);
+            $this->eliminarPorIds('project_updates', 'phase_id', [$phaseId]);
+            $this->eliminarPorIds('project_deliverables', 'id', $deliverableIds);
+            $this->eliminarPorIds('project_phases', 'id', [$phaseId]);
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $e;
+        }
+    }
+
+    public function eliminarObjetivo(int $projectId, int $objectiveId): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmt = $this->pdo->prepare(
+                'SELECT id
+                 FROM project_deliverables
+                 WHERE id = :id AND project_id = :project_id
+                 LIMIT 1
+                 FOR UPDATE'
+            );
+            $stmt->execute([
+                'id' => $objectiveId,
+                'project_id' => $projectId,
+            ]);
+
+            if (!$stmt->fetchColumn()) {
+                throw new RuntimeException('El objetivo seleccionado no pertenece a este proyecto.');
+            }
+
+            $this->eliminarPorIds('project_deliverable_tasks', 'deliverable_id', [$objectiveId]);
+            $this->eliminarPorIds('project_deliverables', 'id', [$objectiveId]);
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $e;
+        }
+    }
+
     private function parametrosFase(array $datos): array
     {
         return [
@@ -342,6 +414,46 @@ class AdminProyectManagerModel
         return $agrupado;
     }
 
+    private function obtenerIdsPorCampo(string $tabla, string $campo, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $sql = sprintf(
+            'SELECT id FROM %s WHERE %s IN (%s)',
+            $tabla,
+            $campo,
+            $this->placeholders($ids)
+        );
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($ids as $indice => $id) {
+            $stmt->bindValue(':ids' . $indice, (int) $id, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    private function eliminarPorIds(string $tabla, string $campo, array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        $sql = sprintf(
+            'DELETE FROM %s WHERE %s IN (%s)',
+            $tabla,
+            $campo,
+            $this->placeholders($ids)
+        );
+        $stmt = $this->pdo->prepare($sql);
+        foreach ($ids as $indice => $id) {
+            $stmt->bindValue(':ids' . $indice, (int) $id, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+    }
+
     private function crearFecha(mixed $valor): ?DateTimeImmutable
     {
         $valor = trim((string) ($valor ?? ''));
@@ -377,5 +489,14 @@ class AdminProyectManagerModel
         }
 
         return ['percent' => 0, 'detail' => 'Sin fases ni objetivos'];
+    }
+
+    private function placeholders(array $ids): string
+    {
+        if ($ids === []) {
+            return 'NULL';
+        }
+
+        return implode(', ', array_map(static fn (int $indice): string => ':ids' . $indice, array_keys($ids)));
     }
 }

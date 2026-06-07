@@ -88,6 +88,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_starts_with((string) ($_POST['a
             }
 
             $estado = 'ok';
+        } elseif ($accion === 'pm_eliminar_fase') {
+            $phaseId = (int) ($_POST['phase_id'] ?? 0);
+
+            if (!$adminProyectManagerModel->fasePerteneceAProyecto($phaseId, $projectId)) {
+                throw new RuntimeException('La fase seleccionada no pertenece a este proyecto.');
+            }
+
+            $adminProyectManagerModel->eliminarFase($projectId, $phaseId);
+            $mensaje = 'Fase eliminada correctamente.';
+            $estado = 'ok';
         } elseif ($accion === 'pm_crear_objetivo' || $accion === 'pm_editar_objetivo') {
             $objectiveId = (int) ($_POST['objective_id'] ?? 0);
             $phaseId = (int) ($_POST['phase_id'] ?? 0);
@@ -133,6 +143,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_starts_with((string) ($_POST['a
                 $mensaje = 'Objetivo creado correctamente.';
             }
 
+            $estado = 'ok';
+        } elseif ($accion === 'pm_eliminar_objetivo') {
+            $objectiveId = (int) ($_POST['objective_id'] ?? 0);
+
+            if (!$adminProyectManagerModel->objetivoPerteneceAProyecto($objectiveId, $projectId)) {
+                throw new RuntimeException('El objetivo seleccionado no pertenece a este proyecto.');
+            }
+
+            $adminProyectManagerModel->eliminarObjetivo($projectId, $objectiveId);
+            $mensaje = 'Objetivo eliminado correctamente.';
             $estado = 'ok';
         }
 

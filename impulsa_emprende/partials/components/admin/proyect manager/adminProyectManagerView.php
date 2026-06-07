@@ -1,6 +1,10 @@
 <?php
 $pmResponsables = $pmResponsables ?? [];
 $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
+$pmJsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+$pmProyectosJson = json_encode($proyectos ?? [], $pmJsonFlags);
+$pmFasesJson = json_encode($fasesPorProyecto ?? [], $pmJsonFlags);
+$pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
 ?>
 <div class="im-modal-cortina" data-cerrar-gestor-proyecto></div>
 <section class="im-dialog im-proyecto-modal" role="dialog" aria-modal="true" aria-labelledby="gestor-proyecto-titulo" aria-hidden="true" data-modal-gestor-proyecto>
@@ -134,11 +138,15 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
   </footer>
 </section>
 
+<script type="application/json" id="pm-proyectos-json"><?= $pmProyectosJson ?></script>
+<script type="application/json" id="pm-fases-json"><?= $pmFasesJson ?></script>
+<script type="application/json" id="pm-objetivos-json"><?= $pmObjetivosJson ?></script>
+
 <script>
-  (() => {
-    const proyectos = <?= json_encode($proyectos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-    const fases = <?= json_encode($fasesPorProyecto, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-    const objetivos = <?= json_encode($objetivosPorProyecto, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+  ;(() => {
+    const proyectos = JSON.parse(document.getElementById('pm-proyectos-json')?.textContent || '[]');
+    const fases = JSON.parse(document.getElementById('pm-fases-json')?.textContent || '{}');
+    const objetivos = JSON.parse(document.getElementById('pm-objetivos-json')?.textContent || '{}');
     const modal = document.querySelector('[data-modal-gestor-proyecto]');
     const cortina = document.querySelector('[data-cerrar-gestor-proyecto].im-modal-cortina');
     const tablero = document.querySelector('[data-gestor-fases-lista]');
@@ -154,16 +162,26 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
     const inputFaseProject = document.querySelector('[data-pm-fase-project-id]');
     const formNuevaFase = document.querySelector('[data-pm-nueva-fase]');
 
-    if (!modal || !cortina || !tablero || !subtitulo || !formProyecto || !inputFaseProject) {
+    if (!modal || !cortina || !tablero || !subtitulo || !nombreProyecto || !contextoProyecto || !progresoCalculado || !progresoBarra || !progresoDetalle || !finalEstimada || !avanceEstimado || !formProyecto || !inputFaseProject) {
       return;
     }
 
-    const proyectosPorId = new Map(proyectos.map((proyecto) => [String(proyecto.id), proyecto]));
-    const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    const proyectosPorId = proyectos.reduce((acc, proyecto) => {
+      acc[String(proyecto.id)] = proyecto;
+      return acc;
+    }, {});
+
+    const escapeHtml = (value) => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
     const selected = (actual, esperado) => String(actual || '') === String(esperado) ? ' selected' : '';
     const checked = (valor) => Number(valor || 0) === 1 ? ' checked' : '';
     const fecha = (value) => value ? escapeHtml(value) : 'Sin fecha';
     const texto = (value, fallback = 'Sin cargar') => String(value || '').trim() || fallback;
+    const safeId = (prefix, id) => `${prefix}-${Number(id)}`;
     const estadoTexto = {
       draft: 'Borrador',
       planned: 'Planificado',
@@ -186,23 +204,28 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       training: 'Capacitacion',
       other: 'Otro'
     };
-    const estadoLabel = (value) => estadoTexto[value] || String(value || '').replaceAll('_', ' ');
+    const estadoLabel = (value) => estadoTexto[value] || String(value || '').replace(/_/g, ' ');
     const tipoLabel = (value) => tipoTexto[value] || 'Otro';
-    const safeId = (prefix, id) => `${prefix}-${Number(id)}`;
     const sumarDias = (dateString, dias) => {
       if (!dateString) {
         return null;
       }
+
       const fechaBase = new Date(`${dateString}T00:00:00`);
       if (Number.isNaN(fechaBase.getTime())) {
         return null;
       }
+
       fechaBase.setDate(fechaBase.getDate() + Math.max(0, Number(dias || 0)));
       return fechaBase.toISOString().slice(0, 10);
     };
     const maxFecha = (a, b) => {
-      if (!a) return b || null;
-      if (!b) return a || null;
+      if (!a) {
+        return b || null;
+      }
+      if (!b) {
+        return a || null;
+      }
       return a > b ? a : b;
     };
 
@@ -213,6 +236,14 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       if (!abrir && formNuevaFase) {
         formNuevaFase.hidden = true;
       }
+    };
+
+    const cerrarFormsCompactos = (excepto) => {
+      modal.querySelectorAll('.im-pm-form--compacto').forEach((form) => {
+        if (form !== excepto) {
+          form.hidden = true;
+        }
+      });
     };
 
     const setFormValue = (form, name, value) => {
@@ -238,6 +269,7 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       if (!form) {
         return fase;
       }
+
       return {
         ...fase,
         duration_days: form.elements.duration_days?.value || fase.duration_days,
@@ -251,6 +283,7 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       if (!form) {
         return objetivo;
       }
+
       return {
         ...objetivo,
         phase_id: form.elements.phase_id?.value || objetivo.phase_id,
@@ -259,17 +292,43 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       };
     });
 
+    const calcularFechaFinal = (projectId, startDate) => {
+      let cursor = startDate || null;
+      let final = null;
+      const fasesOrdenadas = fasesActuales(projectId).sort((a, b) => Number(a.phase_order || 1) - Number(b.phase_order || 1) || Number(a.id) - Number(b.id));
+      const listaObjetivos = objetivosActuales(projectId);
+
+      fasesOrdenadas.forEach((fase) => {
+        let fechaFase = cursor ? sumarDias(cursor, fase.duration_days || 0) : (fase.due_date || null);
+        listaObjetivos
+          .filter((objetivo) => Number(objetivo.phase_id) === Number(fase.id))
+          .forEach((objetivo) => {
+            fechaFase = maxFecha(fechaFase, objetivo.due_date || null);
+          });
+        final = maxFecha(final, fechaFase);
+        cursor = fechaFase || cursor;
+      });
+
+      listaObjetivos.forEach((objetivo) => {
+        final = maxFecha(final, objetivo.due_date || null);
+      });
+
+      return final;
+    };
+
     const renderProgreso = (projectId, proyecto) => {
       const listaObjetivos = objetivosActuales(projectId);
       const listaFases = fasesActuales(projectId);
       let total = listaObjetivos.length;
       let completados = listaObjetivos.filter((objetivo) => objetivo.status === 'delivered').length;
       let detalle = `${completados} de ${total} objetivos finalizados`;
+
       if (total === 0) {
         total = listaFases.length;
         completados = listaFases.filter((fase) => fase.status === 'done').length;
         detalle = total > 0 ? `${completados} de ${total} fases finalizadas` : 'Sin fases ni objetivos';
       }
+
       const porcentaje = total > 0 ? Math.round((completados / total) * 100) : 0;
       const fechaFinal = calcularFechaFinal(projectId, formProyecto.elements.start_date.value || proyecto.start_date);
       progresoCalculado.textContent = `${porcentaje}%`;
@@ -277,23 +336,6 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       avanceEstimado.textContent = `${porcentaje}%`;
       progresoDetalle.textContent = total > 0 ? detalle : 'Este proyecto todavia no tiene objetivos cargados.';
       finalEstimada.textContent = fechaFinal || proyecto.target_delivery_date || 'Sin calcular';
-    };
-
-    const calcularFechaFinal = (projectId, startDate) => {
-      let cursor = startDate || null;
-      let final = null;
-      const fasesOrdenadas = fasesActuales(projectId).sort((a, b) => Number(a.phase_order || 1) - Number(b.phase_order || 1) || Number(a.id) - Number(b.id));
-      const listaObjetivos = objetivosActuales(projectId);
-      fasesOrdenadas.forEach((fase) => {
-        let fechaFase = cursor ? sumarDias(cursor, fase.duration_days || 0) : (fase.due_date || null);
-        listaObjetivos
-          .filter((objetivo) => Number(objetivo.phase_id) === Number(fase.id))
-          .forEach((objetivo) => { fechaFase = maxFecha(fechaFase, objetivo.due_date || null); });
-        final = maxFecha(final, fechaFase);
-        cursor = fechaFase || cursor;
-      });
-      listaObjetivos.forEach((objetivo) => { final = maxFecha(final, objetivo.due_date || null); });
-      return final;
     };
 
     const renderObjetivoForm = (projectId, objetivo, fasesProyecto) => `
@@ -312,11 +354,23 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       </form>
     `;
 
+    const renderEliminarObjetivoForm = (projectId, objetivo) => `
+      <form method="post" action="/impulsa_emprende/controller/admin/adminProyectosController.php" data-pm-eliminar-form data-pm-eliminar-tipo="objetivo" data-pm-eliminar-nombre="${escapeHtml(objetivo.title)}">
+        <input type="hidden" name="accion_proyecto" value="pm_eliminar_objetivo">
+        <input type="hidden" name="project_id" value="${Number(projectId)}">
+        <input type="hidden" name="objective_id" value="${Number(objetivo.id)}">
+        <button class="im-boton-icono material-symbols-rounded im-pm-accion-eliminar" type="submit" aria-label="Eliminar objetivo">delete</button>
+      </form>
+    `;
+
     const renderObjetivo = (projectId, objetivo, fasesProyecto) => `
       <article class="im-pm-objetivo">
         <div class="im-pm-objetivo__cabecera">
           <strong>${escapeHtml(objetivo.title)}</strong>
-          <button class="im-boton-icono material-symbols-rounded" type="button" data-pm-toggle="#${safeId('pm-objetivo-form', objetivo.id)}" aria-label="Editar objetivo">edit</button>
+          <div class="im-pm-acciones">
+            <button class="im-boton-icono material-symbols-rounded" type="button" data-pm-toggle="#${safeId('pm-objetivo-form', objetivo.id)}" aria-label="Editar objetivo">edit</button>
+            ${renderEliminarObjetivoForm(projectId, objetivo)}
+          </div>
         </div>
         <div class="im-pm-chips">
           <span class="im-chip">${escapeHtml(tipoLabel(objetivo.deliverable_type))}</span>
@@ -344,6 +398,30 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       </form>
     `;
 
+    const renderFaseForm = (projectId, fase) => `
+      <form class="im-pm-form im-pm-form--compacto" method="post" action="/impulsa_emprende/controller/admin/adminProyectosController.php" id="${safeId('pm-fase-form', fase.id)}" hidden>
+        <input type="hidden" name="accion_proyecto" value="pm_editar_fase">
+        <input type="hidden" name="project_id" value="${Number(projectId)}">
+        <input type="hidden" name="phase_id" value="${Number(fase.id)}">
+        <label class="im-campo im-campo-material im-campo--ancho"><span>Fase</span><input type="text" name="title" maxlength="180" value="${escapeHtml(fase.title)}" required></label>
+        <label class="im-campo im-campo-material im-campo--ancho"><span>Descripcion</span><textarea name="description" rows="2">${escapeHtml(fase.description || '')}</textarea></label>
+        <label class="im-campo im-campo-material"><span>Orden</span><input type="number" name="phase_order" min="1" value="${Number(fase.phase_order || 1)}" required></label>
+        <label class="im-campo im-campo-material"><span>Duracion dias</span><input type="number" name="duration_days" min="1" value="${escapeHtml(fase.duration_days || '')}"></label>
+        <div class="im-pm-dato-calculado im-pm-dato-calculado--compacto"><span>Fecha estimada</span><strong>${fecha(fase.due_date)}</strong></div>
+        <label class="im-campo im-campo-material"><span>Estado</span><select name="status"><option value="pending"${selected(fase.status, 'pending')}>Pendiente</option><option value="in_progress"${selected(fase.status, 'in_progress')}>En progreso</option><option value="blocked"${selected(fase.status, 'blocked')}>Bloqueada</option><option value="done"${selected(fase.status, 'done')}>Finalizada</option></select></label>
+        <div class="im-formulario__acciones im-pm-form__acciones"><button class="im-boton im-boton--tonal" type="submit">Guardar fase</button><button class="im-boton im-boton--texto" type="button" data-pm-toggle="#${safeId('pm-fase-form', fase.id)}">Cancelar</button></div>
+      </form>
+    `;
+
+    const renderEliminarFaseForm = (projectId, fase) => `
+      <form method="post" action="/impulsa_emprende/controller/admin/adminProyectosController.php" data-pm-eliminar-form data-pm-eliminar-tipo="fase" data-pm-eliminar-nombre="${escapeHtml(fase.title)}">
+        <input type="hidden" name="accion_proyecto" value="pm_eliminar_fase">
+        <input type="hidden" name="project_id" value="${Number(projectId)}">
+        <input type="hidden" name="phase_id" value="${Number(fase.id)}">
+        <button class="im-boton-icono material-symbols-rounded im-pm-accion-eliminar" type="submit" aria-label="Eliminar fase">delete</button>
+      </form>
+    `;
+
     const renderFase = (projectId, fase, fasesProyecto) => {
       const objetivosFase = (objetivos[projectId] || []).filter((objetivo) => Number(objetivo.phase_id) === Number(fase.id));
       return `
@@ -354,7 +432,10 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
               <h5>${escapeHtml(fase.title)}</h5>
               <p>${escapeHtml(texto(fase.description, 'Sin descripcion'))}</p>
             </div>
-            <button class="im-boton-icono material-symbols-rounded" type="button" data-pm-toggle="#${safeId('pm-fase-form', fase.id)}" aria-label="Editar fase">edit</button>
+            <div class="im-pm-acciones">
+              <button class="im-boton-icono material-symbols-rounded" type="button" data-pm-toggle="#${safeId('pm-fase-form', fase.id)}" aria-label="Editar fase">edit</button>
+              ${renderEliminarFaseForm(projectId, fase)}
+            </div>
           </header>
           <div class="im-pm-fase__meta">
             <span>Fecha: ${fecha(fase.due_date)}</span>
@@ -362,18 +443,7 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
             <span>Orden: ${Number(fase.phase_order || 1)}</span>
             <span>${objetivosFase.length} objetivos</span>
           </div>
-          <form class="im-pm-form im-pm-form--compacto" method="post" action="/impulsa_emprende/controller/admin/adminProyectosController.php" id="${safeId('pm-fase-form', fase.id)}" hidden>
-            <input type="hidden" name="accion_proyecto" value="pm_editar_fase">
-            <input type="hidden" name="project_id" value="${Number(projectId)}">
-            <input type="hidden" name="phase_id" value="${Number(fase.id)}">
-            <label class="im-campo im-campo-material im-campo--ancho"><span>Fase</span><input type="text" name="title" maxlength="180" value="${escapeHtml(fase.title)}" required></label>
-            <label class="im-campo im-campo-material im-campo--ancho"><span>Descripcion</span><textarea name="description" rows="2">${escapeHtml(fase.description || '')}</textarea></label>
-            <label class="im-campo im-campo-material"><span>Orden</span><input type="number" name="phase_order" min="1" value="${Number(fase.phase_order || 1)}" required></label>
-            <label class="im-campo im-campo-material"><span>Duracion dias</span><input type="number" name="duration_days" min="1" value="${escapeHtml(fase.duration_days || '')}"></label>
-            <div class="im-pm-dato-calculado im-pm-dato-calculado--compacto"><span>Fecha estimada</span><strong>${fecha(fase.due_date)}</strong></div>
-            <label class="im-campo im-campo-material"><span>Estado</span><select name="status"><option value="pending"${selected(fase.status, 'pending')}>Pendiente</option><option value="in_progress"${selected(fase.status, 'in_progress')}>En progreso</option><option value="blocked"${selected(fase.status, 'blocked')}>Bloqueada</option><option value="done"${selected(fase.status, 'done')}>Finalizada</option></select></label>
-            <div class="im-formulario__acciones im-pm-form__acciones"><button class="im-boton im-boton--tonal" type="submit">Guardar fase</button><button class="im-boton im-boton--texto" type="button" data-pm-toggle="#${safeId('pm-fase-form', fase.id)}">Cancelar</button></div>
-          </form>
+          ${renderFaseForm(projectId, fase)}
           <div class="im-pm-objetivos">
             <div class="im-pm-objetivos__titulo">Objetivos</div>
             ${objetivosFase.map((objetivo) => renderObjetivo(projectId, objetivo, fasesProyecto)).join('') || '<div class="im-alerta im-alerta--info">Sin objetivos todavia.</div>'}
@@ -388,15 +458,17 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
     };
 
     const abrirProyecto = (projectId) => {
-      const proyecto = proyectosPorId.get(String(projectId));
+      const proyecto = proyectosPorId[String(projectId)];
       if (!proyecto) {
         return;
       }
+
       const fasesProyecto = fases[projectId] || [];
       if (formNuevaFase) {
         formNuevaFase.hidden = true;
         formNuevaFase.reset();
       }
+
       inputFaseProject.value = projectId;
       subtitulo.textContent = `Proyecto #${projectId}`;
       nombreProyecto.textContent = proyecto.project_name || `Proyecto #${projectId}`;
@@ -418,21 +490,40 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       if (!botonToggle) {
         return;
       }
-      const destino = document.querySelector(botonToggle.dataset.pmToggle);
-      if (destino) {
-        const abrir = destino.hidden;
-        if (abrir && !destino.matches('[data-pm-nueva-fase]')) {
-          modal.querySelectorAll('.im-pm-form--compacto:not([data-pm-nueva-fase])').forEach((form) => {
-            if (form !== destino) form.hidden = true;
-          });
-        }
-        destino.hidden = !abrir;
+
+      const selector = botonToggle.dataset.pmToggle || '';
+      const destino = modal.querySelector(selector) || document.querySelector(selector);
+      if (!destino) {
+        return;
+      }
+
+      const abrir = destino.hidden;
+      if (abrir) {
+        cerrarFormsCompactos(destino);
+      }
+      destino.hidden = !abrir;
+    });
+
+    modal.addEventListener('submit', (event) => {
+      const form = event.target.closest('[data-pm-eliminar-form]');
+      if (!form) {
+        return;
+      }
+
+      const tipo = form.dataset.pmEliminarTipo === 'fase' ? 'fase' : 'objetivo';
+      const nombre = form.dataset.pmEliminarNombre || (tipo === 'fase' ? 'esta fase' : 'este objetivo');
+      const mensaje = tipo === 'fase'
+        ? `Se eliminara la fase "${nombre}" y todos sus objetivos asociados. Esta accion no se puede deshacer.`
+        : `Se eliminara el objetivo "${nombre}". Esta accion no se puede deshacer.`;
+
+      if (!window.confirm(mensaje)) {
+        event.preventDefault();
       }
     });
 
     formProyecto.elements.start_date?.addEventListener('change', () => {
       const projectId = formProyecto.elements.project_id.value;
-      const proyecto = proyectosPorId.get(String(projectId));
+      const proyecto = proyectosPorId[String(projectId)];
       if (proyecto) {
         renderProgreso(projectId, proyecto);
       }
@@ -442,8 +533,9 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       if (!event.target.closest('.im-pm-form')) {
         return;
       }
+
       const projectId = formProyecto.elements.project_id.value;
-      const proyecto = proyectosPorId.get(String(projectId));
+      const proyecto = proyectosPorId[String(projectId)];
       if (proyecto) {
         renderProgreso(projectId, proyecto);
       }
@@ -453,8 +545,9 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       if (!event.target.closest('.im-pm-form')) {
         return;
       }
+
       const projectId = formProyecto.elements.project_id.value;
-      const proyecto = proyectosPorId.get(String(projectId));
+      const proyecto = proyectosPorId[String(projectId)];
       if (proyecto) {
         renderProgreso(projectId, proyecto);
       }
@@ -464,7 +557,14 @@ $pmH = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? 
       boton.addEventListener('click', () => abrirProyecto(boton.dataset.abrirGestorProyecto));
     });
 
-    document.querySelectorAll('[data-cerrar-gestor-proyecto]').forEach((elemento) => elemento.addEventListener('click', () => alternar(false)));
-    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') alternar(false); });
+    document.querySelectorAll('[data-cerrar-gestor-proyecto]').forEach((elemento) => {
+      elemento.addEventListener('click', () => alternar(false));
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        alternar(false);
+      }
+    });
   })();
 </script>
