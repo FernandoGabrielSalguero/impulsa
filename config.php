@@ -123,6 +123,38 @@ function obtenerInicialAvatar(?string $label): string
     return mb_strtoupper(mb_substr($label, 0, 1));
 }
 
+function obtenerBaseAppUrl(): string
+{
+    $appUrl = rtrim((string) (getenv('APP_URL') ?: ''), '/');
+    if ($appUrl !== '') {
+        return $appUrl;
+    }
+
+    $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    $scriptDir = str_replace('\\', '/', dirname($scriptName));
+
+    if ($scriptDir === '.' || $scriptDir === '/') {
+        return '';
+    }
+
+    foreach (['/auth', '/api', '/assets', '/impulsa_emprende'] as $marker) {
+        $markerPos = strpos($scriptDir, $marker);
+        if ($markerPos !== false) {
+            $scriptDir = substr($scriptDir, 0, $markerPos);
+            break;
+        }
+    }
+
+    return rtrim($scriptDir, '/');
+}
+
+function obtenerFaviconHref(string $version = '20260607'): string
+{
+    $baseUrl = obtenerBaseAppUrl();
+
+    return ($baseUrl !== '' ? $baseUrl : '') . '/favicon.ico?v=' . rawurlencode($version);
+}
+
 function renderBotonPerfil(?string $avatarPath): string
 {
     $avatarUrl = obtenerAvatarUrl($avatarPath);
