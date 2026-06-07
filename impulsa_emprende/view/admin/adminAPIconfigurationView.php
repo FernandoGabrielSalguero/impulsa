@@ -50,6 +50,13 @@ $estadoTexto = static function (string $estado): string {
     .im-api-card__meta,
     .im-api-card__acciones { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: flex-start; }
     .im-api-card__meta { color: var(--im-color-texto-suave); }
+    .im-api-tabla-modal { width: min(1080px, calc(100vw - 2rem)); max-height: min(860px, calc(100vh - 2rem)); grid-template-rows: auto minmax(0, 1fr) auto; }
+    .im-api-tabla-modal .im-dialog__contenido { min-height: 0; overflow: auto; display: grid; gap: 1rem; }
+    .im-api-tabla-modal__grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: .85rem; }
+    .im-api-dato { padding: .85rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-chico); background: var(--im-color-superficie); }
+    .im-api-dato span { display: block; color: var(--im-color-texto-suave); font-size: .82rem; }
+    .im-api-dato strong,
+    .im-api-dato code { display: block; margin-top: .25rem; word-break: break-all; }
     .im-api-card__metricas { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: .75rem; }
     .im-api-metrica { padding: .85rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-chico); background: var(--im-color-superficie); }
     .im-api-metrica span { display: block; color: var(--im-color-texto-suave); font-size: .82rem; }
@@ -58,13 +65,17 @@ $estadoTexto = static function (string $estado): string {
     .im-api-snippet { display: grid; gap: .5rem; }
     .im-api-snippet pre { margin: 0; padding: 1rem; overflow: auto; border-radius: var(--im-radio-chico); background: #111827; color: #f9fafb; font-size: .85rem; }
     .im-api-secret { word-break: break-all; }
+    .im-api-secret--protegida { color: var(--im-color-texto-suave); font-size: .9rem; }
+    .im-api-copy-linea { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+    .im-api-copy-linea code { flex: 1; min-width: 0; overflow-wrap: anywhere; }
     .im-api-inline-form { display: contents; }
     .im-api-form-secundario { display: grid; gap: .85rem; padding-top: .75rem; border-top: 1px solid var(--im-color-borde); }
     .im-api-form-secundario__acciones { display: flex; flex-wrap: wrap; gap: .5rem; }
     @media (max-width: 900px) {
       .im-api-form,
       .im-api-card__metricas,
-      .im-api-snippets { grid-template-columns: 1fr; }
+      .im-api-snippets,
+      .im-api-tabla-modal__grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -184,91 +195,83 @@ $estadoTexto = static function (string $estado): string {
                 <p>Cuando crees la primera integracion, vas a poder copiar snippets listos para landings externas.</p>
               </article>
             <?php else: ?>
-              <div class="im-api-lista">
-                <?php foreach ($integraciones as $integracion): ?>
-                  <?php
-                    $integrationId = (int) ($integracion['id'] ?? 0);
-                    $visitSnippet = "<script>\nwindow.IMPULSA_API_CONFIG = {\n  publicKey: \"" . ($integracion['public_key'] ?? '') . "\",\n  apiBaseUrl: \"" . rtrim($appBaseUrl, '/') . "/api\"\n};\n</script>\n<script src=\"" . rtrim($appBaseUrl, '/') . "/assets/impulsa_material/js/visit-tracker.js\"></script>";
-                    $formSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/contact_form_landing_page/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    page: window.location.pathname,\n    contact_nombre: formName,\n    contact_email: formEmail,\n    contact_whatsapp: formPhone,\n    contact_description: formMessage\n  })\n});";
-                  ?>
-                  <article class="im-tarjeta im-api-card" id="integration-<?= $integrationId ?>">
-                    <div class="im-api-card__cabecera">
-                      <div>
-                        <h3><?= $h($integracion['project_name'] ?? '') ?></h3>
-                        <div class="im-api-card__meta">
-                          <span>Dominio: <code><?= $h($integracion['allowed_domain'] ?? '') ?></code></span>
-                          <span>Public key: <code><?= $h($integracion['public_key'] ?? '') ?></code></span>
-                        </div>
-                      </div>
-                      <span class="im-chip <?= $h($estadoChip((string) ($integracion['status'] ?? 'inactive'))) ?>"><?= $h($estadoTexto((string) ($integracion['status'] ?? 'inactive'))) ?></span>
-                    </div>
-
-                    <div class="im-api-card__metricas">
-                      <div class="im-api-metrica"><span>Visitas</span><strong><?= number_format((int) ($integracion['total_visits'] ?? 0), 0, ',', '.') ?></strong></div>
-                      <div class="im-api-metrica"><span>Contactos</span><strong><?= number_format((int) ($integracion['total_contacts'] ?? 0), 0, ',', '.') ?></strong></div>
-                      <div class="im-api-metrica"><span>Ultimo uso</span><strong><?= $h($formatearFecha($integracion['last_used_at'] ?? null)) ?></strong></div>
-                      <div class="im-api-metrica"><span>Actualizada</span><strong><?= $h($formatearFecha($integracion['updated_at'] ?? null)) ?></strong></div>
-                    </div>
-
-                    <div class="im-api-card__acciones">
-                      <form method="post" class="im-api-inline-form">
-                        <input type="hidden" name="api_integration_action" value="toggle_status">
-                        <input type="hidden" name="integration_id" value="<?= $integrationId ?>">
-                        <button class="im-boton" type="submit"><?= ($integracion['status'] ?? '') === 'active' ? 'Desactivar' : 'Activar' ?></button>
-                      </form>
-                      <form method="post" class="im-api-inline-form">
-                        <input type="hidden" name="api_integration_action" value="regenerate_public_key">
-                        <input type="hidden" name="integration_id" value="<?= $integrationId ?>">
-                        <button class="im-boton im-boton--texto" type="submit">Regenerar public key</button>
-                      </form>
-                      <form method="post" class="im-api-inline-form">
-                        <input type="hidden" name="api_integration_action" value="regenerate_secret_key">
-                        <input type="hidden" name="integration_id" value="<?= $integrationId ?>">
-                        <button class="im-boton im-boton--texto" type="submit">Regenerar secret key</button>
-                      </form>
-                    </div>
-
-                    <form method="post" class="im-api-form im-api-form-secundario">
-                      <input type="hidden" name="api_integration_action" value="update">
-                      <input type="hidden" name="integration_id" value="<?= $integrationId ?>">
-                      <label class="im-campo im-campo-material" data-im-campo="generico">
-                        <span>Proyecto o sitio</span>
-                        <input type="text" name="project_name" maxlength="180" value="<?= $h($integracion['project_name'] ?? '') ?>" required>
-                      </label>
-                      <label class="im-campo im-campo-material" data-im-campo="generico">
-                        <span>Dominio autorizado</span>
-                        <input type="text" name="allowed_domain" value="<?= $h($integracion['allowed_domain'] ?? '') ?>" required>
-                      </label>
-                      <div class="im-api-form-secundario__acciones">
-                        <button class="im-boton im-boton--principal" type="submit">Guardar cambios</button>
-                      </div>
-                    </form>
-
-                    <div class="im-api-snippets">
-                      <div class="im-api-snippet">
-                        <div class="im-tarjeta__cabecera">
-                          <div>
-                            <h4>Snippet visitas</h4>
-                            <p>Usa `visit-tracker.js` y solo expone la clave publica.</p>
-                          </div>
-                          <button class="im-boton im-boton--texto" type="button" data-copy-target="visit-snippet-<?= $integrationId ?>">Copiar</button>
-                        </div>
-                        <pre id="visit-snippet-<?= $integrationId ?>"><code><?= $h($visitSnippet) ?></code></pre>
-                      </div>
-                      <div class="im-api-snippet">
-                        <div class="im-tarjeta__cabecera">
-                          <div>
-                            <h4>Snippet formulario</h4>
-                            <p>Envia el contacto a `forms_clients_contact` asociado a esta integracion.</p>
-                          </div>
-                          <button class="im-boton im-boton--texto" type="button" data-copy-target="form-snippet-<?= $integrationId ?>">Copiar</button>
-                        </div>
-                        <pre id="form-snippet-<?= $integrationId ?>"><code><?= $h($formSnippet) ?></code></pre>
-                      </div>
-                    </div>
-                  </article>
-                <?php endforeach; ?>
-              </div>
+              <article class="im-tabla-tareas__tarjeta">
+                <div class="im-tabla-tareas__cabecera">
+                  <div>
+                    <h3>Integraciones registradas</h3>
+                    <p>Tabla compacta con keys visibles y detalle completo dentro de un modal por fila.</p>
+                  </div>
+                </div>
+                <div class="im-tabla-tareas__scroll">
+                  <table class="im-tabla-tareas">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Proyecto o sitio</th>
+                        <th>Dominio</th>
+                        <th>Public key</th>
+                        <th>Secret key</th>
+                        <th>Estado</th>
+                        <th>Visitas</th>
+                        <th>Contactos</th>
+                        <th>Ultimo uso</th>
+                        <th class="im-tabla-tareas__acciones">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <?php foreach ($integraciones as $integracion): ?>
+                        <?php
+                          $integrationId = (int) ($integracion['id'] ?? 0);
+                          $visitSnippet = "<script>\nwindow.IMPULSA_API_CONFIG = {\n  publicKey: \"" . ($integracion['public_key'] ?? '') . "\",\n  apiBaseUrl: \"" . rtrim($appBaseUrl, '/') . "/api\"\n};\n</script>\n<script src=\"" . rtrim($appBaseUrl, '/') . "/assets/impulsa_material/js/visit-tracker.js\"></script>";
+                          $formSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/contact_form_landing_page/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    page: window.location.pathname,\n    contact_nombre: formName,\n    contact_email: formEmail,\n    contact_whatsapp: formPhone,\n    contact_description: formMessage\n  })\n});";
+                          $payloadModal = [
+                              'id' => $integrationId,
+                              'project_name' => (string) ($integracion['project_name'] ?? ''),
+                              'allowed_domain' => (string) ($integracion['allowed_domain'] ?? ''),
+                              'public_key' => (string) ($integracion['public_key'] ?? ''),
+                              'status' => (string) ($integracion['status'] ?? 'inactive'),
+                              'total_visits' => (int) ($integracion['total_visits'] ?? 0),
+                              'total_contacts' => (int) ($integracion['total_contacts'] ?? 0),
+                              'last_used_at' => $formatearFecha($integracion['last_used_at'] ?? null),
+                              'updated_at' => $formatearFecha($integracion['updated_at'] ?? null),
+                              'visit_snippet' => $visitSnippet,
+                              'form_snippet' => $formSnippet,
+                          ];
+                        ?>
+                        <tr id="integration-<?= $integrationId ?>">
+                          <td><?= $integrationId ?></td>
+                          <td class="im-tabla-tareas__nombre"><?= $h($integracion['project_name'] ?? '') ?></td>
+                          <td><code><?= $h($integracion['allowed_domain'] ?? '') ?></code></td>
+                          <td>
+                            <div class="im-api-copy-linea">
+                              <code><?= $h($integracion['public_key'] ?? '') ?></code>
+                              <button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Copiar public key" data-copy-text="<?= $h($integracion['public_key'] ?? '') ?>">content_copy</button>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="im-api-secret--protegida">
+                              Protegida por hash
+                              <br><small>Solo visible al crear o regenerar.</small>
+                            </div>
+                          </td>
+                          <td><span class="im-chip <?= $h($estadoChip((string) ($integracion['status'] ?? 'inactive'))) ?>"><?= $h($estadoTexto((string) ($integracion['status'] ?? 'inactive'))) ?></span></td>
+                          <td><?= number_format((int) ($integracion['total_visits'] ?? 0), 0, ',', '.') ?></td>
+                          <td><?= number_format((int) ($integracion['total_contacts'] ?? 0), 0, ',', '.') ?></td>
+                          <td><?= $h($formatearFecha($integracion['last_used_at'] ?? null)) ?></td>
+                          <td class="im-tabla-tareas__acciones">
+                            <div class="im-menu-tabla" data-im-menu>
+                              <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
+                              <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
+                                <button type="button" role="menuitem" data-abrir-api-detalle='<?= $h(json_encode($payloadModal, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT)) ?>'><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver detalle</button>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                    </tbody>
+                  </table>
+                </div>
+              </article>
             <?php endif; ?>
           </div>
         </section>
@@ -276,31 +279,216 @@ $estadoTexto = static function (string $estado): string {
     </div>
   </div>
 
+  <div class="im-modal-cortina" data-cerrar-api-detalle></div>
+  <section class="im-dialog im-api-tabla-modal" role="dialog" aria-modal="true" aria-labelledby="api-detalle-titulo" aria-hidden="true" data-modal-api-detalle>
+    <header class="im-dialog__cabecera">
+      <div>
+        <p class="im-sobrelinea">Integracion API</p>
+        <h3 id="api-detalle-titulo" data-api-detalle-titulo>Detalle de integracion</h3>
+      </div>
+      <button class="im-boton-icono" type="button" data-cerrar-api-detalle aria-label="Cerrar dialog"></button>
+    </header>
+    <div class="im-dialog__contenido">
+      <div class="im-api-tabla-modal__grid">
+        <div class="im-api-dato">
+          <span>Proyecto o sitio</span>
+          <strong data-api-detalle-proyecto></strong>
+        </div>
+        <div class="im-api-dato">
+          <span>Dominio autorizado</span>
+          <code data-api-detalle-dominio></code>
+        </div>
+        <div class="im-api-dato">
+          <span>Public key</span>
+          <div class="im-api-copy-linea">
+            <code data-api-detalle-public-key></code>
+            <button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Copiar public key" data-api-detalle-copy-public>content_copy</button>
+          </div>
+        </div>
+        <div class="im-api-dato">
+          <span>Secret key</span>
+          <strong class="im-api-secret--protegida">No recuperable. Se almacena como hash y solo se ve al crear o regenerar.</strong>
+        </div>
+        <div class="im-api-dato">
+          <span>Estado</span>
+          <strong data-api-detalle-estado></strong>
+        </div>
+        <div class="im-api-dato">
+          <span>Ultimo uso</span>
+          <strong data-api-detalle-ultimo-uso></strong>
+        </div>
+      </div>
+
+      <div class="im-api-card__metricas">
+        <div class="im-api-metrica"><span>Visitas</span><strong data-api-detalle-visitas></strong></div>
+        <div class="im-api-metrica"><span>Contactos</span><strong data-api-detalle-contactos></strong></div>
+        <div class="im-api-metrica"><span>Actualizada</span><strong data-api-detalle-actualizada></strong></div>
+      </div>
+
+      <form method="post" class="im-api-form im-api-form-secundario" data-api-detalle-form>
+        <input type="hidden" name="api_integration_action" value="update">
+        <input type="hidden" name="integration_id" value="" data-api-detalle-id>
+        <label class="im-campo im-campo-material" data-im-campo="generico">
+          <span>Proyecto o sitio</span>
+          <input type="text" name="project_name" maxlength="180" list="api-project-options" data-api-detalle-input-proyecto required>
+        </label>
+        <label class="im-campo im-campo-material" data-im-campo="generico">
+          <span>Dominio autorizado</span>
+          <input type="text" name="allowed_domain" data-api-detalle-input-dominio required>
+        </label>
+        <div class="im-api-form-secundario__acciones">
+          <button class="im-boton im-boton--principal" type="submit">Guardar cambios</button>
+        </div>
+      </form>
+
+      <div class="im-api-card__acciones">
+        <form method="post">
+          <input type="hidden" name="api_integration_action" value="toggle_status">
+          <input type="hidden" name="integration_id" value="" data-api-detalle-toggle-id>
+          <button class="im-boton" type="submit" data-api-detalle-toggle-text>Activar</button>
+        </form>
+        <form method="post">
+          <input type="hidden" name="api_integration_action" value="regenerate_public_key">
+          <input type="hidden" name="integration_id" value="" data-api-detalle-public-id>
+          <button class="im-boton im-boton--texto" type="submit">Regenerar public key</button>
+        </form>
+        <form method="post">
+          <input type="hidden" name="api_integration_action" value="regenerate_secret_key">
+          <input type="hidden" name="integration_id" value="" data-api-detalle-secret-id>
+          <button class="im-boton im-boton--texto" type="submit">Regenerar secret key</button>
+        </form>
+      </div>
+
+      <div class="im-api-snippets">
+        <div class="im-api-snippet">
+          <div class="im-tarjeta__cabecera">
+            <div>
+              <h4>Snippet visitas</h4>
+              <p>Usa `visit-tracker.js` y solo expone la clave publica.</p>
+            </div>
+            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-visit-snippet">Copiar</button>
+          </div>
+          <pre id="api-detalle-visit-snippet"><code data-api-detalle-visit-snippet></code></pre>
+        </div>
+        <div class="im-api-snippet">
+          <div class="im-tarjeta__cabecera">
+            <div>
+              <h4>Snippet formulario</h4>
+              <p>Envia el contacto asociado a esta integracion.</p>
+            </div>
+            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-form-snippet">Copiar</button>
+          </div>
+          <pre id="api-detalle-form-snippet"><code data-api-detalle-form-snippet></code></pre>
+        </div>
+      </div>
+    </div>
+    <footer class="im-dialog__acciones">
+      <button class="im-boton im-boton--texto" type="button" data-cerrar-api-detalle>Cerrar</button>
+    </footer>
+  </section>
+
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="../../../assets/impulsa_material/js/material.js"></script>
   <script>
     document.addEventListener('click', async (event) => {
+      const copyButton = event.target.closest('[data-copy-text]');
+      if (copyButton) {
+        const text = copyButton.getAttribute('data-copy-text') || '';
+
+        try {
+          await navigator.clipboard.writeText(text);
+          copyButton.textContent = 'done';
+          window.setTimeout(() => {
+            copyButton.textContent = 'content_copy';
+          }, 1400);
+        } catch (error) {
+          copyButton.textContent = 'error';
+        }
+
+        return;
+      }
+
       const button = event.target.closest('[data-copy-target]');
       if (!button) {
+      } else {
+        const target = document.getElementById(button.getAttribute('data-copy-target'));
+        if (!target) {
+          return;
+        }
+
+        const text = target.textContent || '';
+
+        try {
+          await navigator.clipboard.writeText(text);
+          button.textContent = 'Copiado';
+          window.setTimeout(() => {
+            button.textContent = 'Copiar';
+          }, 1800);
+        } catch (error) {
+          button.textContent = 'Error';
+        }
+
+        return;
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.querySelector('[data-modal-api-detalle]');
+      const cortina = document.querySelector('[data-cerrar-api-detalle].im-modal-cortina');
+
+      if (!modal || !cortina) {
         return;
       }
 
-      const target = document.getElementById(button.getAttribute('data-copy-target'));
-      if (!target) {
-        return;
-      }
+      const alternar = (abrir) => {
+        modal.classList.toggle('abierto', abrir);
+        cortina.classList.toggle('abierto', abrir);
+        modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+      };
 
-      const text = target.textContent || '';
+      document.querySelectorAll('[data-abrir-api-detalle]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const raw = button.getAttribute('data-abrir-api-detalle') || '';
 
-      try {
-        await navigator.clipboard.writeText(text);
-        button.textContent = 'Copiado';
-        window.setTimeout(() => {
-          button.textContent = 'Copiar';
-        }, 1800);
-      } catch (error) {
-        button.textContent = 'Error';
-      }
+          if (!raw) {
+            return;
+          }
+
+          let data = null;
+
+          try {
+            data = JSON.parse(raw);
+          } catch (error) {
+            return;
+          }
+
+          modal.querySelector('[data-api-detalle-titulo]').textContent = `Detalle #${data.id}`;
+          modal.querySelector('[data-api-detalle-proyecto]').textContent = data.project_name || '';
+          modal.querySelector('[data-api-detalle-dominio]').textContent = data.allowed_domain || '';
+          modal.querySelector('[data-api-detalle-public-key]').textContent = data.public_key || '';
+          modal.querySelector('[data-api-detalle-copy-public]').setAttribute('data-copy-text', data.public_key || '');
+          modal.querySelector('[data-api-detalle-estado]').textContent = data.status === 'active' ? 'Activa' : 'Inactiva';
+          modal.querySelector('[data-api-detalle-ultimo-uso]').textContent = data.last_used_at || '-';
+          modal.querySelector('[data-api-detalle-visitas]').textContent = String(data.total_visits ?? 0);
+          modal.querySelector('[data-api-detalle-contactos]').textContent = String(data.total_contacts ?? 0);
+          modal.querySelector('[data-api-detalle-actualizada]').textContent = data.updated_at || '-';
+          modal.querySelector('[data-api-detalle-id]').value = String(data.id || '');
+          modal.querySelector('[data-api-detalle-toggle-id]').value = String(data.id || '');
+          modal.querySelector('[data-api-detalle-public-id]').value = String(data.id || '');
+          modal.querySelector('[data-api-detalle-secret-id]').value = String(data.id || '');
+          modal.querySelector('[data-api-detalle-input-proyecto]').value = data.project_name || '';
+          modal.querySelector('[data-api-detalle-input-dominio]').value = data.allowed_domain || '';
+          modal.querySelector('[data-api-detalle-toggle-text]').textContent = data.status === 'active' ? 'Desactivar' : 'Activar';
+          modal.querySelector('[data-api-detalle-visit-snippet]').textContent = data.visit_snippet || '';
+          modal.querySelector('[data-api-detalle-form-snippet]').textContent = data.form_snippet || '';
+
+          alternar(true);
+        });
+      });
+
+      document.querySelectorAll('[data-cerrar-api-detalle]').forEach((button) => {
+        button.addEventListener('click', () => alternar(false));
+      });
     });
   </script>
 </body>
