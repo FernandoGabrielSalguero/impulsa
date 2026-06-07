@@ -41,6 +41,56 @@ class AdminProyectManagerModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerProyecto(int $projectId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT p.id, p.source_type, p.source_id, p.project_name, p.project_type, p.client_user_id, p.manager_user_id,
+                    p.client_name, p.client_email, p.client_whatsapp, p.summary, p.scope_summary,
+                    p.status, p.priority, p.start_date, p.target_delivery_date, p.progress_percent,
+                    p.client_visible, p.created_at, p.updated_at,
+                    client.correo AS cliente_correo_login,
+                    manager.correo AS manager_correo
+             FROM projects p
+             LEFT JOIN user_auth client ON client.id = p.client_user_id
+             INNER JOIN user_auth manager ON manager.id = p.manager_user_id
+             WHERE p.id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $projectId]);
+        $proyecto = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $proyecto ?: null;
+    }
+
+    public function obtenerFasesProyecto(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT id, project_id, title, description, duration_days, phase_order, status, due_date, completed_at
+             FROM project_phases
+             WHERE project_id = :project_id
+             ORDER BY phase_order ASC, id ASC'
+        );
+        $stmt->execute(['project_id' => $projectId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerObjetivosProyecto(int $projectId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT pd.id, pd.project_id, pd.phase_id, pd.title, pd.description, pd.deliverable_type,
+                    pd.status, pd.due_date, pd.delivered_at, pd.client_visible,
+                    pp.title AS phase_title
+             FROM project_deliverables pd
+             LEFT JOIN project_phases pp ON pp.id = pd.phase_id
+             WHERE pd.project_id = :project_id
+             ORDER BY pd.phase_id ASC, pd.due_date IS NULL ASC, pd.due_date ASC, pd.id ASC'
+        );
+        $stmt->execute(['project_id' => $projectId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function existeProyecto(int $projectId): bool
     {
         $stmt = $this->pdo->prepare('SELECT id FROM projects WHERE id = :id LIMIT 1');

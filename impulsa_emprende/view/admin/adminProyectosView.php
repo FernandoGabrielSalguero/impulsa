@@ -96,6 +96,8 @@ $claseEstadoProyecto = static function (?string $estado): string {
     .im-pm-objetivo p { margin: 0; color: var(--im-color-texto-suave); }
     .im-pm-acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .35rem; }
     .im-pm-accion-eliminar { color: #ba1a1a; }
+    .im-pm-confirmar-modal { width: min(460px, calc(100vw - 2rem)); }
+    .im-pm-confirmar-modal .im-dialog__contenido { display: grid; gap: .75rem; }
     .im-pm-fase__meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem; color: var(--im-color-texto-suave); font-size: .82rem; }
     .im-pm-objetivos { display: grid; gap: .55rem; min-height: 0; padding-right: .15rem; }
     .im-pm-objetivos__titulo { font-weight: 700; color: var(--im-color-texto); }
@@ -216,7 +218,7 @@ $claseEstadoProyecto = static function (?string $estado): string {
                         $objetivos = $objetivosPorProyecto[$projectId] ?? [];
                         $contrato = $contratosPorProyecto[$projectId] ?? null;
                       ?>
-                      <tr>
+                      <tr data-pm-proyecto-row="<?= $projectId ?>">
                         <td><?= $projectId ?></td>
                         <td class="im-tabla-tareas__nombre">
                           <?= $h($proyecto['project_name'] ?? '') ?>
@@ -226,10 +228,10 @@ $claseEstadoProyecto = static function (?string $estado): string {
                           <?= $h($proyecto['client_name'] ?? '') ?>
                           <br><small><?= $h($proyecto['client_email'] ?? '') ?></small>
                         </td>
-                        <td><span class="im-chip <?= $h($claseEstadoProyecto($proyecto['status'] ?? '')) ?>"><?= $h($estadoProyecto($proyecto['status'] ?? '')) ?></span></td>
-                        <td><?= (int) ($proyecto['progress_percent'] ?? 0) ?>%</td>
-                        <td><?= count($fases) ?></td>
-                        <td><?= count($objetivos) ?></td>
+                        <td data-pm-tabla-estado><span class="im-chip <?= $h($claseEstadoProyecto($proyecto['status'] ?? '')) ?>"><?= $h($estadoProyecto($proyecto['status'] ?? '')) ?></span></td>
+                        <td data-pm-tabla-avance><?= (int) ($proyecto['progress_percent'] ?? 0) ?>%</td>
+                        <td data-pm-tabla-fases><?= count($fases) ?></td>
+                        <td data-pm-tabla-objetivos><?= count($objetivos) ?></td>
                         <td>
                           <?php if ($contrato): ?>
                             <span class="im-chip <?= (int) ($contrato['is_signed'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= (int) ($contrato['is_signed'] ?? 0) === 1 ? 'Firmado' : 'Pendiente' ?></span>

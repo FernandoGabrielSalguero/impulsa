@@ -3,6 +3,12 @@
 require_once __DIR__ . '/adminProyectManagerModel.php';
 
 $adminProyectManagerModel = new AdminProyectManagerModel($pdo);
+$pmEsAjax = static function (): bool {
+    $accept = (string) ($_SERVER['HTTP_ACCEPT'] ?? '');
+    $requestedWith = (string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+
+    return str_contains($accept, 'application/json') || strtolower($requestedWith) === 'xmlhttprequest';
+};
 $pmProyectoEstados = ['draft', 'planned', 'in_progress', 'paused', 'in_review', 'completed', 'cancelled'];
 $pmProyectoPrioridades = ['low', 'medium', 'high', 'urgent'];
 $pmFaseEstados = ['pending', 'in_progress', 'blocked', 'done'];
@@ -162,6 +168,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && str_starts_with((string) ($_POST['a
     } catch (Throwable $e) {
         $estado = 'error';
         $mensaje = $e->getMessage();
+    }
+
+    if ($pmEsAjax()) {
+        $proyectoActualizado = $projectId > 0 ? $adminProyectManagerModel->obtenerProyecto($projectId) : null;
+        $fasesActualizadas = $projectId > 0 ? $adminProyectManagerModel->obtenerFasesProyecto($projectId) : [];
+        $objetivosActualizados = $projectId > 0 ? $adminProyectManagerModel->obtenerObjetivosProyecto($projectId) : [];
+
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'ok' => $estado === 'ok',
+            'estado' => $estado,
+            'mensaje' => $mensaje,
+            'project_id' => $projectId,
+            'proyecto' => $proyectoActualizado,
+            'fases' => $fasesActualizadas,
+            'objetivos' => $objetivosActualizados,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
     }
 
     $_SESSION['admin_proyectos_estado'] = ['estado' => $estado, 'mensaje' => $mensaje];

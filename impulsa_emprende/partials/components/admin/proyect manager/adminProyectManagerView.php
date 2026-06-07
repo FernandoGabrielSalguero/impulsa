@@ -138,6 +138,24 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
   </footer>
 </section>
 
+<div class="im-modal-cortina" data-cerrar-pm-confirmacion></div>
+<section class="im-dialog im-pm-confirmar-modal" role="dialog" aria-modal="true" aria-labelledby="pm-confirmar-titulo" aria-hidden="true" data-modal-pm-confirmacion>
+  <header class="im-dialog__cabecera">
+    <div>
+      <p class="im-sobrelinea">Confirmacion</p>
+      <h3 id="pm-confirmar-titulo">Eliminar elemento</h3>
+    </div>
+    <button class="im-boton-icono" type="button" data-cerrar-pm-confirmacion aria-label="Cerrar dialog"></button>
+  </header>
+  <div class="im-dialog__contenido">
+    <p data-pm-confirmacion-mensaje>Esta accion no se puede deshacer.</p>
+  </div>
+  <footer class="im-dialog__acciones">
+    <button class="im-boton im-boton--texto" type="button" data-cerrar-pm-confirmacion>Cancelar</button>
+    <button class="im-boton im-boton--principal im-pm-accion-eliminar" type="button" data-pm-confirmacion-aceptar>Eliminar</button>
+  </footer>
+</section>
+
 <script type="application/json" id="pm-proyectos-json"><?= $pmProyectosJson ?></script>
 <script type="application/json" id="pm-fases-json"><?= $pmFasesJson ?></script>
 <script type="application/json" id="pm-objetivos-json"><?= $pmObjetivosJson ?></script>
@@ -161,8 +179,12 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
     const formProyecto = document.querySelector('[data-pm-proyecto-form]');
     const inputFaseProject = document.querySelector('[data-pm-fase-project-id]');
     const formNuevaFase = document.querySelector('[data-pm-nueva-fase]');
+    const modalConfirmacion = document.querySelector('[data-modal-pm-confirmacion]');
+    const cortinaConfirmacion = document.querySelector('[data-cerrar-pm-confirmacion].im-modal-cortina');
+    const mensajeConfirmacion = document.querySelector('[data-pm-confirmacion-mensaje]');
+    const botonConfirmacionAceptar = document.querySelector('[data-pm-confirmacion-aceptar]');
 
-    if (!modal || !cortina || !tablero || !subtitulo || !nombreProyecto || !contextoProyecto || !progresoCalculado || !progresoBarra || !progresoDetalle || !finalEstimada || !avanceEstimado || !formProyecto || !inputFaseProject) {
+    if (!modal || !cortina || !tablero || !subtitulo || !nombreProyecto || !contextoProyecto || !progresoCalculado || !progresoBarra || !progresoDetalle || !finalEstimada || !avanceEstimado || !formProyecto || !inputFaseProject || !modalConfirmacion || !cortinaConfirmacion || !mensajeConfirmacion || !botonConfirmacionAceptar) {
       return;
     }
 
@@ -170,6 +192,15 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
       acc[String(proyecto.id)] = proyecto;
       return acc;
     }, {});
+    const estadoClaseProyecto = {
+      draft: 'im-chip--estado-borrador',
+      planned: 'im-chip--estado-planificado',
+      in_progress: 'im-chip--estado-progreso',
+      paused: 'im-chip--estado-pausado',
+      in_review: 'im-chip--estado-revision',
+      completed: 'im-chip--estado-completado',
+      cancelled: 'im-chip--estado-cancelado'
+    };
 
     const escapeHtml = (value) => String(value ?? '')
       .replace(/&/g, '&amp;')
@@ -228,6 +259,7 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
       }
       return a > b ? a : b;
     };
+    let formPendienteEliminacion = null;
 
     const alternar = (abrir) => {
       modal.classList.toggle('abierto', abrir);
@@ -235,6 +267,15 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
       modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
       if (!abrir && formNuevaFase) {
         formNuevaFase.hidden = true;
+      }
+    };
+
+    const alternarConfirmacion = (abrir) => {
+      modalConfirmacion.classList.toggle('abierto', abrir);
+      cortinaConfirmacion.classList.toggle('abierto', abrir);
+      modalConfirmacion.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+      if (!abrir) {
+        formPendienteEliminacion = null;
       }
     };
 
@@ -262,6 +303,49 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
       setFormValue(formProyecto, 'summary', proyecto.summary);
       setFormValue(formProyecto, 'scope_summary', proyecto.scope_summary);
       formProyecto.elements.client_visible.checked = Number(proyecto.client_visible || 0) === 1;
+    };
+
+    const mostrarSnackbar = (mensaje, estado = 'ok') => {
+      const snackbar = document.querySelector('.im-snackbar');
+      const textoSnackbar = snackbar?.querySelector('span');
+      if (!snackbar || !textoSnackbar || !mensaje) {
+        return;
+      }
+
+      snackbar.dataset.estado = estado === 'error' ? 'error' : 'ok';
+      textoSnackbar.textContent = mensaje;
+      snackbar.classList.add('abierto');
+      window.clearTimeout(window.imProyectosSnackbarTimer);
+      window.imProyectosSnackbarTimer = window.setTimeout(() => snackbar.classList.remove('abierto'), 4200);
+    };
+
+    const actualizarFilaTabla = (projectId) => {
+      const proyecto = proyectosPorId[String(projectId)];
+      const fila = document.querySelector(`[data-pm-proyecto-row="${String(projectId)}"]`);
+      if (!proyecto || !fila) {
+        return;
+      }
+
+      const fasesProyecto = fases[projectId] || [];
+      const objetivosProyecto = objetivos[projectId] || [];
+      const celdaEstado = fila.querySelector('[data-pm-tabla-estado]');
+      const celdaAvance = fila.querySelector('[data-pm-tabla-avance]');
+      const celdaFases = fila.querySelector('[data-pm-tabla-fases]');
+      const celdaObjetivos = fila.querySelector('[data-pm-tabla-objetivos]');
+
+      if (celdaEstado) {
+        const clase = estadoClaseProyecto[proyecto.status] || 'im-chip--estado-borrador';
+        celdaEstado.innerHTML = `<span class="im-chip ${clase}">${escapeHtml(estadoLabel(proyecto.status))}</span>`;
+      }
+      if (celdaAvance) {
+        celdaAvance.textContent = `${Number(proyecto.progress_percent || 0)}%`;
+      }
+      if (celdaFases) {
+        celdaFases.textContent = String(fasesProyecto.length);
+      }
+      if (celdaObjetivos) {
+        celdaObjetivos.textContent = String(objetivosProyecto.length);
+      }
     };
 
     const fasesActuales = (projectId) => (fases[projectId] || []).map((fase) => {
@@ -316,6 +400,18 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
       return final;
     };
 
+    const syncProyecto = (payload) => {
+      const projectId = Number(payload.project_id || payload.proyecto?.id || 0);
+      if (projectId <= 0 || !payload.proyecto) {
+        return;
+      }
+
+      proyectosPorId[String(projectId)] = payload.proyecto;
+      fases[projectId] = Array.isArray(payload.fases) ? payload.fases : [];
+      objetivos[projectId] = Array.isArray(payload.objetivos) ? payload.objetivos : [];
+      actualizarFilaTabla(projectId);
+    };
+
     const renderProgreso = (projectId, proyecto) => {
       const listaObjetivos = objetivosActuales(projectId);
       const listaFases = fasesActuales(projectId);
@@ -336,6 +432,56 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
       avanceEstimado.textContent = `${porcentaje}%`;
       progresoDetalle.textContent = total > 0 ? detalle : 'Este proyecto todavia no tiene objetivos cargados.';
       finalEstimada.textContent = fechaFinal || proyecto.target_delivery_date || 'Sin calcular';
+    };
+
+    const renderTablero = (projectId) => {
+      const proyecto = proyectosPorId[String(projectId)];
+      if (!proyecto) {
+        return;
+      }
+
+      const fasesProyecto = fases[projectId] || [];
+      setProjectForm(proyecto);
+      nombreProyecto.textContent = proyecto.project_name || `Proyecto #${projectId}`;
+      contextoProyecto.textContent = [
+        proyecto.client_name ? `Cliente: ${proyecto.client_name}` : '',
+        proyecto.manager_correo ? `Responsable: ${proyecto.manager_correo}` : '',
+        proyecto.source_type ? `Origen: ${proyecto.source_type}${proyecto.source_id ? ` #${proyecto.source_id}` : ''}` : ''
+      ].filter(Boolean).join(' | ');
+      subtitulo.textContent = `Proyecto #${projectId}`;
+      inputFaseProject.value = projectId;
+      tablero.innerHTML = fasesProyecto.length
+        ? fasesProyecto.map((fase) => renderFase(projectId, fase, fasesProyecto)).join('')
+        : '<div class="im-pm-vacio"><span class="material-symbols-rounded" aria-hidden="true">account_tree</span><strong>Este proyecto todavia no tiene fases cargadas.</strong><p>Crea la primera fase para organizar sus objetivos.</p></div>';
+      renderProgreso(projectId, proyecto);
+    };
+
+    const enviarFormulario = async (form) => {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new FormData(form)
+      });
+
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch (error) {
+        throw new Error('La respuesta del servidor no fue valida.');
+      }
+
+      if (!response.ok || !payload) {
+        throw new Error(payload?.mensaje || 'No pudimos procesar la solicitud.');
+      }
+
+      if (!payload.ok) {
+        throw new Error(payload.mensaje || 'No pudimos procesar la solicitud.');
+      }
+
+      return payload;
     };
 
     const renderObjetivoForm = (projectId, objetivo, fasesProyecto) => `
@@ -463,25 +609,11 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
         return;
       }
 
-      const fasesProyecto = fases[projectId] || [];
       if (formNuevaFase) {
         formNuevaFase.hidden = true;
         formNuevaFase.reset();
       }
-
-      inputFaseProject.value = projectId;
-      subtitulo.textContent = `Proyecto #${projectId}`;
-      nombreProyecto.textContent = proyecto.project_name || `Proyecto #${projectId}`;
-      contextoProyecto.textContent = [
-        proyecto.client_name ? `Cliente: ${proyecto.client_name}` : '',
-        proyecto.manager_correo ? `Responsable: ${proyecto.manager_correo}` : '',
-        proyecto.source_type ? `Origen: ${proyecto.source_type}${proyecto.source_id ? ` #${proyecto.source_id}` : ''}` : ''
-      ].filter(Boolean).join(' | ');
-      setProjectForm(proyecto);
-      tablero.innerHTML = fasesProyecto.length
-        ? fasesProyecto.map((fase) => renderFase(projectId, fase, fasesProyecto)).join('')
-        : '<div class="im-pm-vacio"><span class="material-symbols-rounded" aria-hidden="true">account_tree</span><strong>Este proyecto todavia no tiene fases cargadas.</strong><p>Crea la primera fase para organizar sus objetivos.</p></div>';
-      renderProgreso(projectId, proyecto);
+      renderTablero(projectId);
       alternar(true);
     };
 
@@ -505,20 +637,63 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
     });
 
     modal.addEventListener('submit', (event) => {
+      const formCrud = event.target.closest('.im-pm-form');
       const form = event.target.closest('[data-pm-eliminar-form]');
-      if (!form) {
+      if (form) {
+        event.preventDefault();
+        formPendienteEliminacion = form;
+        mensajeConfirmacion.textContent = form.dataset.pmEliminarTipo === 'fase'
+          ? `Se eliminara la fase "${form.dataset.pmEliminarNombre || 'seleccionada'}" y todos sus objetivos asociados. Esta accion no se puede deshacer.`
+          : `Se eliminara el objetivo "${form.dataset.pmEliminarNombre || 'seleccionado'}". Esta accion no se puede deshacer.`;
+        alternarConfirmacion(true);
         return;
       }
 
-      const tipo = form.dataset.pmEliminarTipo === 'fase' ? 'fase' : 'objetivo';
-      const nombre = form.dataset.pmEliminarNombre || (tipo === 'fase' ? 'esta fase' : 'este objetivo');
-      const mensaje = tipo === 'fase'
-        ? `Se eliminara la fase "${nombre}" y todos sus objetivos asociados. Esta accion no se puede deshacer.`
-        : `Se eliminara el objetivo "${nombre}". Esta accion no se puede deshacer.`;
-
-      if (!window.confirm(mensaje)) {
+      if (formCrud) {
         event.preventDefault();
+        enviarFormulario(formCrud)
+          .then((payload) => {
+            syncProyecto(payload);
+            renderTablero(payload.project_id);
+            if (formCrud !== formProyecto) {
+              cerrarFormsCompactos();
+              if (formCrud === formNuevaFase) {
+                formNuevaFase.reset();
+                formNuevaFase.hidden = true;
+              }
+            }
+            mostrarSnackbar(payload.mensaje, payload.estado);
+          })
+          .catch((error) => {
+            mostrarSnackbar(error.message || 'No pudimos procesar la solicitud.', 'error');
+          });
       }
+    });
+
+    botonConfirmacionAceptar.addEventListener('click', () => {
+      if (!formPendienteEliminacion) {
+        alternarConfirmacion(false);
+        return;
+      }
+
+      botonConfirmacionAceptar.disabled = true;
+      enviarFormulario(formPendienteEliminacion)
+        .then((payload) => {
+          syncProyecto(payload);
+          alternarConfirmacion(false);
+          renderTablero(payload.project_id);
+          mostrarSnackbar(payload.mensaje, payload.estado);
+        })
+        .catch((error) => {
+          mostrarSnackbar(error.message || 'No pudimos procesar la solicitud.', 'error');
+        })
+        .finally(() => {
+          botonConfirmacionAceptar.disabled = false;
+        });
+    });
+
+    document.querySelectorAll('[data-cerrar-pm-confirmacion]').forEach((elemento) => {
+      elemento.addEventListener('click', () => alternarConfirmacion(false));
     });
 
     formProyecto.elements.start_date?.addEventListener('change', () => {
@@ -563,6 +738,10 @@ $pmObjetivosJson = json_encode($objetivosPorProyecto ?? [], $pmJsonFlags);
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        if (modalConfirmacion.classList.contains('abierto')) {
+          alternarConfirmacion(false);
+          return;
+        }
         alternar(false);
       }
     });
