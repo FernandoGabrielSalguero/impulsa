@@ -79,6 +79,10 @@ $formatearRol = static function (string $rol): string {
           <span class="im-nav-item__icono" data-icon="work" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Proyectos</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminAPIconfigurationController.php">
+          <span class="im-nav-item__icono" data-icon="key" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Integraciones API</span>
+        </a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>
