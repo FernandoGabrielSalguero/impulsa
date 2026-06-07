@@ -233,10 +233,6 @@ $tipoObjetivo = static function (?string $tipo): string {
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
-        <a class="im-nav-item" href="#proyectos" data-seccion="proyectos">
-          <span class="material-symbols-rounded" aria-hidden="true">work</span>
-          <span class="im-nav-item__texto">Proyectos</span>
-        </a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>
@@ -266,12 +262,19 @@ $tipoObjetivo = static function (?string $tipo): string {
             </div>
           </div>
 
+          <div class="im-grilla im-grilla--metricas">
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Proyectos</span><strong><?= (int) ($resumen['proyectos_total'] ?? 0) ?></strong><small>Visibles</small></article>
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Activos</span><strong><?= (int) ($resumen['proyectos_activos'] ?? 0) ?></strong><small>En curso o revision</small></article>
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Entregables</span><strong><?= (int) ($resumen['entregables_pendientes'] ?? 0) ?></strong><small>Pendientes</small></article>
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Contratos</span><strong><?= (int) ($resumen['contratos_pendientes'] ?? 0) ?></strong><small>Pendientes</small></article>
+          </div>
+
           <div class="im-cliente-avance">
             <article class="im-tarjeta im-cliente-avance__tarjeta">
               <div class="im-tarjeta__cabecera">
                 <div>
-                  <h3>Avance de fases y objetivos</h3>
-                  <p>Estado actual de cada proyecto con una jerarquia clara de fase y objetivos.</p>
+                  <h3>Mis proyectos</h3>
+                  <p>Detalle de avances, entregables y contratos asociados a tu usuario cliente.</p>
                 </div>
               </div>
               <?php if (!$proyectos): ?>
@@ -283,6 +286,7 @@ $tipoObjetivo = static function (?string $tipo): string {
                       $projectId = (int) ($proyecto['id'] ?? 0);
                       $fases = $fasesPorProyecto[$projectId] ?? [];
                       $objetivos = $objetivosPorProyecto[$projectId] ?? [];
+                      $contratoProyecto = $contratosPorProyecto[$projectId] ?? null;
                       $objetivosCompletados = count(array_filter($objetivos, static fn (array $objetivo): bool => ($objetivo['status'] ?? '') === 'delivered'));
                       [$estadoTexto, $estadoClase] = $estadoProyecto($proyecto['status'] ?? '');
                     ?>
@@ -296,6 +300,7 @@ $tipoObjetivo = static function (?string $tipo): string {
                         <div class="im-cliente-avance__metricas">
                           <span class="im-chip <?= $h($estadoClase) ?>"><?= $h($estadoTexto) ?></span>
                           <span class="im-chip"><?= (int) ($proyecto['progress_percent'] ?? 0) ?>% avance</span>
+                          <span class="im-chip"><?= (int) ($proyecto['fases_total'] ?? 0) ?> fases</span>
                           <span class="im-chip"><?= $objetivosCompletados ?> / <?= count($objetivos) ?> objetivos entregados</span>
                         </div>
                       </div>
@@ -304,6 +309,7 @@ $tipoObjetivo = static function (?string $tipo): string {
                         <span>Entrega objetivo: <?= $fecha($proyecto['target_delivery_date'] ?? '') ?></span>
                         <span><?= count($fases) ?> fases visibles</span>
                         <span><?= count($objetivos) ?> objetivos visibles</span>
+                        <span><?= (int) ($proyecto['actualizaciones_total'] ?? 0) ?> actualizaciones</span>
                       </div>
 
                       <?php if (!$fases): ?>
@@ -365,6 +371,12 @@ $tipoObjetivo = static function (?string $tipo): string {
                           <?php endforeach; ?>
                         </div>
                       <?php endif; ?>
+
+                      <?php if ($contratoProyecto): ?>
+                        <div class="im-alerta im-alerta--info">
+                          Contrato: <?= $h($contratoProyecto['contract_name'] ?? '') ?> - <?= (int) ($contratoProyecto['is_signed'] ?? 0) === 1 ? 'firmado' : 'pendiente de firma' ?>.
+                        </div>
+                      <?php endif; ?>
                     </article>
                   <?php endforeach; ?>
                 </div>
@@ -372,42 +384,7 @@ $tipoObjetivo = static function (?string $tipo): string {
             </article>
           </div>
 
-          <div class="im-grilla im-grilla--metricas">
-            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Proyectos</span><strong><?= (int) ($resumen['proyectos_total'] ?? 0) ?></strong><small>Visibles</small></article>
-            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Activos</span><strong><?= (int) ($resumen['proyectos_activos'] ?? 0) ?></strong><small>En curso o revision</small></article>
-            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Entregables</span><strong><?= (int) ($resumen['entregables_pendientes'] ?? 0) ?></strong><small>Pendientes</small></article>
-            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Contratos</span><strong><?= (int) ($resumen['contratos_pendientes'] ?? 0) ?></strong><small>Pendientes</small></article>
-          </div>
-
           <div class="im-grilla im-grilla--dashboard">
-            <article class="im-tarjeta">
-              <div class="im-tarjeta__cabecera">
-                <div>
-                  <h3>Proyectos recientes</h3>
-                  <p>Estado general de los trabajos habilitados para tu cuenta.</p>
-                </div>
-              </div>
-              <?php if (!$proyectos): ?>
-                <div class="im-alerta im-alerta--info">Todavia no hay proyectos visibles para tu usuario.</div>
-              <?php else: ?>
-                <div class="im-tabla-contenedor">
-                  <table class="im-tabla">
-                    <thead><tr><th>Proyecto</th><th>Estado</th><th>Avance</th><th>Entrega objetivo</th></tr></thead>
-                    <tbody>
-                      <?php foreach (array_slice($proyectos, 0, 5) as $proyecto): ?>
-                        <?php [$estadoTexto, $estadoClase] = $estadoProyecto($proyecto['status'] ?? ''); ?>
-                        <tr>
-                          <td><?= $h($proyecto['project_name'] ?? '') ?></td>
-                          <td><span class="im-chip <?= $h($estadoClase) ?>"><?= $h($estadoTexto) ?></span></td>
-                          <td><?= (int) ($proyecto['progress_percent'] ?? 0) ?>%</td>
-                          <td><?= $fecha($proyecto['target_delivery_date'] ?? '') ?></td>
-                        </tr>
-                      <?php endforeach; ?>
-                    </tbody>
-                  </table>
-                </div>
-              <?php endif; ?>
-            </article>
 
             <article class="im-tarjeta">
               <div class="im-tarjeta__cabecera">
@@ -429,114 +406,35 @@ $tipoObjetivo = static function (?string $tipo): string {
                 </ul>
               <?php endif; ?>
             </article>
-          </div>
-        </section>
-
-        <section class="im-seccion-documento" id="proyectos" data-panel="proyectos">
-          <div class="im-encabezado-seccion">
-            <div>
-              <p class="im-sobrelinea">Seguimiento</p>
-              <h2>Mis proyectos</h2>
-              <p>Detalle de avances, entregables y contratos asociados a tu usuario cliente.</p>
-            </div>
-          </div>
-
-          <div class="im-grilla im-grilla--dos-columnas">
-            <?php foreach ($proyectos as $proyecto): ?>
-              <?php
-                $projectId = (int) ($proyecto['id'] ?? 0);
-                $fases = $fasesPorProyecto[$projectId] ?? [];
-                $objetivos = $objetivosPorProyecto[$projectId] ?? [];
-                $contratoProyecto = $contratosPorProyecto[$projectId] ?? null;
-                [$estadoTexto, $estadoClase] = $estadoProyecto($proyecto['status'] ?? '');
-              ?>
-              <article class="im-tarjeta">
-                <div class="im-tarjeta__cabecera">
-                  <div>
-                    <h3><?= $h($proyecto['project_name'] ?? '') ?></h3>
-                    <p><?= $h($proyecto['summary'] ?? $proyecto['scope_summary'] ?? '') ?></p>
-                  </div>
-                  <span class="im-chip <?= $h($estadoClase) ?>"><?= $h($estadoTexto) ?></span>
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera">
+                <div>
+                  <h3>Contratos</h3>
+                  <p>Documentos contractuales asociados a tus proyectos visibles.</p>
                 </div>
-                <div class="im-chip-lista">
-                  <span class="im-chip"><?= (int) ($proyecto['progress_percent'] ?? 0) ?>% avance</span>
-                  <span class="im-chip"><?= (int) ($proyecto['fases_total'] ?? 0) ?> fases</span>
-                  <span class="im-chip"><?= (int) ($proyecto['entregables_total'] ?? 0) ?> entregables</span>
-                  <span class="im-chip"><?= (int) ($proyecto['actualizaciones_total'] ?? 0) ?> actualizaciones</span>
-                </div>
-                <p>Entrega objetivo: <?= $fecha($proyecto['target_delivery_date'] ?? '') ?></p>
-                <div class="im-grilla im-grilla--dos-columnas">
-                  <div>
-                    <h4>Fases</h4>
-                    <?php if (!$fases): ?>
-                      <p>No hay fases visibles cargadas todavia.</p>
-                    <?php else: ?>
-                      <ul class="im-lista">
-                        <?php foreach ($fases as $fase): ?>
-                          <li>
-                            <strong><?= $h(($fase['phase_order'] ?? '') . '. ' . ($fase['title'] ?? '')) ?></strong>
-                            <span><?= $h($estadoSimple($fase['status'] ?? '')) ?> - vence <?= $fecha($fase['due_date'] ?? '') ?></span>
-                          </li>
-                        <?php endforeach; ?>
-                      </ul>
-                    <?php endif; ?>
-                  </div>
-                  <div>
-                    <h4>Objetivos</h4>
-                    <?php if (!$objetivos): ?>
-                      <p>No hay objetivos visibles cargados todavia.</p>
-                    <?php else: ?>
-                      <ul class="im-lista">
-                        <?php foreach ($objetivos as $objetivo): ?>
-                          <li>
-                            <strong><?= $h($objetivo['title'] ?? '') ?></strong>
-                            <span><?= $h($estadoSimple($objetivo['status'] ?? '')) ?><?= !empty($objetivo['phase_title']) ? ' - ' . $h($objetivo['phase_title']) : '' ?></span>
-                          </li>
-                        <?php endforeach; ?>
-                      </ul>
-                    <?php endif; ?>
-                  </div>
-                </div>
-                <?php if ($contratoProyecto): ?>
-                  <div class="im-alerta im-alerta--info">
-                    Contrato: <?= $h($contratoProyecto['contract_name'] ?? '') ?> - <?= (int) ($contratoProyecto['is_signed'] ?? 0) === 1 ? 'firmado' : 'pendiente de firma' ?>.
-                  </div>
-                <?php endif; ?>
-              </article>
-            <?php endforeach; ?>
-            <?php if (!$proyectos): ?>
-              <article class="im-tarjeta"><h3>Sin proyectos visibles</h3><p>Cuando el equipo cree un proyecto para tu usuario, vas a verlo en esta seccion.</p></article>
-            <?php endif; ?>
-          </div>
-
-          <article class="im-tarjeta">
-            <div class="im-tarjeta__cabecera">
-              <div>
-                <h3>Contratos</h3>
-                <p>Documentos contractuales asociados a tus proyectos visibles.</p>
               </div>
-            </div>
-            <?php if (!$contratos): ?>
-              <div class="im-alerta im-alerta--info">No hay contratos vinculados a tus proyectos visibles.</div>
-            <?php else: ?>
-              <div class="im-tabla-contenedor">
-                <table class="im-tabla">
-                  <thead><tr><th>Contrato</th><th>Proyecto</th><th>Version</th><th>Estado</th><th>Firma</th></tr></thead>
-                  <tbody>
-                    <?php foreach ($contratos as $contrato): ?>
-                      <tr>
-                        <td><?= $h($contrato['contract_name'] ?? '') ?></td>
-                        <td><?= $h($contrato['project_name'] ?? '') ?></td>
-                        <td><?= (int) ($contrato['version_number'] ?? 1) ?></td>
-                        <td><span class="im-chip <?= (int) ($contrato['is_signed'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= (int) ($contrato['is_signed'] ?? 0) === 1 ? 'Firmado' : 'Pendiente' ?></span></td>
-                        <td><?= $fecha($contrato['signed_at'] ?? '') ?></td>
-                      </tr>
-                    <?php endforeach; ?>
-                  </tbody>
-                </table>
-              </div>
-            <?php endif; ?>
-          </article>
+              <?php if (!$contratos): ?>
+                <div class="im-alerta im-alerta--info">No hay contratos vinculados a tus proyectos visibles.</div>
+              <?php else: ?>
+                <div class="im-tabla-contenedor">
+                  <table class="im-tabla">
+                    <thead><tr><th>Contrato</th><th>Proyecto</th><th>Version</th><th>Estado</th><th>Firma</th></tr></thead>
+                    <tbody>
+                      <?php foreach ($contratos as $contrato): ?>
+                        <tr>
+                          <td><?= $h($contrato['contract_name'] ?? '') ?></td>
+                          <td><?= $h($contrato['project_name'] ?? '') ?></td>
+                          <td><?= (int) ($contrato['version_number'] ?? 1) ?></td>
+                          <td><span class="im-chip <?= (int) ($contrato['is_signed'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= (int) ($contrato['is_signed'] ?? 0) === 1 ? 'Firmado' : 'Pendiente' ?></span></td>
+                          <td><?= $fecha($contrato['signed_at'] ?? '') ?></td>
+                        </tr>
+                      <?php endforeach; ?>
+                    </tbody>
+                  </table>
+                </div>
+              <?php endif; ?>
+            </article>
+          </div>
         </section>
       </main>
     </div>
