@@ -1,6 +1,7 @@
 <?php
 $visitPageResumen = $visitPageResumen ?? [];
 $visitPageTotalIntegraciones = $visitPageTotalIntegraciones ?? 0;
+$visitPageResumen = array_reverse($visitPageResumen);
 ?>
 <article class="im-tarjeta">
   <div class="im-tarjeta__cabecera">

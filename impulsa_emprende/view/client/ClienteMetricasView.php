@@ -96,7 +96,6 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
             <div>
               <p class="im-sobrelinea">Analitica</p>
               <h2>Metricas de tu pagina</h2>
-              <p>Visitas mensuales y contactos recibidos filtrados por las integraciones asociadas a tus proyectos visibles.</p>
             </div>
             <span class="im-chip"><?= number_format(count($clienteMetricasIntegraciones), 0, ',', '.') ?> integraciones</span>
           </div>

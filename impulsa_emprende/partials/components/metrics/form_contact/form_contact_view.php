@@ -18,12 +18,12 @@ $formContactText = static function (?string $valor): string {
   <div class="im-tabla-tareas__cabecera">
     <div>
       <h3>Contactos recibidos</h3>
-      <p>Consultas registradas desde formularios externos asociados a tus integraciones.</p>
+      <p>Consultas registradas desde tu página web desde el formulario de contacto.</p>
     </div>
     <span class="im-chip"><?= number_format(count($formContactRows), 0, ',', '.') ?> contactos</span>
   </div>
   <?php if (!$formContactRows): ?>
-    <div class="im-alerta im-alerta--info">Todavia no hay contactos registrados para tus integraciones.</div>
+    <div class="im-alerta im-alerta--info">Todavia no hay contactos registrados en su página web.</div>
   <?php else: ?>
     <div class="im-tabla-tareas__scroll">
       <table class="im-tabla-tareas">
