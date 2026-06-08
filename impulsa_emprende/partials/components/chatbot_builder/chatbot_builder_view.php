@@ -251,49 +251,7 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
           </div>
         </article>
 
-        <div class="chatbot-builder__workspace">
-          <section class="im-tarjeta chatbot-builder__flow chatbot-builder__flow-card">
-            <div class="chatbot-builder__action-bar">
-              <div>
-                <h3>Flujo de preguntas y respuestas</h3>
-                <p>Cada pregunta muestra una respuesta y luego ofrece opciones para continuar la navegacion.</p>
-              </div>
-              <div class="chatbot-builder__action-group">
-                <button class="im-boton im-boton--tonal" type="button" data-chatbot-builder-add-node>Agregar pregunta</button>
-              </div>
-            </div>
-            <div class="chatbot-builder__questions" data-chatbot-builder-nodes></div>
-          </section>
-
-          <aside class="im-tarjeta chatbot-builder__preview">
-            <div class="im-tarjeta__cabecera">
-              <div>
-                <h3>Vista previa</h3>
-                <p>Referencia rapida de como se vera la primera pantalla del widget.</p>
-              </div>
-            </div>
-            <div class="chatbot-builder__phone">
-              <div class="chatbot-builder__phone-head">
-                <div class="chatbot-builder__avatar-preview" data-chatbot-preview-avatar>
-                  <?php if ($avatarPathActual !== ''): ?>
-                    <img src="<?= $h($avatarPathActual) ?>" alt="">
-                  <?php else: ?>
-                    <?= $h($avatarPlaceholder) ?>
-                  <?php endif; ?>
-                </div>
-                <div>
-                  <strong data-chatbot-preview-name><?= $h($chatbotBuilderChatbotActual['name'] ?? ('Chatbot ' . ($chatbotBuilderSelectedIntegration['project_name'] ?? ''))) ?></strong>
-                  <div>FAQ navegable</div>
-                </div>
-              </div>
-              <div class="chatbot-builder__phone-body">
-                <div class="chatbot-builder__bubble" data-chatbot-preview-message><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></div>
-                <div class="chatbot-builder__bubble" data-chatbot-preview-question>Inicio</div>
-                <div class="chatbot-builder__preview-options" data-chatbot-preview-options></div>
-              </div>
-            </div>
-          </aside>
-        </div>
+        <div class="chatbot-builder__questions" data-chatbot-builder-nodes hidden></div>
       </form>
 
       <script type="application/json" data-chatbot-builder-seed><?= json_encode($chatbotBuilderInitialNodes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
