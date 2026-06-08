@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/chatbot_builder_model.php';
 
 const CHATBOT_AVATAR_UPLOAD_DIR = __DIR__ . '/../../../assets/images/avatar_bot';
-const CHATBOT_AVATAR_PUBLIC_PATH = '/impulsa_emprende/assets/images/avatar_bot';
+const CHATBOT_AVATAR_PUBLIC_PATH = '/assets/images/avatar_bot';
 const CHATBOT_AVATAR_MAX_BYTES = 2097152;
 const CHATBOT_AVATAR_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 const CHATBOT_AVATAR_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

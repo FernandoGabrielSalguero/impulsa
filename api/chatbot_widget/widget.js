@@ -58,6 +58,26 @@
     return String(raw || '').replace(/[^\d]/g, '');
   }
 
+  function resolveAvatarUrl(raw) {
+    var value = String(raw || '').trim();
+    if (!value) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    if (value.charAt(0) === '/') {
+      if (value.indexOf('/impulsa_emprende/assets/images/avatar_bot/') === 0) {
+        return scriptUrl.origin + '/assets/images/avatar_bot/' + value.split('/').pop();
+      }
+      return scriptUrl.origin + value;
+    }
+
+    return scriptUrl.origin + '/assets/images/avatar_bot/' + value.replace(/^\/+/, '');
+  }
+
   function ensureShell() {
     if (document.getElementById(classes.root)) {
       return document.getElementById(classes.root);
@@ -92,7 +112,7 @@
       + '    <button class="' + classes.close + '" type="button" aria-label="Cerrar">×</button>'
       + '  </div>'
       + '  <div class="' + classes.body + '"></div>'
-      + '  <div class="' + classes.footer + '">Chatbot simple sin texto libre</div>'
+      + '  <div class="' + classes.footer + '">Chatbot de impulsa</div>'
       + '</section>';
 
     document.body.appendChild(root);
@@ -208,8 +228,9 @@
     var title = root.querySelector('.' + classes.title);
     title.textContent = chatbot.name || 'Chatbot';
 
-    if (chatbot.avatar_url) {
-      avatar.innerHTML = '<img src="' + escapeHtml(chatbot.avatar_url) + '" alt="">';
+    var avatarUrl = resolveAvatarUrl(chatbot.avatar_url);
+    if (avatarUrl) {
+      avatar.innerHTML = '<img src="' + escapeHtml(avatarUrl) + '" alt="">';
     } else {
       avatar.textContent = (chatbot.name || 'C').charAt(0).toUpperCase();
     }

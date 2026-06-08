@@ -127,10 +127,33 @@ function obtenerChatbotPublico(PDO $pdo, int $integrationId): ?array
     return [
         'id' => (int) ($chatbot['id'] ?? 0),
         'name' => (string) ($chatbot['name'] ?? ''),
-        'avatar_url' => (string) ($chatbot['avatar_url'] ?? ''),
+        'avatar_url' => normalizarAvatarUrlPublica((string) ($chatbot['avatar_url'] ?? '')),
         'initial_message' => (string) ($chatbot['initial_message'] ?? ''),
         'whatsapp' => (string) ($chatbot['whatsapp'] ?? ''),
         'start_node_id' => $startNodeId,
         'nodes' => $publicNodes,
     ];
+}
+
+function normalizarAvatarUrlPublica(string $avatarUrl): string
+{
+    $avatarUrl = trim($avatarUrl);
+
+    if ($avatarUrl === '') {
+        return '';
+    }
+
+    if (preg_match('/^https?:\/\//i', $avatarUrl) === 1) {
+        return $avatarUrl;
+    }
+
+    if (str_starts_with($avatarUrl, '/impulsa_emprende/assets/images/avatar_bot/')) {
+        return '/assets/images/avatar_bot/' . basename($avatarUrl);
+    }
+
+    if (str_starts_with($avatarUrl, '/assets/images/avatar_bot/')) {
+        return $avatarUrl;
+    }
+
+    return '/assets/images/avatar_bot/' . ltrim(basename($avatarUrl), '/');
 }
