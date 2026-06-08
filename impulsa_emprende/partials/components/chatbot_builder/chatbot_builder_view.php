@@ -203,10 +203,6 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
               <button class="im-boton im-boton--principal" type="button" data-chatbot-builder-add-node>Agregar nodo</button>
             </div>
 
-            <div class="im-alerta im-alerta--info">
-              Configura la pregunta, su respuesta y que accion ejecuta cada boton del flujo.
-            </div>
-
             <div data-chatbot-builder-nodes></div>
           </article>
 
