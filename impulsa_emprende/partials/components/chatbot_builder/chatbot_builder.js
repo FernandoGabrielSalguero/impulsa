@@ -47,8 +47,11 @@
     const previewName = form.querySelector('[data-chatbot-preview-name]');
     const previewMessage = form.querySelector('[data-chatbot-preview-message]');
     const previewQuestion = form.querySelector('[data-chatbot-preview-question]');
+    const previewBody = form.querySelector('[data-chatbot-preview-body]');
     const previewOptions = form.querySelector('[data-chatbot-preview-options]');
+    const previewResetButton = form.querySelector('[data-chatbot-preview-reset]');
     let nodes = [];
+    let currentPreviewNodeKey = '';
 
     if (seedScript) {
       try {
@@ -72,10 +75,22 @@
       .map((node) => `<option value="${escapeHtml(node.client_key)}" ${node.client_key === currentKey ? 'selected' : ''}>${escapeHtml(node.title || node.client_key)}</option>`)
       .join('');
 
+    const getStartNode = () => nodes.find((node) => node.is_start) || nodes[0] || null;
+
+    const getPreviewNode = () => {
+      const current = nodes.find((node) => node.client_key === currentPreviewNodeKey);
+      return current || getStartNode();
+    };
+
+    const resetPreview = () => {
+      const startNode = getStartNode();
+      currentPreviewNodeKey = startNode ? startNode.client_key : '';
+    };
+
     const updatePreview = () => {
       const nameField = form.querySelector('[name="name"]');
       const messageField = form.querySelector('[name="initial_message"]');
-      const startNode = nodes.find((node) => node.is_start) || nodes[0] || null;
+      const previewNode = getPreviewNode();
 
       if (previewName) {
         previewName.textContent = (nameField?.value || 'Chatbot').trim() || 'Chatbot';
@@ -86,16 +101,23 @@
       }
 
       if (previewQuestion) {
-        previewQuestion.textContent = startNode ? (startNode.title || 'Pregunta inicial') : 'Pregunta inicial';
+        previewQuestion.textContent = previewNode ? (previewNode.title || 'Pregunta inicial') : 'Pregunta inicial';
+      }
+
+      if (previewBody) {
+        previewBody.textContent = previewNode ? (previewNode.body || 'Sin respuesta cargada.') : 'Sin respuesta cargada.';
       }
 
       if (previewOptions) {
         previewOptions.innerHTML = '';
-        const options = startNode && Array.isArray(startNode.options) ? startNode.options : [];
+        const options = previewNode && Array.isArray(previewNode.options) ? previewNode.options : [];
         options.slice(0, 4).forEach((option) => {
-          const item = document.createElement('span');
-          item.className = 'im-chip';
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.className = 'im-boton im-boton--tonal';
           item.textContent = option.label || 'Opcion';
+          item.setAttribute('data-preview-action-type', option.action_type || '');
+          item.setAttribute('data-preview-target-key', option.target_node_key || '');
           previewOptions.appendChild(item);
         });
       }
@@ -118,6 +140,10 @@
 
       if (!nodes.some((node) => node.is_start) && nodes[0]) {
         nodes[0].is_start = true;
+      }
+
+      if (!nodes.some((node) => node.client_key === currentPreviewNodeKey)) {
+        resetPreview();
       }
 
       nodesContainer.innerHTML = nodes.map((node, index) => `
@@ -308,8 +334,55 @@
           ...node,
           is_start: node.client_key === key
         }));
+        resetPreview();
         render();
       }
+    });
+
+    previewOptions?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-preview-action-type]');
+      if (!button) {
+        return;
+      }
+
+      const actionType = button.getAttribute('data-preview-action-type');
+      const targetKey = button.getAttribute('data-preview-target-key');
+
+      if (actionType === 'go_to_node' && targetKey) {
+        currentPreviewNodeKey = targetKey;
+        updatePreview();
+        return;
+      }
+
+      if (actionType === 'restart') {
+        resetPreview();
+        updatePreview();
+        return;
+      }
+
+      if (actionType === 'close') {
+        if (previewQuestion) {
+          previewQuestion.textContent = 'Chat cerrado';
+        }
+        if (previewBody) {
+          previewBody.textContent = 'La conversacion termino en esta vista previa.';
+        }
+        if (previewOptions) {
+          previewOptions.innerHTML = '';
+        }
+        return;
+      }
+
+      if (actionType === 'whatsapp') {
+        if (previewBody) {
+          previewBody.textContent = 'Esta opcion abrira WhatsApp en el widget real.';
+        }
+      }
+    });
+
+    previewResetButton?.addEventListener('click', () => {
+      resetPreview();
+      updatePreview();
     });
 
     form.querySelectorAll('[name="name"], [name="initial_message"]').forEach((field) => {
@@ -340,6 +413,7 @@
       nodesJsonInput.value = JSON.stringify(nodes);
     });
 
+    resetPreview();
     render();
   };
 

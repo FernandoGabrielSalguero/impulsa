@@ -232,7 +232,14 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                 <strong>Pregunta inicial</strong>
                 <p data-chatbot-preview-question>Inicio</p>
               </div>
+              <div>
+                <strong>Respuesta</strong>
+                <p data-chatbot-preview-body>Bienvenido. Elegi una opcion para continuar.</p>
+              </div>
               <div class="im-chip-lista" data-chatbot-preview-options></div>
+              <div class="im-formulario__acciones">
+                <button class="im-boton im-boton--texto" type="button" data-chatbot-preview-reset>Volver al inicio</button>
+              </div>
             </div>
           </article>
         </div>
