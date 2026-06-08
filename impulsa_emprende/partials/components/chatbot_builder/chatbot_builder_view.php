@@ -68,20 +68,22 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
 <style>
   .chatbot-builder { display: grid; gap: 1rem; }
   .chatbot-builder .im-campo input,
-  .chatbot-builder .im-campo select { min-height: 52px; }
-  .chatbot-builder .im-campo textarea { min-height: 112px; resize: vertical; }
+  .chatbot-builder .im-campo select { min-height: 48px; }
+  .chatbot-builder .im-campo textarea { min-height: 88px; resize: vertical; }
   .chatbot-builder__hero-grid { display: grid; gap: 1rem; grid-template-columns: 1.15fr .85fr; }
   .chatbot-builder__stack { display: grid; gap: 1rem; }
-  .chatbot-builder__config-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(240px, 1fr)); }
+  .chatbot-builder__config-card { gap: 1.1rem; }
+  .chatbot-builder__config-grid { display: grid; gap: .9rem 1rem; grid-template-columns: minmax(220px, 1.5fr) minmax(160px, .7fr) minmax(280px, 1.25fr) minmax(220px, 1fr); align-items: start; }
   .chatbot-builder__full { grid-column: 1 / -1; }
   .chatbot-builder__action-bar { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: center; }
   .chatbot-builder__action-group { display: flex; flex-wrap: wrap; gap: .75rem; }
-  .chatbot-builder__avatar-box { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: center; padding: 1rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio); background: var(--im-color-superficie); }
-  .chatbot-builder__avatar-preview { width: 88px; height: 88px; border-radius: 24px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--im-color-principal) 12%, white); color: var(--im-color-principal); font-size: 1.9rem; font-weight: 800; }
+  .chatbot-builder__avatar-box { display: grid; grid-template-columns: 72px 1fr; gap: .85rem; align-items: center; min-height: 48px; padding: .9rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio); background: var(--im-color-superficie); }
+  .chatbot-builder__avatar-preview { width: 72px; height: 72px; border-radius: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--im-color-principal) 12%, white); color: var(--im-color-principal); font-size: 1.45rem; font-weight: 800; }
   .chatbot-builder__avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
-  .chatbot-builder__avatar-actions { display: grid; gap: .45rem; }
+  .chatbot-builder__avatar-actions { display: grid; gap: .35rem; }
   .chatbot-builder__avatar-help { margin: 0; color: var(--im-color-texto-suave); font-size: .84rem; }
   .chatbot-builder__file-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  .chatbot-builder__layout-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); align-items: start; }
   .chatbot-builder__flow-card { display: grid; gap: 1rem; }
   .chatbot-builder__questions { display: grid; gap: .9rem; }
   .chatbot-builder__question { border: 1px solid var(--im-color-borde); border-radius: var(--im-radio); background: var(--im-color-superficie); box-shadow: var(--im-sombra-1); overflow: hidden; }
@@ -101,7 +103,7 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
   .chatbot-builder__option-destination--hidden { display: none; }
   .chatbot-builder__sticky-actions { position: sticky; bottom: .75rem; z-index: 4; display: flex; justify-content: flex-end; margin-top: .25rem; }
   .chatbot-builder__sticky-actions .im-tarjeta { padding: .8rem 1rem; }
-  .chatbot-builder__preview { display: grid; gap: .85rem; }
+  .chatbot-builder__preview { display: grid; gap: .85rem; position: sticky; top: 1rem; }
   .chatbot-builder__phone { width: min(320px, 100%); margin: 0 auto; border-radius: 28px; border: 1px solid var(--im-color-borde); background: #f8fbff; overflow: hidden; box-shadow: var(--im-sombra-1); }
   .chatbot-builder__phone-head { display: flex; align-items: center; gap: .75rem; padding: 1rem; background: linear-gradient(135deg, var(--im-color-principal), var(--im-color-secundario)); color: white; }
   .chatbot-builder__phone-body { display: grid; gap: .75rem; padding: 1rem; }
@@ -111,9 +113,11 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
   @media (max-width: 980px) {
     .chatbot-builder__hero-grid,
     .chatbot-builder__config-grid,
+    .chatbot-builder__layout-grid,
     .chatbot-builder__question-grid,
     .chatbot-builder__option-row,
     .chatbot-builder__option-row--disabled-destination { grid-template-columns: 1fr; }
+    .chatbot-builder__preview { position: static; }
   }
 </style>
 <section class="im-seccion-documento activa" id="chatbot-builder" data-panel="chatbot-builder">
@@ -200,7 +204,7 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
         <input type="hidden" name="current_avatar_path" value="<?= $h($avatarPathActual) ?>">
         <input type="hidden" name="target_status" value="">
 
-        <article class="im-tarjeta chatbot-builder__stack">
+        <article class="im-tarjeta chatbot-builder__stack chatbot-builder__config-card">
           <div class="chatbot-builder__action-bar">
             <div>
               <h3>Configuracion general del chatbot</h3>
@@ -248,12 +252,12 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
 
             <label class="im-campo im-campo-material chatbot-builder__full">
               <span>Mensaje inicial</span>
-              <textarea name="initial_message" rows="4" maxlength="1000" required><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></textarea>
+              <textarea name="initial_message" rows="3" maxlength="1000" required><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></textarea>
             </label>
           </div>
         </article>
 
-        <div class="chatbot-builder__hero-grid">
+        <div class="chatbot-builder__layout-grid">
           <article class="im-tarjeta chatbot-builder__flow-card">
             <div class="chatbot-builder__action-bar">
               <div>
