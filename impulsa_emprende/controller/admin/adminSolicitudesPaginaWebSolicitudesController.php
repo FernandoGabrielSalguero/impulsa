@@ -11,18 +11,22 @@ $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 $solicitudesPaginaWebModel = new AdminSolicitudesPaginaWebSolicitudesModel($pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $accion = (string) ($_POST['accion_solicitud_externa'] ?? '');
-    $solicitudId = (int) ($_POST['solicitud_externa_id'] ?? 0);
+    $accion = (string) ($_POST['accion_solicitud'] ?? $_POST['accion_solicitud_externa'] ?? '');
+    $solicitudTipo = (string) ($_POST['solicitud_tipo'] ?? 'externa');
+    $solicitudId = (int) ($_POST['solicitud_id'] ?? $_POST['solicitud_externa_id'] ?? 0);
     $estado = 'accion_invalida';
     $mensaje = 'No pudimos procesar la accion solicitada.';
 
     if ($solicitudId > 0) {
-        $solicitud = $solicitudesPaginaWebModel->obtenerSolicitudExternaPorId($solicitudId);
+        $esSolicitudInterna = $solicitudTipo === 'interna';
+        $solicitud = $esSolicitudInterna
+            ? $solicitudesPaginaWebModel->obtenerSolicitudPorId($solicitudId)
+            : $solicitudesPaginaWebModel->obtenerSolicitudExternaPorId($solicitudId);
 
         if (!$solicitud) {
             $estado = 'solicitud_no_encontrada';
             $mensaje = 'No encontramos la solicitud seleccionada.';
-        } elseif ($accion === 'alta_usuario') {
+        } elseif ($accion === 'alta_usuario' && !$esSolicitudInterna) {
             $passwordPlano = bin2hex(random_bytes(6)) . 'A1!';
             $resultadoUsuario = $solicitudesPaginaWebModel->crearClienteDesdeSolicitud($solicitud, $passwordPlano);
             $estado = (string) ($resultadoUsuario['estado'] ?? 'error_usuario');
@@ -45,6 +49,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mensaje = 'Usuario cliente creado, pero fallo el envio del correo: ' . (string) ($resultadoCorreo['error'] ?? 'Error no informado.');
                 }
             }
+        } elseif ($accion === 'crear_proyecto' && $esSolicitudInterna) {
+            $resultadoProyecto = $solicitudesPaginaWebModel->crearProyectoDesdeSolicitudInterna(
+                $solicitud,
+                (int) $usuario['id']
+            );
+            $estado = (string) ($resultadoProyecto['estado'] ?? 'error_proyecto');
+            $mensaje = (string) ($resultadoProyecto['mensaje'] ?? 'No se pudo crear el proyecto.');
         } elseif ($accion === 'crear_proyecto') {
             $correo = authSanitizarCorreo($solicitud['correo'] ?? '');
             $cliente = $correo !== '' ? $solicitudesPaginaWebModel->obtenerUsuarioPorCorreo($correo) : null;

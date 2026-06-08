@@ -36,17 +36,73 @@ class AdminSolicitudesPaginaWebSolicitudesModel
                     ui.apellido AS usuario_apellido,
                     ui.apodo AS usuario_apodo,
                     rec.nombre AS rubro_categoria,
-                    res.nombre AS rubro_subcategoria
+                    res.nombre AS rubro_subcategoria,
+                    ua.id AS cliente_user_id,
+                    p.id AS proyecto_id,
+                    p.status AS proyecto_estado
              FROM landing_page_request lpr
              INNER JOIN user_auth ua ON ua.id = lpr.user_auth_id
              LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
              LEFT JOIN rubro_emprendedor_categoria rec ON rec.id = lpr.rubro_categoria_id
              LEFT JOIN rubro_emprendedor_subcategoria res ON res.id = lpr.rubro_subcategoria_id
+             LEFT JOIN projects p ON p.source_type = :source_type AND p.source_id = lpr.id
              ORDER BY lpr.created_at DESC, lpr.id DESC'
         );
-        $stmt->execute();
+        $stmt->execute(['source_type' => 'landing_page_request']);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerSolicitudPorId(int $solicitudId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT lpr.id,
+                    lpr.user_auth_id,
+                    lpr.nombre_emprendimiento,
+                    lpr.fecha_inicio,
+                    lpr.descripcion,
+                    lpr.dominio_registrado,
+                    lpr.hosting_propio,
+                    lpr.cantidad_colaboradores,
+                    lpr.nombre_fundador,
+                    lpr.vende_productos,
+                    lpr.vende_servicios,
+                    lpr.ya_factura,
+                    lpr.espacio_fisico,
+                    lpr.pais,
+                    lpr.provincia,
+                    lpr.localidad,
+                    lpr.calle,
+                    lpr.numero,
+                    lpr.telefono_contacto,
+                    lpr.completado,
+                    lpr.created_at,
+                    lpr.updated_at,
+                    ua.correo AS usuario_correo,
+                    ui.nombre AS usuario_nombre,
+                    ui.apellido AS usuario_apellido,
+                    ui.apodo AS usuario_apodo,
+                    rec.nombre AS rubro_categoria,
+                    res.nombre AS rubro_subcategoria,
+                    ua.id AS cliente_user_id,
+                    p.id AS proyecto_id,
+                    p.status AS proyecto_estado
+             FROM landing_page_request lpr
+             INNER JOIN user_auth ua ON ua.id = lpr.user_auth_id
+             LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
+             LEFT JOIN rubro_emprendedor_categoria rec ON rec.id = lpr.rubro_categoria_id
+             LEFT JOIN rubro_emprendedor_subcategoria res ON res.id = lpr.rubro_subcategoria_id
+             LEFT JOIN projects p ON p.source_type = :source_type AND p.source_id = lpr.id
+             WHERE lpr.id = :id
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'source_type' => 'landing_page_request',
+            'id' => $solicitudId,
+        ]);
+        $solicitud = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $solicitud ?: null;
     }
 
     public function obtenerSolicitudesExternas(): array
@@ -202,6 +258,38 @@ class AdminSolicitudesPaginaWebSolicitudesModel
 
     public function obtenerProyectoPorSolicitudExterna(int $solicitudId): ?array
     {
+        return $this->obtenerProyectoPorFuente('landing_page_requests_external', $solicitudId);
+    }
+
+    public function obtenerProyectoPorSolicitudInterna(int $solicitudId): ?array
+    {
+        return $this->obtenerProyectoPorFuente('landing_page_request', $solicitudId);
+    }
+
+    public function crearProyectoDesdeSolicitudInterna(array $solicitud, int $managerUserId): array
+    {
+        $clienteUserId = (int) ($solicitud['user_auth_id'] ?? 0);
+        if ($clienteUserId <= 0) {
+            return ['ok' => false, 'estado' => 'proyecto_sin_usuario', 'mensaje' => 'La solicitud no tiene un usuario registrado valido asociado.'];
+        }
+
+        return $this->crearProyectoDesdeSolicitudBase(
+            $solicitud,
+            'landing_page_request',
+            $clienteUserId,
+            $managerUserId,
+            trim((string) ($solicitud['nombre_emprendimiento'] ?? '')) ?: 'Pagina web Impulsa Emprende',
+            $this->obtenerNombreSolicitanteInterno($solicitud) ?: 'Usuario registrado',
+            strtolower(trim((string) ($solicitud['usuario_correo'] ?? ''))),
+            trim((string) ($solicitud['telefono_contacto'] ?? '')) ?: null,
+            trim((string) ($solicitud['descripcion'] ?? '')),
+            $this->armarResumenAlcanceInterno($solicitud),
+            'El proyecto fue creado desde la solicitud de Impulsa Emprende y quedo visible para el cliente.'
+        );
+    }
+
+    private function obtenerProyectoPorFuente(string $sourceType, int $solicitudId): ?array
+    {
         $stmt = $this->pdo->prepare(
             'SELECT id, project_name, client_user_id
              FROM projects
@@ -219,12 +307,41 @@ class AdminSolicitudesPaginaWebSolicitudesModel
 
     public function crearProyectoDesdeSolicitudExterna(array $solicitud, int $clienteUserId, int $managerUserId): array
     {
+        return $this->crearProyectoDesdeSolicitudBase(
+            $solicitud,
+            'landing_page_requests_external',
+            $clienteUserId,
+            $managerUserId,
+            trim((string) ($solicitud['nombre_proyecto'] ?? '')) ?: 'Pagina web Impulsa',
+            trim((string) ($solicitud['nombre'] ?? '')) ?: 'Cliente externo',
+            strtolower(trim((string) ($solicitud['correo'] ?? ''))),
+            trim((string) ($solicitud['whatsapp'] ?? '')) ?: null,
+            trim((string) ($solicitud['q3_objetivo'] ?? '')),
+            $this->armarResumenAlcance($solicitud),
+            'El proyecto fue creado desde la solicitud externa y quedo visible para el cliente.'
+        );
+    }
+
+    private function crearProyectoDesdeSolicitudBase(
+        array $solicitud,
+        string $sourceType,
+        int $clienteUserId,
+        int $managerUserId,
+        string $projectName,
+        string $clientName,
+        string $clientEmail,
+        ?string $clientWhatsapp,
+        string $summary,
+        string $scopeSummary,
+        string $mensajeActualizacion
+    ): array
+    {
         $solicitudId = (int) ($solicitud['id'] ?? 0);
         if ($solicitudId <= 0) {
             return ['ok' => false, 'estado' => 'solicitud_invalida', 'mensaje' => 'Solicitud invalida.'];
         }
 
-        $proyectoExistente = $this->obtenerProyectoPorSolicitudExterna($solicitudId);
+        $proyectoExistente = $this->obtenerProyectoPorFuente($sourceType, $solicitudId);
         if ($proyectoExistente) {
             return [
                 'ok' => false,
@@ -247,16 +364,16 @@ class AdminSolicitudesPaginaWebSolicitudesModel
                      0, 1, NOW(), NOW())"
             );
             $stmt->execute([
-                'source_type' => 'landing_page_requests_external',
+                'source_type' => $sourceType,
                 'source_id' => $solicitudId,
-                'project_name' => trim((string) ($solicitud['nombre_proyecto'] ?? '')) ?: 'Pagina web Impulsa',
+                'project_name' => $projectName,
                 'client_user_id' => $clienteUserId,
                 'manager_user_id' => $managerUserId,
-                'client_name' => trim((string) ($solicitud['nombre'] ?? '')) ?: 'Cliente externo',
-                'client_email' => strtolower(trim((string) ($solicitud['correo'] ?? ''))),
-                'client_whatsapp' => trim((string) ($solicitud['whatsapp'] ?? '')) ?: null,
-                'summary' => trim((string) ($solicitud['q3_objetivo'] ?? '')),
-                'scope_summary' => $this->armarResumenAlcance($solicitud),
+                'client_name' => $clientName,
+                'client_email' => $clientEmail,
+                'client_whatsapp' => $clientWhatsapp,
+                'summary' => $summary,
+                'scope_summary' => $scopeSummary,
             ]);
 
             $projectId = (int) $this->pdo->lastInsertId();
@@ -271,7 +388,7 @@ class AdminSolicitudesPaginaWebSolicitudesModel
                 'project_id' => $projectId,
                 'created_by' => $managerUserId,
                 'title' => 'Proyecto creado',
-                'message' => 'El proyecto fue creado desde la solicitud externa y quedo visible para el cliente.',
+                'message' => $mensajeActualizacion,
             ]);
 
             $this->pdo->commit();
@@ -301,6 +418,29 @@ class AdminSolicitudesPaginaWebSolicitudesModel
             'Dominio y hosting: ' . trim((string) ($solicitud['q16_dominio_hosting'] ?? '')),
             'Requerimientos adicionales: ' . trim((string) ($solicitud['q18_requerimientos_adicionales'] ?? '')),
         ], static fn (string $valor): bool => trim(substr($valor, (int) strpos($valor, ':') + 1)) !== '')));
+    }
+
+    private function armarResumenAlcanceInterno(array $solicitud): string
+    {
+        return trim(implode("\n\n", array_filter([
+            'Descripcion: ' . trim((string) ($solicitud['descripcion'] ?? '')),
+            'Rubro: ' . trim((string) ($solicitud['rubro_categoria'] ?? '')),
+            'Subrubro: ' . trim((string) ($solicitud['rubro_subcategoria'] ?? '')),
+            'Fecha de inicio: ' . trim((string) ($solicitud['fecha_inicio'] ?? '')),
+            'Cantidad de colaboradores: ' . trim((string) ($solicitud['cantidad_colaboradores'] ?? '')),
+            'Dominio registrado: ' . ((int) ($solicitud['dominio_registrado'] ?? 0) === 1 ? 'Si' : 'No'),
+            'Hosting propio: ' . ((int) ($solicitud['hosting_propio'] ?? 0) === 1 ? 'Si' : 'No'),
+        ], static fn (string $valor): bool => trim(substr($valor, (int) strpos($valor, ':') + 1)) !== '')));
+    }
+
+    private function obtenerNombreSolicitanteInterno(array $solicitud): string
+    {
+        $nombreCompleto = trim((string) ($solicitud['usuario_nombre'] ?? '') . ' ' . (string) ($solicitud['usuario_apellido'] ?? ''));
+        if ($nombreCompleto !== '') {
+            return $nombreCompleto;
+        }
+
+        return trim((string) ($solicitud['usuario_apodo'] ?? ''));
     }
 
     private function crearFasesIniciales(int $projectId): void

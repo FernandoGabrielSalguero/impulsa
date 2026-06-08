@@ -272,15 +272,12 @@ $nombreSolicitante = static function (array $solicitud): string {
                           <?php endif; ?>
                         </td>
                         <td class="im-tabla-tareas__acciones">
-                          <div class="im-menu-tabla" data-im-menu>
-                            <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
-                            <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
-                              <button type="button" role="menuitem" data-ver-solicitud="<?= (int) ($solicitud['id'] ?? 0) ?>">
-                                <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
-                                Ver detalle
-                              </button>
-                            </div>
-                          </div>
+                          <?php
+                            $solicitudAccion = $solicitud;
+                            $solicitudAccion['solicitud_tipo'] = 'interna';
+                            $solicitudAccion['solicitante_nombre'] = $nombreSolicitante($solicitud);
+                            require __DIR__ . '/../../partials/components/admin/solicitudes recibidas/acciones.php';
+                          ?>
                         </td>
                       </tr>
                     <?php endforeach; ?>
@@ -330,6 +327,7 @@ $nombreSolicitante = static function (array $solicitud): string {
                         <td class="im-tabla-tareas__acciones">
                           <?php
                             $solicitudAccion = $solicitudExterna;
+                            $solicitudAccion['solicitud_tipo'] = 'externa';
                             require __DIR__ . '/../../partials/components/admin/solicitudes recibidas/acciones.php';
                           ?>
                         </td>
