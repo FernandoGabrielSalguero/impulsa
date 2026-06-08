@@ -123,74 +123,80 @@
       nodesContainer.innerHTML = nodes.map((node, index) => `
         <details class="im-expansion" data-node-key="${escapeHtml(node.client_key)}" ${index === 0 ? 'open' : ''}>
           <summary>Pregunta ${index + 1} - ${escapeHtml(node.title || 'Sin titulo')}</summary>
-          <div class="im-chip-lista">
-            ${node.is_start ? '<span class="im-chip im-chip--completado">Inicial</span>' : ''}
-            <span class="im-chip ${node.status === 'active' ? 'im-chip--activo' : 'im-chip--alerta'}">${node.status === 'active' ? 'Activa' : 'Inactiva'}</span>
-            <span class="im-chip">${node.options.length} ${node.options.length === 1 ? 'opcion' : 'opciones'}</span>
-          </div>
-          <div class="im-formulario">
-            <label class="im-campo im-campo-material">
-              <span>Pregunta</span>
-              <input type="text" value="${escapeHtml(node.title)}" data-node-field="title" data-node-key="${escapeHtml(node.client_key)}" maxlength="180" required>
-            </label>
-            <label class="im-campo im-campo-material">
-              <span>Estado</span>
-              <select data-node-field="status" data-node-key="${escapeHtml(node.client_key)}">
-                <option value="active" ${node.status === 'active' ? 'selected' : ''}>Activo</option>
-                <option value="inactive" ${node.status === 'inactive' ? 'selected' : ''}>Inactivo</option>
-              </select>
-            </label>
-            <label class="im-campo im-campo-material im-campo--ancho">
-              <span>Respuesta</span>
-              <textarea rows="4" maxlength="2000" data-node-field="body" data-node-key="${escapeHtml(node.client_key)}" required>${escapeHtml(node.body)}</textarea>
-            </label>
-            <fieldset class="im-campo im-campo-grupo im-campo--ancho">
-              <legend>Comportamiento del nodo</legend>
-              <label class="im-slide-toggle">
-                <input type="radio" name="chatbot_start_node" value="${escapeHtml(node.client_key)}" ${node.is_start ? 'checked' : ''} data-node-start="${escapeHtml(node.client_key)}">
-                <span></span> Usar como pregunta inicial
-              </label>
-            </fieldset>
-            <div class="im-formulario__separador">Opciones y vinculaciones</div>
-            <div class="im-campo--ancho">
-              <div class="im-tarjeta__cabecera">
-                <div>
-                  <h4>Botones del nodo</h4>
-                  <p>Define que ve el usuario y que accion se dispara despues.</p>
-                </div>
-                <button class="im-boton im-boton--tonal" type="button" data-add-option="${escapeHtml(node.client_key)}">Agregar opcion</button>
-              </div>
+          <div class="im-muestra im-muestra--vertical">
+            <div class="im-chip-lista">
+              ${node.is_start ? '<span class="im-chip im-chip--completado">Inicial</span>' : ''}
+              <span class="im-chip ${node.status === 'active' ? 'im-chip--activo' : 'im-chip--alerta'}">${node.status === 'active' ? 'Activa' : 'Inactiva'}</span>
+              <span class="im-chip">${node.options.length} ${node.options.length === 1 ? 'opcion' : 'opciones'}</span>
             </div>
-            ${node.options.map((option, optionIndex) => `
-              <div class="im-grilla im-grilla--dos-columnas im-campo--ancho" data-option-index="${optionIndex}">
-                <label class="im-campo im-campo-material">
-                  <span>Texto del boton</span>
-                  <input type="text" value="${escapeHtml(option.label)}" data-option-field="label" data-node-key="${escapeHtml(node.client_key)}" data-option-index="${optionIndex}" maxlength="180" required>
+            <div class="im-formulario">
+              <label class="im-campo im-campo-material">
+                <span>Pregunta</span>
+                <input type="text" value="${escapeHtml(node.title)}" data-node-field="title" data-node-key="${escapeHtml(node.client_key)}" maxlength="180" required>
+              </label>
+              <label class="im-campo im-campo-material">
+                <span>Estado</span>
+                <select data-node-field="status" data-node-key="${escapeHtml(node.client_key)}">
+                  <option value="active" ${node.status === 'active' ? 'selected' : ''}>Activo</option>
+                  <option value="inactive" ${node.status === 'inactive' ? 'selected' : ''}>Inactivo</option>
+                </select>
+              </label>
+              <label class="im-campo im-campo-material im-campo--ancho">
+                <span>Respuesta</span>
+                <textarea rows="4" maxlength="2000" data-node-field="body" data-node-key="${escapeHtml(node.client_key)}" required>${escapeHtml(node.body)}</textarea>
+              </label>
+              <fieldset class="im-campo im-campo-grupo im-campo--ancho">
+                <legend>Comportamiento del nodo</legend>
+                <label class="im-slide-toggle">
+                  <input type="radio" name="chatbot_start_node" value="${escapeHtml(node.client_key)}" ${node.is_start ? 'checked' : ''} data-node-start="${escapeHtml(node.client_key)}">
+                  <span></span> Usar como pregunta inicial
                 </label>
-                <label class="im-campo im-campo-material">
-                  <span>Accion al hacer clic</span>
-                  <select data-option-field="action_type" data-node-key="${escapeHtml(node.client_key)}" data-option-index="${optionIndex}">
-                    <option value="go_to_node" ${option.action_type === 'go_to_node' ? 'selected' : ''}>Ir a otra pregunta</option>
-                    <option value="whatsapp" ${option.action_type === 'whatsapp' ? 'selected' : ''}>Abrir WhatsApp</option>
-                    <option value="restart" ${option.action_type === 'restart' ? 'selected' : ''}>Volver al inicio</option>
-                    <option value="close" ${option.action_type === 'close' ? 'selected' : ''}>Cerrar chat</option>
-                  </select>
-                </label>
-                <label class="im-campo im-campo-material im-campo--ancho" ${option.action_type === 'go_to_node' ? '' : 'hidden'}>
-                  <span>Pregunta destino</span>
-                  <select data-option-field="target_node_key" data-node-key="${escapeHtml(node.client_key)}" data-option-index="${optionIndex}" ${option.action_type === 'go_to_node' ? '' : 'disabled'}>
-                    <option value="">Seleccionar</option>
-                    ${nodeOptionsMarkup(option.target_node_key)}
-                  </select>
-                </label>
-                <div class="im-formulario__acciones">
-                  <button class="im-boton im-boton--texto" type="button" data-remove-option="${escapeHtml(node.client_key)}" data-option-index="${optionIndex}" ${node.options.length === 1 ? 'disabled' : ''}>Eliminar opcion</button>
+              </fieldset>
+              <div class="im-formulario__separador">Opciones y vinculaciones</div>
+              <div class="im-campo--ancho">
+                <div class="im-tarjeta__cabecera">
+                  <div>
+                    <h4>Botones del nodo</h4>
+                    <p>Define que ve el usuario y que accion se dispara despues.</p>
+                  </div>
+                  <button class="im-boton im-boton--tonal" type="button" data-add-option="${escapeHtml(node.client_key)}">Agregar opcion</button>
                 </div>
               </div>
-            `).join('')}
-            <div class="im-formulario__acciones">
-              <button class="im-boton im-boton--texto" type="button" data-toggle-question="${escapeHtml(node.client_key)}">Abrir nodo</button>
-              <button class="im-boton im-boton--texto" type="button" data-remove-node="${escapeHtml(node.client_key)}" ${nodes.length === 1 ? 'disabled' : ''}>Eliminar nodo</button>
+              <div class="im-muestra im-muestra--vertical im-campo--ancho">
+                ${node.options.map((option, optionIndex) => `
+                  <article class="im-tarjeta" data-option-index="${optionIndex}">
+                    <div class="im-formulario">
+                      <label class="im-campo im-campo-material">
+                        <span>Texto del boton</span>
+                        <input type="text" value="${escapeHtml(option.label)}" data-option-field="label" data-node-key="${escapeHtml(node.client_key)}" data-option-index="${optionIndex}" maxlength="180" required>
+                      </label>
+                      <label class="im-campo im-campo-material">
+                        <span>Accion al hacer clic</span>
+                        <select data-option-field="action_type" data-node-key="${escapeHtml(node.client_key)}" data-option-index="${optionIndex}">
+                          <option value="go_to_node" ${option.action_type === 'go_to_node' ? 'selected' : ''}>Ir a otra pregunta</option>
+                          <option value="whatsapp" ${option.action_type === 'whatsapp' ? 'selected' : ''}>Abrir WhatsApp</option>
+                          <option value="restart" ${option.action_type === 'restart' ? 'selected' : ''}>Volver al inicio</option>
+                          <option value="close" ${option.action_type === 'close' ? 'selected' : ''}>Cerrar chat</option>
+                        </select>
+                      </label>
+                      <label class="im-campo im-campo-material im-campo--ancho" ${option.action_type === 'go_to_node' ? '' : 'hidden'}>
+                        <span>Pregunta destino</span>
+                        <select data-option-field="target_node_key" data-node-key="${escapeHtml(node.client_key)}" data-option-index="${optionIndex}" ${option.action_type === 'go_to_node' ? '' : 'disabled'}>
+                          <option value="">Seleccionar</option>
+                          ${nodeOptionsMarkup(option.target_node_key)}
+                        </select>
+                      </label>
+                      <div class="im-formulario__acciones">
+                        <button class="im-boton im-boton--texto" type="button" data-remove-option="${escapeHtml(node.client_key)}" data-option-index="${optionIndex}" ${node.options.length === 1 ? 'disabled' : ''}>Eliminar opcion</button>
+                      </div>
+                    </div>
+                  </article>
+                `).join('')}
+              </div>
+              <div class="im-formulario__acciones">
+                <button class="im-boton im-boton--texto" type="button" data-toggle-question="${escapeHtml(node.client_key)}">Abrir nodo</button>
+                <button class="im-boton im-boton--texto" type="button" data-remove-node="${escapeHtml(node.client_key)}" ${nodes.length === 1 ? 'disabled' : ''}>Eliminar nodo</button>
+              </div>
             </div>
           </div>
         </details>
