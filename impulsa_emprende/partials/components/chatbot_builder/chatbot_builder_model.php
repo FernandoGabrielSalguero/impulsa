@@ -338,6 +338,8 @@ final class ChatbotBuilderModel
         $normalizedNodes = [];
         $nodeKeys = [];
         $hasStartNode = false;
+        $startNodesCount = 0;
+        $activeNodesCount = 0;
 
         foreach (array_values($nodes) as $nodeIndex => $node) {
             if (!is_array($node)) {
@@ -366,6 +368,12 @@ final class ChatbotBuilderModel
 
             $nodeKeys[$clientKey] = true;
             $hasStartNode = $hasStartNode || $isStart;
+            if ($isStart) {
+                $startNodesCount++;
+            }
+            if ($statusNode === 'active') {
+                $activeNodesCount++;
+            }
 
             $normalizedOptions = [];
             foreach (array_values($options) as $optionIndex => $option) {
@@ -411,7 +419,19 @@ final class ChatbotBuilderModel
             $normalizedNodes[0]['is_start'] = true;
         }
 
+        if ($startNodesCount > 1) {
+            throw new RuntimeException('Solo puede existir una pregunta inicial.');
+        }
+
+        if ($activeNodesCount === 0) {
+            throw new RuntimeException('Debe existir al menos una pregunta activa.');
+        }
+
         foreach ($normalizedNodes as $node) {
+            if ($node['status'] === 'active' && $node['options'] === []) {
+                throw new RuntimeException('Cada pregunta activa debe tener al menos una opcion.');
+            }
+
             foreach ($node['options'] as $option) {
                 if ($option['action_type'] === 'go_to_node' && !isset($nodeKeys[$option['target_node_key']])) {
                     throw new RuntimeException('Una opcion hace referencia a un nodo inexistente.');

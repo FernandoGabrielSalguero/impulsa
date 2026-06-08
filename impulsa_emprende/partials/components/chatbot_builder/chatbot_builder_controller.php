@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/chatbot_builder_model.php';
 
+const CHATBOT_AVATAR_UPLOAD_DIR = __DIR__ . '/../../../assets/images/avatar_bot';
+const CHATBOT_AVATAR_PUBLIC_PATH = '/impulsa_emprende/assets/images/avatar_bot';
+const CHATBOT_AVATAR_MAX_BYTES = 2097152;
+const CHATBOT_AVATAR_ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+const CHATBOT_AVATAR_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 $chatbotBuilderContext = $chatbotBuilderContext ?? [];
 $chatbotBuilderUser = $chatbotBuilderContext['user'] ?? null;
 $chatbotBuilderRoleLabel = (string) ($chatbotBuilderContext['role_label'] ?? 'Usuario');
@@ -46,9 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($chatbotBuilderPostAction !== '' 
                 throw new RuntimeException('No se pudo interpretar la estructura de nodos enviada desde el constructor.');
             }
 
+            $avatarPath = resolverAvatarChatbot($_FILES['avatar_file'] ?? null, (string) ($_POST['current_avatar_path'] ?? ''));
+
             $chatbotBuilderModel->guardarChatbot($chatbotBuilderUserId, (int) $integrationId, [
                 'name' => $_POST['name'] ?? '',
-                'avatar_url' => $_POST['avatar_url'] ?? '',
+                'avatar_url' => $avatarPath,
                 'whatsapp' => $_POST['whatsapp'] ?? '',
                 'initial_message' => $_POST['initial_message'] ?? '',
                 'status' => $_POST['status'] ?? 'inactive',
@@ -93,3 +101,60 @@ foreach ($chatbotBuilderIntegraciones as $chatbotBuilderIntegrationItem) {
 }
 
 require __DIR__ . '/chatbot_builder_view.php';
+
+function resolverAvatarChatbot(?array $file, string $currentAvatarPath): ?string
+{
+    $currentAvatarPath = trim($currentAvatarPath);
+
+    if ($file === null || !isset($file['error'])) {
+        return $currentAvatarPath !== '' ? $currentAvatarPath : null;
+    }
+
+    if ((int) $file['error'] === UPLOAD_ERR_NO_FILE) {
+        return $currentAvatarPath !== '' ? $currentAvatarPath : null;
+    }
+
+    if ((int) $file['error'] !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('No se pudo subir el avatar del chatbot.');
+    }
+
+    $tmpName = (string) ($file['tmp_name'] ?? '');
+    $originalName = (string) ($file['name'] ?? '');
+    $fileSize = (int) ($file['size'] ?? 0);
+
+    if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+        throw new RuntimeException('El archivo de avatar no es valido.');
+    }
+
+    if ($fileSize <= 0 || $fileSize > CHATBOT_AVATAR_MAX_BYTES) {
+        throw new RuntimeException('El avatar debe pesar como maximo 2MB.');
+    }
+
+    $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    if (!in_array($extension, CHATBOT_AVATAR_ALLOWED_EXTENSIONS, true)) {
+        throw new RuntimeException('El avatar solo admite archivos JPG, JPEG, PNG o WEBP.');
+    }
+
+    $finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : false;
+    $mimeType = $finfo ? (string) finfo_file($finfo, $tmpName) : '';
+    if ($finfo) {
+        finfo_close($finfo);
+    }
+
+    if ($mimeType === '' || !in_array($mimeType, CHATBOT_AVATAR_ALLOWED_MIME_TYPES, true)) {
+        throw new RuntimeException('El archivo subido no tiene un formato de imagen permitido.');
+    }
+
+    if (!is_dir(CHATBOT_AVATAR_UPLOAD_DIR) && !mkdir(CHATBOT_AVATAR_UPLOAD_DIR, 0775, true) && !is_dir(CHATBOT_AVATAR_UPLOAD_DIR)) {
+        throw new RuntimeException('No se pudo preparar la carpeta de avatares del chatbot.');
+    }
+
+    $fileName = 'bot_' . date('Ymd_His') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
+    $destination = CHATBOT_AVATAR_UPLOAD_DIR . DIRECTORY_SEPARATOR . $fileName;
+
+    if (!move_uploaded_file($tmpName, $destination)) {
+        throw new RuntimeException('No se pudo guardar la imagen del avatar.');
+    }
+
+    return CHATBOT_AVATAR_PUBLIC_PATH . '/' . $fileName;
+}
