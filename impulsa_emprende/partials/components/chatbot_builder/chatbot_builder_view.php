@@ -15,7 +15,7 @@ $chatbotBuilderBackLabel = $chatbotBuilderBackLabel ?? 'Volver';
 $chatbotBuilderPostAction = $chatbotBuilderPostAction ?? '';
 $chatbotBuilderInitialNodes = [];
 
-if (is_array($chatbotBuilderChatbotActual['nodes'] ?? null) && $chatbotBuilderChatbotActual['nodes'] !== []) {
+if (is_array($chatbotBuilderChatbotActual) && is_array($chatbotBuilderChatbotActual['nodes'] ?? null) && $chatbotBuilderChatbotActual['nodes'] !== []) {
     foreach ($chatbotBuilderChatbotActual['nodes'] as $node) {
         $clientKey = 'node-' . (int) ($node['id'] ?? 0);
         $chatbotBuilderInitialNodes[] = [
@@ -215,17 +215,15 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
             </div>
 
             <div class="im-muestra im-muestra--vertical">
-              <div class="im-chip-lista">
-                <span class="im-chip im-chip--avatar">
-                  <b data-chatbot-preview-avatar>
-                    <?php if ($avatarPathActual !== ''): ?>
-                      <img src="<?= $h($avatarPathActual) ?>" alt="" width="24" height="24">
-                    <?php else: ?>
-                      <?= $h($avatarPlaceholder) ?>
-                    <?php endif; ?>
-                  </b>
-                  <span data-chatbot-preview-name><?= $h($chatbotBuilderChatbotActual['name'] ?? ('Chatbot ' . ($chatbotBuilderSelectedIntegration['project_name'] ?? ''))) ?></span>
-                </span>
+              <div align="center">
+                <div data-chatbot-preview-avatar>
+                  <?php if ($avatarPathActual !== ''): ?>
+                    <img src="<?= $h($avatarPathActual) ?>" alt="" width="96" height="96">
+                  <?php else: ?>
+                    <span class="im-tabla-tareas__avatar"><?= $h($avatarPlaceholder) ?></span>
+                  <?php endif; ?>
+                </div>
+                <p><strong data-chatbot-preview-name><?= $h($chatbotBuilderChatbotActual['name'] ?? ('Chatbot ' . ($chatbotBuilderSelectedIntegration['project_name'] ?? ''))) ?></strong></p>
               </div>
               <div class="im-muestra im-muestra--vertical" data-chatbot-preview-thread>
                 <div class="im-alerta im-alerta--info" data-chatbot-preview-message><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></div>
