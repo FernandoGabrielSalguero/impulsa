@@ -83,7 +83,9 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
   .chatbot-builder__avatar-actions { display: grid; gap: .35rem; }
   .chatbot-builder__avatar-help { margin: 0; color: var(--im-color-texto-suave); font-size: .84rem; }
   .chatbot-builder__file-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-  .chatbot-builder__layout-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); align-items: start; }
+  .chatbot-builder__layout-grid { display: grid; gap: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; }
+  .chatbot-builder__layout-grid > .chatbot-builder__flow-card { grid-column: span 3; }
+  .chatbot-builder__layout-grid > .chatbot-builder__preview { grid-column: span 1; }
   .chatbot-builder__flow-card { display: grid; gap: 1rem; }
   .chatbot-builder__questions { display: grid; gap: .9rem; }
   .chatbot-builder__question { border: 1px solid var(--im-color-borde); border-radius: var(--im-radio); background: var(--im-color-superficie); box-shadow: var(--im-sombra-1); overflow: hidden; }
@@ -117,6 +119,8 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
     .chatbot-builder__question-grid,
     .chatbot-builder__option-row,
     .chatbot-builder__option-row--disabled-destination { grid-template-columns: 1fr; }
+    .chatbot-builder__layout-grid > .chatbot-builder__flow-card,
+    .chatbot-builder__layout-grid > .chatbot-builder__preview { grid-column: auto; }
     .chatbot-builder__preview { position: static; }
   }
 </style>
