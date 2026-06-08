@@ -193,6 +193,24 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
           </div>
         </article>
 
+        <div class="im-grilla im-grilla--dashboard im-campo--ancho">
+          <article class="im-tarjeta">
+            <div class="im-tarjeta__cabecera">
+              <div>
+                <h3>Configuración del bot</h3>
+              </div>
+            </div>
+          </article>
+
+          <article class="im-tarjeta">
+            <div class="im-tarjeta__cabecera">
+              <div>
+                <h3>Vista previa</h3>
+              </div>
+            </div>
+          </article>
+        </div>
+
         <div data-chatbot-builder-nodes hidden></div>
       </form>
 
