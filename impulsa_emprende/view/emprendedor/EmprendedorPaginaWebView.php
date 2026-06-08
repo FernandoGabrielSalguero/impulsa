@@ -60,6 +60,10 @@ if (!function_exists('paginaWebFecha')) {
           <span class="material-symbols-rounded" aria-hidden="true">web</span>
           <span class="im-nav-item__texto">Pagina web</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorChatbotController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">forum</span>
+          <span class="im-nav-item__texto">Chatbot</span>
+        </a>
       </nav>
     </aside>
 

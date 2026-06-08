@@ -40,11 +40,20 @@ function apiCargarEnv(string $ruta = API_ENV_PATH): void
 
 function apiConfigurarCorsBase(): void
 {
+    apiConfigurarCorsPersonalizado(['POST', 'OPTIONS'], ['Content-Type', 'X-API-SECRET']);
+}
+
+/**
+ * @param array<int, string> $metodos
+ * @param array<int, string> $headers
+ */
+function apiConfigurarCorsPersonalizado(array $metodos, array $headers, string $contentType = 'application/json; charset=utf-8'): void
+{
     $origin = trim((string) ($_SERVER['HTTP_ORIGIN'] ?? ''));
 
-    header('Content-Type: application/json; charset=utf-8');
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, X-API-SECRET');
+    header('Content-Type: ' . $contentType);
+    header('Access-Control-Allow-Methods: ' . implode(', ', $metodos));
+    header('Access-Control-Allow-Headers: ' . implode(', ', $headers));
     header('Access-Control-Max-Age: 600');
 
     if ($origin !== '') {
@@ -182,6 +191,13 @@ function apiValidarIntegracion(PDO $pdo, string $publicKey): array
 function apiValidarOrigenIntegracion(string $dominioPermitido): void
 {
     $origin = trim((string) ($_SERVER['HTTP_ORIGIN'] ?? ''));
+
+    if ($origin === '') {
+        $referer = trim((string) ($_SERVER['HTTP_REFERER'] ?? ''));
+        if ($referer !== '') {
+            $origin = $referer;
+        }
+    }
 
     if ($origin === '') {
         return;
