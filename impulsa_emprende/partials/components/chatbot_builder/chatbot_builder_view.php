@@ -150,18 +150,16 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
             </div>
 
             <div>
-              <div class="im-chip-lista">
-                <span class="im-chip im-chip--avatar">
-                  <b data-chatbot-avatar-preview>
-                    <?php if ($avatarPathActual !== ''): ?>
-                      <img src="<?= $h($avatarPathActual) ?>" alt="" width="24" height="24">
-                    <?php else: ?>
-                      <?= $h($avatarPlaceholder) ?>
-                    <?php endif; ?>
-                  </b>
-                  Avatar del chatbot
-                </span>
-                <span class="im-chip" data-chatbot-avatar-filename><?= $avatarPathActual !== '' ? $h(basename($avatarPathActual)) : 'Sin imagen cargada' ?></span>
+              <div align="center">
+                <p><strong>Avatar del chatbot</strong></p>
+                <p data-chatbot-avatar-preview>
+                  <?php if ($avatarPathActual !== ''): ?>
+                    <img src="<?= $h($avatarPathActual) ?>" alt="" width="96" height="96">
+                  <?php else: ?>
+                    <span class="im-tabla-tareas__avatar"><?= $h($avatarPlaceholder) ?></span>
+                  <?php endif; ?>
+                </p>
+                <p data-chatbot-avatar-filename><?= $avatarPathActual !== '' ? $h(basename($avatarPathActual)) : 'Sin imagen cargada' ?></p>
               </div>
 
               <label class="im-campo im-campo-material im-campo--ancho">
@@ -175,23 +173,23 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                 <span class="im-chip"><?= $h($chatbotBuilderChatbotActual['name'] ?? 'Sin crear') ?></span>
                 <span class="im-chip"><?= $h(($chatbotBuilderChatbotActual['whatsapp'] ?? $chatbotBuilderWhatsappSugerido) ?: 'WhatsApp sin precarga') ?></span>
               </div>
-
-              <div class="im-formulario__acciones">
-                <?php if ($chatbotBuilderChatbotActual): ?>
-                  <button
-                    class="im-boton"
-                    type="submit"
-                    name="chatbot_builder_submit"
-                    value="toggle"
-                    formnovalidate
-                    onclick="this.form.querySelector('[name=target_status]').value='<?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') === 'active' ? 'inactive' : 'active' ?>';"
-                  >
-                    <?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') === 'active' ? 'Desactivar chatbot' : 'Activar chatbot' ?>
-                  </button>
-                <?php endif; ?>
-                <button class="im-boton im-boton--principal" type="submit" name="chatbot_builder_submit" value="save">Guardar cambios</button>
-              </div>
             </div>
+          </div>
+
+          <div class="im-formulario__acciones">
+            <?php if ($chatbotBuilderChatbotActual): ?>
+              <button
+                class="im-boton"
+                type="submit"
+                name="chatbot_builder_submit"
+                value="toggle"
+                formnovalidate
+                onclick="this.form.querySelector('[name=target_status]').value='<?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') === 'active' ? 'inactive' : 'active' ?>';"
+              >
+                <?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') === 'active' ? 'Desactivar chatbot' : 'Activar chatbot' ?>
+              </button>
+            <?php endif; ?>
+            <button class="im-boton im-boton--principal" type="submit" name="chatbot_builder_submit" value="save">Guardar cambios</button>
           </div>
         </article>
 
