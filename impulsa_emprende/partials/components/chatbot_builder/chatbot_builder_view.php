@@ -197,21 +197,49 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
           <article class="im-tarjeta">
             <div class="im-tarjeta__cabecera">
               <div>
-                <h3>Configuración del bot</h3>
+                <h3>Configuracion del bot</h3>
+                <p>Define los nodos, las respuestas y el recorrido que hara el usuario dentro del chatbot.</p>
               </div>
+              <button class="im-boton im-boton--principal" type="button" data-chatbot-builder-add-node>Agregar nodo</button>
             </div>
+
+            <div class="im-alerta im-alerta--info">
+              Configura la pregunta, su respuesta y que accion ejecuta cada boton del flujo.
+            </div>
+
+            <div data-chatbot-builder-nodes></div>
           </article>
 
           <article class="im-tarjeta">
             <div class="im-tarjeta__cabecera">
               <div>
                 <h3>Vista previa</h3>
+                <p>Referencia rapida de la pantalla inicial del widget.</p>
               </div>
+            </div>
+
+            <div class="im-muestra im-muestra--vertical">
+              <div class="im-chip-lista">
+                <span class="im-chip im-chip--avatar">
+                  <b data-chatbot-preview-avatar>
+                    <?php if ($avatarPathActual !== ''): ?>
+                      <img src="<?= $h($avatarPathActual) ?>" alt="" width="24" height="24">
+                    <?php else: ?>
+                      <?= $h($avatarPlaceholder) ?>
+                    <?php endif; ?>
+                  </b>
+                  <span data-chatbot-preview-name><?= $h($chatbotBuilderChatbotActual['name'] ?? ('Chatbot ' . ($chatbotBuilderSelectedIntegration['project_name'] ?? ''))) ?></span>
+                </span>
+              </div>
+              <div class="im-alerta im-alerta--info" data-chatbot-preview-message><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></div>
+              <div>
+                <strong>Pregunta inicial</strong>
+                <p data-chatbot-preview-question>Inicio</p>
+              </div>
+              <div class="im-chip-lista" data-chatbot-preview-options></div>
             </div>
           </article>
         </div>
-
-        <div data-chatbot-builder-nodes hidden></div>
       </form>
 
       <script type="application/json" data-chatbot-builder-seed><?= json_encode($chatbotBuilderInitialNodes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
