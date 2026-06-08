@@ -210,7 +210,7 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
             <div class="im-tarjeta__cabecera">
               <div>
                 <h3>Vista previa</h3>
-                <p>Referencia rapida de la pantalla inicial del widget.</p>
+                <p>Simulacion basica de como conversara el usuario con el chatbot.</p>
               </div>
             </div>
 
@@ -227,14 +227,8 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                   <span data-chatbot-preview-name><?= $h($chatbotBuilderChatbotActual['name'] ?? ('Chatbot ' . ($chatbotBuilderSelectedIntegration['project_name'] ?? ''))) ?></span>
                 </span>
               </div>
-              <div class="im-alerta im-alerta--info" data-chatbot-preview-message><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></div>
-              <div>
-                <strong>Pregunta inicial</strong>
-                <p data-chatbot-preview-question>Inicio</p>
-              </div>
-              <div>
-                <strong>Respuesta</strong>
-                <p data-chatbot-preview-body>Bienvenido. Elegi una opcion para continuar.</p>
+              <div class="im-muestra im-muestra--vertical" data-chatbot-preview-thread>
+                <div class="im-alerta im-alerta--info" data-chatbot-preview-message><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></div>
               </div>
               <div class="im-chip-lista" data-chatbot-preview-options></div>
               <div class="im-formulario__acciones">

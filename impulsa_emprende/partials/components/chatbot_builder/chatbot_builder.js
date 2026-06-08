@@ -45,13 +45,13 @@
     const avatarFileName = form.querySelector('[data-chatbot-avatar-filename]');
     const previewAvatar = form.querySelector('[data-chatbot-preview-avatar]');
     const previewName = form.querySelector('[data-chatbot-preview-name]');
+    const previewThread = form.querySelector('[data-chatbot-preview-thread]');
     const previewMessage = form.querySelector('[data-chatbot-preview-message]');
-    const previewQuestion = form.querySelector('[data-chatbot-preview-question]');
-    const previewBody = form.querySelector('[data-chatbot-preview-body]');
     const previewOptions = form.querySelector('[data-chatbot-preview-options]');
     const previewResetButton = form.querySelector('[data-chatbot-preview-reset]');
     let nodes = [];
     let currentPreviewNodeKey = '';
+    let previewHistory = [];
 
     if (seedScript) {
       try {
@@ -78,6 +78,9 @@
     const getStartNode = () => nodes.find((node) => node.is_start) || nodes[0] || null;
 
     const getPreviewNode = () => {
+      if (currentPreviewNodeKey === '__closed__') {
+        return null;
+      }
       const current = nodes.find((node) => node.client_key === currentPreviewNodeKey);
       return current || getStartNode();
     };
@@ -85,6 +88,7 @@
     const resetPreview = () => {
       const startNode = getStartNode();
       currentPreviewNodeKey = startNode ? startNode.client_key : '';
+      previewHistory = [];
     };
 
     const updatePreview = () => {
@@ -100,12 +104,30 @@
         previewMessage.textContent = (messageField?.value || 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.').trim();
       }
 
-      if (previewQuestion) {
-        previewQuestion.textContent = previewNode ? (previewNode.title || 'Pregunta inicial') : 'Pregunta inicial';
-      }
+      if (previewThread) {
+        const introMessage = (messageField?.value || 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.').trim();
+        previewThread.innerHTML = '';
 
-      if (previewBody) {
-        previewBody.textContent = previewNode ? (previewNode.body || 'Sin respuesta cargada.') : 'Sin respuesta cargada.';
+        const introBubble = document.createElement('div');
+        introBubble.className = 'im-alerta im-alerta--info';
+        introBubble.textContent = introMessage;
+        previewThread.appendChild(introBubble);
+
+        previewHistory.forEach((entry) => {
+          const bubble = document.createElement('div');
+          bubble.className = entry.role === 'user' ? 'im-chip-lista' : 'im-alerta im-alerta--info';
+
+          if (entry.role === 'user') {
+            const chip = document.createElement('span');
+            chip.className = 'im-chip';
+            chip.textContent = entry.text;
+            bubble.appendChild(chip);
+          } else {
+            bubble.textContent = entry.text;
+          }
+
+          previewThread.appendChild(bubble);
+        });
       }
 
       if (previewOptions) {
@@ -142,7 +164,7 @@
         nodes[0].is_start = true;
       }
 
-      if (!nodes.some((node) => node.client_key === currentPreviewNodeKey)) {
+      if (currentPreviewNodeKey !== '__closed__' && !nodes.some((node) => node.client_key === currentPreviewNodeKey)) {
         resetPreview();
       }
 
@@ -347,9 +369,22 @@
 
       const actionType = button.getAttribute('data-preview-action-type');
       const targetKey = button.getAttribute('data-preview-target-key');
+      const buttonLabel = (button.textContent || 'Opcion').trim();
+
+      previewHistory.push({
+        role: 'user',
+        text: buttonLabel
+      });
 
       if (actionType === 'go_to_node' && targetKey) {
         currentPreviewNodeKey = targetKey;
+        const targetNode = nodes.find((node) => node.client_key === targetKey);
+        if (targetNode) {
+          previewHistory.push({
+            role: 'bot',
+            text: (targetNode.body || targetNode.title || 'Sin respuesta cargada.').trim()
+          });
+        }
         updatePreview();
         return;
       }
@@ -361,22 +396,21 @@
       }
 
       if (actionType === 'close') {
-        if (previewQuestion) {
-          previewQuestion.textContent = 'Chat cerrado';
-        }
-        if (previewBody) {
-          previewBody.textContent = 'La conversacion termino en esta vista previa.';
-        }
-        if (previewOptions) {
-          previewOptions.innerHTML = '';
-        }
+        previewHistory.push({
+          role: 'bot',
+          text: 'La conversacion termino en esta vista previa.'
+        });
+        currentPreviewNodeKey = '__closed__';
+        updatePreview();
         return;
       }
 
       if (actionType === 'whatsapp') {
-        if (previewBody) {
-          previewBody.textContent = 'Esta opcion abrira WhatsApp en el widget real.';
-        }
+        previewHistory.push({
+          role: 'bot',
+          text: 'Esta opcion abrira WhatsApp en el widget real.'
+        });
+        updatePreview();
       }
     });
 
