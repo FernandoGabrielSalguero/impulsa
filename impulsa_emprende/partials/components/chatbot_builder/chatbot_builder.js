@@ -329,7 +329,7 @@
 
         const reader = new FileReader();
         reader.onload = () => {
-          avatarPreview.innerHTML = `<img src="${escapeHtml(reader.result)}" alt="">`;
+          avatarPreview.innerHTML = `<img src="${escapeHtml(reader.result)}" alt="" width="24" height="24">`;
           updatePreview();
         };
         reader.readAsDataURL(file);

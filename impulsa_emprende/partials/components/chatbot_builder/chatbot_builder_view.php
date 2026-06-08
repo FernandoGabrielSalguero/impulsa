@@ -65,68 +65,6 @@ $avatarPlaceholder = function_exists('mb_substr')
     : strtoupper(substr((string) ($chatbotBuilderChatbotActual['name'] ?? 'C'), 0, 1));
 $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 ?>
-<style>
-  .chatbot-builder { display: grid; gap: 1rem; }
-  .chatbot-builder .im-campo input,
-  .chatbot-builder .im-campo select { min-height: 48px; }
-  .chatbot-builder .im-campo textarea { min-height: 88px; resize: vertical; }
-  .chatbot-builder__stack { display: grid; gap: 1rem; }
-  .chatbot-builder__general { width: 100%; order: 1; padding: 1.25rem; }
-  .chatbot-builder__general-layout { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1.7fr) minmax(300px, .95fr); align-items: start; }
-  .chatbot-builder__main { display: grid; gap: 1rem; min-width: 0; }
-  .chatbot-builder__side { display: grid; gap: 1rem; min-width: 0; align-content: start; }
-  .chatbot-builder__topbar { display: grid; gap: .65rem; align-items: start; }
-  .chatbot-builder__topbar-meta { display: grid; gap: .75rem; }
-  .chatbot-builder__integration-form { max-width: 100%; }
-  .chatbot-builder__config-grid { display: grid; gap: .9rem 1rem; grid-template-columns: minmax(220px, 1.15fr) minmax(150px, .7fr); align-items: start; }
-  .chatbot-builder__full { grid-column: 1 / -1; }
-  .chatbot-builder__action-bar { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: center; }
-  .chatbot-builder__action-group { display: flex; flex-wrap: wrap; gap: .75rem; }
-  .chatbot-builder__side-card { display: grid; gap: .85rem; padding: 1rem; border: 1px solid var(--im-color-borde); border-radius: calc(var(--im-radio) + 2px); background: color-mix(in srgb, var(--im-color-superficie) 88%, white); box-shadow: var(--im-sombra-1); }
-  .chatbot-builder__side-card h4 { margin: 0; }
-  .chatbot-builder__workspace { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); align-items: start; order: 2; }
-  .chatbot-builder__flow { min-width: 0; }
-  .chatbot-builder__preview { min-width: 0; display: grid; gap: .85rem; position: sticky; top: 1rem; }
-  .chatbot-builder__avatar-box { display: grid; gap: 1rem; justify-items: start; min-height: 48px; padding: 1rem; border: 1px solid var(--im-color-borde); border-radius: calc(var(--im-radio) + 4px); background: linear-gradient(180deg, color-mix(in srgb, var(--im-color-principal-suave) 55%, white), var(--im-color-superficie)); }
-  .chatbot-builder__avatar-preview { width: 92px; height: 92px; border-radius: 24px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--im-color-principal) 12%, white); color: var(--im-color-principal); font-size: 1.8rem; font-weight: 800; }
-  .chatbot-builder__avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
-  .chatbot-builder__avatar-actions { display: grid; gap: .35rem; }
-  .chatbot-builder__avatar-help { margin: 0; color: var(--im-color-texto-suave); font-size: .84rem; }
-  .chatbot-builder__file-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-  .chatbot-builder__flow-card { display: grid; gap: 1rem; }
-  .chatbot-builder__questions { display: grid; gap: .9rem; }
-  .chatbot-builder__question { border: 1px solid var(--im-color-borde); border-radius: var(--im-radio); background: var(--im-color-superficie); box-shadow: var(--im-sombra-1); overflow: hidden; }
-  .chatbot-builder__question[open] { box-shadow: var(--im-sombra-2); }
-  .chatbot-builder__summary { display: flex; align-items: center; gap: .85rem; justify-content: space-between; padding: 1rem 1.1rem; cursor: pointer; list-style: none; }
-  .chatbot-builder__summary::-webkit-details-marker { display: none; }
-  .chatbot-builder__summary-main { display: grid; gap: .2rem; min-width: 0; }
-  .chatbot-builder__summary-title { font-weight: 700; color: var(--im-color-texto); }
-  .chatbot-builder__summary-meta { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; color: var(--im-color-texto-suave); font-size: .88rem; }
-  .chatbot-builder__summary-actions { display: flex; gap: .5rem; align-items: center; }
-  .chatbot-builder__question-body { display: grid; gap: 1rem; padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--im-color-borde); }
-  .chatbot-builder__question-grid { display: grid; gap: .85rem; grid-template-columns: 1.2fr .8fr; }
-  .chatbot-builder__toggle-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
-  .chatbot-builder__option-list { display: grid; gap: .75rem; }
-  .chatbot-builder__option-row { display: grid; gap: .7rem; grid-template-columns: minmax(180px, 1.3fr) minmax(170px, .95fr) minmax(170px, .95fr) auto; align-items: end; padding: .9rem; border: 1px solid var(--im-color-borde); border-radius: 18px; background: color-mix(in srgb, var(--im-color-superficie) 92%, var(--im-color-principal-suave)); }
-  .chatbot-builder__option-row--disabled-destination { grid-template-columns: minmax(180px, 1.3fr) minmax(170px, .95fr) auto; }
-  .chatbot-builder__option-destination--hidden { display: none; }
-  .chatbot-builder__phone { width: min(280px, 100%); margin: 0 auto; border-radius: 28px; border: 1px solid var(--im-color-borde); background: #f8fbff; overflow: hidden; box-shadow: var(--im-sombra-1); }
-  .chatbot-builder__phone-head { display: flex; align-items: center; gap: .75rem; padding: 1rem; background: linear-gradient(135deg, var(--im-color-principal), var(--im-color-secundario)); color: white; }
-  .chatbot-builder__phone-body { display: grid; gap: .75rem; padding: 1rem; }
-  .chatbot-builder__bubble { padding: .85rem .95rem; border-radius: 18px; background: white; border: 1px solid var(--im-color-borde); }
-  .chatbot-builder__preview-options { display: grid; gap: .55rem; }
-  .chatbot-builder__preview-button { padding: .72rem .85rem; border-radius: 14px; background: color-mix(in srgb, var(--im-color-secundario) 22%, white); color: var(--im-color-principal); font-weight: 600; border: 1px solid color-mix(in srgb, var(--im-color-secundario) 30%, var(--im-color-borde)); }
-  @media (max-width: 900px) {
-    .chatbot-builder__general-layout,
-    .chatbot-builder__topbar,
-    .chatbot-builder__config-grid,
-    .chatbot-builder__workspace,
-    .chatbot-builder__question-grid,
-    .chatbot-builder__option-row,
-    .chatbot-builder__option-row--disabled-destination { grid-template-columns: 1fr; }
-    .chatbot-builder__preview { position: static; }
-  }
-</style>
 <section class="im-seccion-documento activa" id="chatbot-builder" data-panel="chatbot-builder">
   <div class="im-encabezado-seccion">
     <div>
@@ -145,9 +83,8 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
     </div>
   <?php endif; ?>
 
-  <div class="chatbot-builder">
-    <?php if (is_array($chatbotBuilderSelectedIntegration)): ?>
-      <form method="post" enctype="multipart/form-data" class="im-formulario chatbot-builder__stack" data-chatbot-builder-form>
+  <?php if (is_array($chatbotBuilderSelectedIntegration)): ?>
+      <form method="post" enctype="multipart/form-data" class="im-formulario" data-chatbot-builder-form>
         <?php if ($chatbotBuilderPostAction !== ''): ?>
           <input type="hidden" name="chatbot_builder_action" value="<?= $h($chatbotBuilderPostAction) ?>">
         <?php endif; ?>
@@ -156,21 +93,44 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
         <input type="hidden" name="current_avatar_path" value="<?= $h($avatarPathActual) ?>">
         <input type="hidden" name="target_status" value="">
 
-        <article class="im-tarjeta chatbot-builder__general chatbot-builder__stack">
-          <div class="chatbot-builder__general-layout">
-            <div class="chatbot-builder__main">
-              <div class="chatbot-builder__topbar">
-                <div>
-                  <h3>Configuracion general del chatbot</h3>
-                  <p>Primero define identidad, estado y mensaje de bienvenida del widget para <?= $h($chatbotBuilderSelectedIntegration['allowed_domain'] ?? '') ?>.</p>
-                </div>
-              </div>
+        <article class="im-tarjeta im-campo--ancho">
+          <div class="im-tarjeta__cabecera">
+            <div>
+              <h3>Configuracion general del chatbot</h3>
+              <p>Primero define identidad, estado y mensaje de bienvenida del widget para <?= $h($chatbotBuilderSelectedIntegration['allowed_domain'] ?? '') ?>.</p>
+            </div>
+            <div class="im-chip-lista">
+              <span class="im-chip <?= ($chatbotBuilderSelectedIntegration['integration_status'] ?? '') === 'active' ? 'im-chip--activo' : 'im-chip--alerta' ?>">
+                API <?= ($chatbotBuilderSelectedIntegration['integration_status'] ?? '') === 'active' ? 'activa' : 'inactiva' ?>
+              </span>
+              <span class="im-chip <?= ((int) ($chatbotBuilderSelectedIntegration['disabled_by_admin'] ?? 0) === 1) ? 'im-chip--alerta' : 'im-chip--completado' ?>">
+                <?= ((int) ($chatbotBuilderSelectedIntegration['disabled_by_admin'] ?? 0) === 1) ? 'Desactivado por admin' : 'Sin bloqueo admin' ?>
+              </span>
+            </div>
+          </div>
 
-              <div class="im-alerta im-alerta--info">
-                <strong>Los cambios guardados se veran automaticamente en tu web.</strong>
-              </div>
+          <div class="im-alerta im-alerta--info">
+            <strong>Los cambios guardados se veran automaticamente en tu web.</strong>
+          </div>
 
-              <div class="chatbot-builder__config-grid">
+          <div class="im-grilla im-grilla--dos-columnas">
+            <div>
+              <div class="im-formulario">
+                <label class="im-campo im-campo-material im-campo--ancho">
+                  <span>Integracion asociada</span>
+                  <select name="integration_id" onchange="window.location.search='?integration_id=' + this.value;">
+                    <?php if ($chatbotBuilderIntegraciones === []): ?>
+                      <option value=""><?= $h('No hay integraciones disponibles') ?></option>
+                    <?php else: ?>
+                      <?php foreach ($chatbotBuilderIntegraciones as $chatbotBuilderIntegrationItem): ?>
+                        <option value="<?= (int) ($chatbotBuilderIntegrationItem['id'] ?? 0) ?>" <?= (int) ($chatbotBuilderIntegrationItem['id'] ?? 0) === (int) ($chatbotBuilderSelectedIntegration['id'] ?? 0) ? 'selected' : '' ?>>
+                          <?= $h(($chatbotBuilderIntegrationItem['project_name'] ?? '') . ' - ' . ($chatbotBuilderIntegrationItem['allowed_domain'] ?? '')) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </select>
+                </label>
+
                 <label class="im-campo im-campo-material">
                   <span>Nombre del chatbot</span>
                   <input type="text" name="name" maxlength="180" value="<?= $h($chatbotBuilderChatbotActual['name'] ?? ('Chatbot ' . ($chatbotBuilderSelectedIntegration['project_name'] ?? ''))) ?>" required>
@@ -182,92 +142,66 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                     <option value="inactive" <?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') !== 'active' ? 'selected' : '' ?>>Inactivo</option>
                   </select>
                 </label>
-                <label class="im-campo im-campo-material chatbot-builder__full">
+                <label class="im-campo im-campo-material im-campo--ancho">
                   <span>WhatsApp de derivacion</span>
                   <input type="text" name="whatsapp" maxlength="80" value="<?= $h($chatbotBuilderChatbotActual['whatsapp'] ?? $chatbotBuilderWhatsappSugerido) ?>" required>
                 </label>
-
-                <label class="im-campo im-campo-material chatbot-builder__full">
+                <label class="im-campo im-campo-material im-campo--ancho">
                   <span>Mensaje inicial</span>
-                  <textarea name="initial_message" rows="3" maxlength="1000" required><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></textarea>
+                  <textarea name="initial_message" rows="4" maxlength="1000" required><?= $h($chatbotBuilderChatbotActual['initial_message'] ?? 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.') ?></textarea>
                 </label>
-              </div>
-
-              <div class="chatbot-builder__action-bar">
-                <div class="im-chip-lista">
-                  <span class="im-chip"><?= $h($chatbotBuilderChatbotActual['name'] ?? 'Sin crear') ?></span>
-                  <span class="im-chip"><?= $h(($chatbotBuilderChatbotActual['whatsapp'] ?? $chatbotBuilderWhatsappSugerido) ?: 'WhatsApp sin precarga') ?></span>
-                </div>
-                <div class="chatbot-builder__action-group">
-                  <?php if ($chatbotBuilderChatbotActual): ?>
-                    <button
-                      class="im-boton"
-                      type="submit"
-                      name="chatbot_builder_submit"
-                      value="toggle"
-                      formnovalidate
-                      onclick="this.form.querySelector('[name=target_status]').value='<?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') === 'active' ? 'inactive' : 'active' ?>';"
-                    >
-                      <?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') === 'active' ? 'Desactivar chatbot' : 'Activar chatbot' ?>
-                    </button>
-                  <?php endif; ?>
-                  <button class="im-boton im-boton--principal" type="submit" name="chatbot_builder_submit" value="save">Guardar cambios</button>
-                </div>
               </div>
             </div>
 
-            <aside class="chatbot-builder__side">
-              <div class="chatbot-builder__side-card chatbot-builder__topbar-meta">
-                <?php if ($chatbotBuilderIntegraciones === []): ?>
-                  <div class="im-alerta im-alerta--info">No hay integraciones API asociadas a tu cuenta todavia.</div>
-                <?php else: ?>
-                  <div class="chatbot-builder__integration-form">
-                    <label class="im-campo im-campo-material">
-                      <span>Integracion asociada</span>
-                      <select name="integration_id" onchange="window.location.search='?integration_id=' + this.value;">
-                        <?php foreach ($chatbotBuilderIntegraciones as $chatbotBuilderIntegrationItem): ?>
-                          <option value="<?= (int) ($chatbotBuilderIntegrationItem['id'] ?? 0) ?>" <?= (int) ($chatbotBuilderIntegrationItem['id'] ?? 0) === (int) ($chatbotBuilderSelectedIntegration['id'] ?? 0) ? 'selected' : '' ?>>
-                            <?= $h(($chatbotBuilderIntegrationItem['project_name'] ?? '') . ' - ' . ($chatbotBuilderIntegrationItem['allowed_domain'] ?? '')) ?>
-                          </option>
-                        <?php endforeach; ?>
-                      </select>
-                    </label>
-                  </div>
-                <?php endif; ?>
-                <div class="im-chip-lista">
-                  <span class="im-chip <?= ($chatbotBuilderSelectedIntegration['integration_status'] ?? '') === 'active' ? 'im-chip--activo' : 'im-chip--alerta' ?>">
-                    API <?= ($chatbotBuilderSelectedIntegration['integration_status'] ?? '') === 'active' ? 'activa' : 'inactiva' ?>
-                  </span>
-                  <span class="im-chip <?= ((int) ($chatbotBuilderSelectedIntegration['disabled_by_admin'] ?? 0) === 1) ? 'im-chip--alerta' : 'im-chip--completado' ?>">
-                    <?= ((int) ($chatbotBuilderSelectedIntegration['disabled_by_admin'] ?? 0) === 1) ? 'Desactivado por admin' : 'Sin bloqueo admin' ?>
-                  </span>
-                </div>
+            <div>
+              <div class="im-chip-lista">
+                <span class="im-chip im-chip--avatar">
+                  <b data-chatbot-avatar-preview>
+                    <?php if ($avatarPathActual !== ''): ?>
+                      <img src="<?= $h($avatarPathActual) ?>" alt="" width="24" height="24">
+                    <?php else: ?>
+                      <?= $h($avatarPlaceholder) ?>
+                    <?php endif; ?>
+                  </b>
+                  Avatar del chatbot
+                </span>
+                <span class="im-chip" data-chatbot-avatar-filename><?= $avatarPathActual !== '' ? $h(basename($avatarPathActual)) : 'Sin imagen cargada' ?></span>
               </div>
 
-              <div class="chatbot-builder__avatar-box">
-                <div class="chatbot-builder__avatar-preview" data-chatbot-avatar-preview>
-                  <?php if ($avatarPathActual !== ''): ?>
-                    <img src="<?= $h($avatarPathActual) ?>" alt="">
-                  <?php else: ?>
-                    <?= $h($avatarPlaceholder) ?>
-                  <?php endif; ?>
-                </div>
-                <div class="chatbot-builder__avatar-actions">
-                  <strong>Avatar del chatbot</strong>
-                  <label class="im-boton im-boton--tonal" for="chatbot-avatar-file">Cambiar avatar</label>
-                  <input class="chatbot-builder__file-input" id="chatbot-avatar-file" type="file" name="avatar_file" accept=".jpg,.jpeg,.png,.webp" data-chatbot-avatar-input>
-                  <span data-chatbot-avatar-filename><?= $avatarPathActual !== '' ? $h(basename($avatarPathActual)) : 'Sin imagen cargada' ?></span>
-                  <p class="chatbot-builder__avatar-help">Formatos permitidos: JPG, PNG o WEBP. Maximo 2MB.</p>
-                </div>
+              <label class="im-campo im-campo-material im-campo--ancho">
+                <span>Actualizar avatar</span>
+                <input id="chatbot-avatar-file" type="file" name="avatar_file" accept=".jpg,.jpeg,.png,.webp" data-chatbot-avatar-input>
+              </label>
+
+              <p>Formatos permitidos: JPG, PNG o WEBP. Maximo 2MB.</p>
+
+              <div class="im-chip-lista">
+                <span class="im-chip"><?= $h($chatbotBuilderChatbotActual['name'] ?? 'Sin crear') ?></span>
+                <span class="im-chip"><?= $h(($chatbotBuilderChatbotActual['whatsapp'] ?? $chatbotBuilderWhatsappSugerido) ?: 'WhatsApp sin precarga') ?></span>
               </div>
-            </aside>
+
+              <div class="im-formulario__acciones">
+                <?php if ($chatbotBuilderChatbotActual): ?>
+                  <button
+                    class="im-boton"
+                    type="submit"
+                    name="chatbot_builder_submit"
+                    value="toggle"
+                    formnovalidate
+                    onclick="this.form.querySelector('[name=target_status]').value='<?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') === 'active' ? 'inactive' : 'active' ?>';"
+                  >
+                    <?= ($chatbotBuilderChatbotActual['status'] ?? 'inactive') === 'active' ? 'Desactivar chatbot' : 'Activar chatbot' ?>
+                  </button>
+                <?php endif; ?>
+                <button class="im-boton im-boton--principal" type="submit" name="chatbot_builder_submit" value="save">Guardar cambios</button>
+              </div>
+            </div>
           </div>
         </article>
 
-        <div class="chatbot-builder__questions" data-chatbot-builder-nodes hidden></div>
+        <div data-chatbot-builder-nodes hidden></div>
       </form>
 
       <script type="application/json" data-chatbot-builder-seed><?= json_encode($chatbotBuilderInitialNodes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
-    <?php endif; ?>
-  </div>
+  <?php endif; ?>
 </section>
