@@ -109,10 +109,6 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
             </div>
           </div>
 
-          <div class="im-alerta im-alerta--info">
-            <strong>Los cambios guardados se veran automaticamente en tu web.</strong>
-          </div>
-
           <div class="im-grilla im-grilla--dos-columnas">
             <div>
               <div class="im-formulario">
