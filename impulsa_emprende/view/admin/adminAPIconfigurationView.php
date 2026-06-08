@@ -229,6 +229,7 @@ $estadoTexto = static function (string $estado): string {
                           $integrationId = (int) ($integracion['id'] ?? 0);
                           $visitSnippet = "<script>\nwindow.IMPULSA_API_CONFIG = {\n  publicKey: \"" . ($integracion['public_key'] ?? '') . "\",\n  apiBaseUrl: \"" . rtrim($appBaseUrl, '/') . "/api\"\n};\n</script>\n<script src=\"" . rtrim($appBaseUrl, '/') . "/assets/impulsa_material/js/visit-tracker.js\"></script>";
                           $formSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/contact_form_landing_page/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    page: window.location.pathname,\n    contact_nombre: formName,\n    contact_email: formEmail,\n    contact_whatsapp: formPhone,\n    contact_description: formMessage\n  })\n});";
+                          $chatbotSnippet = "<script src=\"" . rtrim($appBaseUrl, '/') . "/api/chatbot_widget/widget.js?public_key=" . ($integracion['public_key'] ?? '') . "\"></script>";
                           $payloadModal = [
                               'id' => $integrationId,
                               'project_name' => (string) ($integracion['project_name'] ?? ''),
@@ -241,6 +242,7 @@ $estadoTexto = static function (string $estado): string {
                               'updated_at' => $formatearFecha($integracion['updated_at'] ?? null),
                               'visit_snippet' => $visitSnippet,
                               'form_snippet' => $formSnippet,
+                              'chatbot_snippet' => $chatbotSnippet,
                           ];
                         ?>
                         <tr id="integration-<?= $integrationId ?>">
@@ -385,6 +387,16 @@ $estadoTexto = static function (string $estado): string {
           </div>
           <pre id="api-detalle-form-snippet"><code data-api-detalle-form-snippet></code></pre>
         </div>
+        <div class="im-api-snippet">
+          <div class="im-tarjeta__cabecera">
+            <div>
+              <h4>Snippet chatbot</h4>
+              <p>Inserta el widget del chatbot usando la misma public key de la integracion.</p>
+            </div>
+            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-chatbot-snippet">Copiar</button>
+          </div>
+          <pre id="api-detalle-chatbot-snippet"><code data-api-detalle-chatbot-snippet></code></pre>
+        </div>
       </div>
     </div>
     <footer class="im-dialog__acciones">
@@ -486,6 +498,7 @@ $estadoTexto = static function (string $estado): string {
           modal.querySelector('[data-api-detalle-toggle-text]').textContent = data.status === 'active' ? 'Desactivar' : 'Activar';
           modal.querySelector('[data-api-detalle-visit-snippet]').textContent = data.visit_snippet || '';
           modal.querySelector('[data-api-detalle-form-snippet]').textContent = data.form_snippet || '';
+          modal.querySelector('[data-api-detalle-chatbot-snippet]').textContent = data.chatbot_snippet || '';
 
           alternar(true);
         });
