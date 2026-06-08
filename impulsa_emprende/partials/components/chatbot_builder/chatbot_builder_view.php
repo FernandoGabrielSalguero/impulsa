@@ -71,7 +71,7 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
   .chatbot-builder .im-campo select { min-height: 48px; }
   .chatbot-builder .im-campo textarea { min-height: 88px; resize: vertical; }
   .chatbot-builder__stack { display: grid; gap: 1rem; }
-  .chatbot-builder__general { width: 100%; }
+  .chatbot-builder__general { width: 100%; order: 1; }
   .chatbot-builder__topbar { display: grid; gap: 1rem; grid-template-columns: minmax(280px, 1.3fr) minmax(260px, .9fr); align-items: start; }
   .chatbot-builder__topbar-meta { display: grid; gap: .75rem; }
   .chatbot-builder__integration-form { max-width: 100%; }
@@ -79,7 +79,7 @@ $h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
   .chatbot-builder__full { grid-column: 1 / -1; }
   .chatbot-builder__action-bar { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: center; }
   .chatbot-builder__action-group { display: flex; flex-wrap: wrap; gap: .75rem; }
-  .chatbot-builder__workspace { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); align-items: start; }
+  .chatbot-builder__workspace { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); align-items: start; order: 2; }
   .chatbot-builder__flow { min-width: 0; }
   .chatbot-builder__preview { min-width: 0; display: grid; gap: .85rem; position: sticky; top: 1rem; }
   .chatbot-builder__avatar-box { display: grid; grid-template-columns: 72px 1fr; gap: .85rem; align-items: center; min-height: 48px; padding: .9rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio); background: var(--im-color-superficie); }
