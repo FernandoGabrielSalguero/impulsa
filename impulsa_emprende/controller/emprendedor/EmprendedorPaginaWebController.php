@@ -2,15 +2,18 @@
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
 require_once __DIR__ . '/../../model/emprendedor/EmprendedorPaginaWebModel.php';
+require_once __DIR__ . '/../../model/client/ClienteDashboardModel.php';
 
 $usuario = authRequiereRol('impulsa_emprendedor');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
 $paginaWebModel = new EmprendedorPaginaWebModel($pdo);
+$clienteDashboardModel = new ClienteDashboardModel($pdo);
 $paginaWebUsuario = $paginaWebModel->obtenerUsuario((int) $usuario['id']);
 $paginaWebEstadoDefinicion = $paginaWebModel->obtenerEstadoDefinicion((int) $usuario['id']);
 $paginaWebDefinicionCompleta = $paginaWebModel->tieneDefinicionCompleta((int) $usuario['id']);
+$paginaWebProyectoData = $clienteDashboardModel->obtenerDashboard((int) $usuario['id']);
 
 require __DIR__ . '/../../partials/pagina_web/pagina_web_controller.php';
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';

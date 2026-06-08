@@ -76,6 +76,7 @@ $tipoObjetivo = static function (?string $tipo): string {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/impulsa_material/css/material.css">
+  <?php require __DIR__ . '/../../partials/components/project progress/styles.php'; ?>
   <style>
     .im-marca__isotipo img {
       width: 100%;
@@ -92,147 +93,6 @@ $tipoObjetivo = static function (?string $tipo): string {
       max-width: 860px;
       max-height: min(760px, calc(100vh - 2rem));
       overflow: auto;
-    }
-
-    .im-cliente-avance {
-      display: grid;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .im-cliente-avance__tarjeta {
-      display: grid;
-      gap: 1rem;
-    }
-
-    .im-cliente-avance__resumen {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .75rem;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .im-cliente-avance__metricas {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .65rem;
-    }
-
-    .im-cliente-avance__barra {
-      width: 100%;
-      height: .7rem;
-      border: 0;
-      border-radius: 999px;
-      overflow: hidden;
-      background: var(--im-color-borde);
-      appearance: none;
-    }
-
-    .im-cliente-avance__barra::-webkit-progress-bar {
-      background: var(--im-color-borde);
-      border-radius: 999px;
-    }
-
-    .im-cliente-avance__barra::-webkit-progress-value {
-      background: var(--im-color-principal);
-      border-radius: 999px;
-    }
-
-    .im-cliente-avance__barra::-moz-progress-bar {
-      background: var(--im-color-principal);
-      border-radius: 999px;
-    }
-
-    .im-cliente-avance__fases {
-      display: grid;
-      gap: .9rem;
-    }
-
-    .im-cliente-avance__fase {
-      border: 1px solid var(--im-color-borde);
-      border-radius: 20px;
-      padding: 1rem;
-      background: var(--im-color-superficie);
-      display: grid;
-      gap: .85rem;
-    }
-
-    .im-cliente-avance__fase-cabecera,
-    .im-cliente-avance__objetivo {
-      display: flex;
-      gap: .75rem;
-      align-items: flex-start;
-      justify-content: space-between;
-    }
-
-    .im-cliente-avance__fase-titulo,
-    .im-cliente-avance__objetivo-titulo {
-      display: grid;
-      gap: .25rem;
-    }
-
-    .im-cliente-avance__encabezado-item {
-      display: flex;
-      gap: .75rem;
-      align-items: flex-start;
-    }
-
-    .im-cliente-avance__meta,
-    .im-cliente-avance__objetivo-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .5rem;
-      color: var(--im-color-texto-suave);
-      font-size: .92rem;
-    }
-
-    .im-cliente-avance__objetivos {
-      display: grid;
-      gap: .75rem;
-    }
-
-    .im-cliente-avance__objetivo {
-      padding: .9rem 1rem;
-      border-radius: 16px;
-      background: var(--im-color-superficie-2);
-    }
-
-    .im-cliente-avance__icono {
-      color: var(--im-color-texto-suave);
-      font-size: 1.15rem;
-      line-height: 1;
-      margin-top: .2rem;
-    }
-
-    .im-cliente-avance__vacio {
-      border: 1px dashed var(--im-color-borde);
-      border-radius: 16px;
-      padding: 1rem;
-      color: var(--im-color-texto-suave);
-      background: var(--im-color-superficie-2);
-    }
-
-    .im-cliente-contrato-barra {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .im-cliente-contrato-barra__texto {
-      display: grid;
-      gap: .2rem;
-      flex: 1 1 320px;
-    }
-
-    .im-cliente-contrato-barra__acciones {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-      flex-wrap: wrap;
-      justify-content: flex-end;
     }
 
     .im-cliente-contrato-modal {
@@ -331,135 +191,18 @@ $tipoObjetivo = static function (?string $tipo): string {
             <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Contratos</span><strong><?= (int) ($resumen['contratos_pendientes'] ?? 0) ?></strong><small>Pendientes</small></article>
           </div>
 
-          <div class="im-cliente-avance">
-            <article class="im-tarjeta im-cliente-avance__tarjeta">
-              <div class="im-tarjeta__cabecera">
-                <div>
-                  <h3>Mis proyectos</h3>
-                  <p>Detalle de avances, entregables y contratos asociados a tu usuario cliente.</p>
-                </div>
-              </div>
-              <?php if (!$proyectos): ?>
-                <div class="im-alerta im-alerta--info">Todavia no hay proyectos visibles para tu usuario.</div>
-              <?php else: ?>
-                <div class="im-cliente-avance">
-                  <?php foreach ($proyectos as $proyecto): ?>
-                    <?php
-                      $projectId = (int) ($proyecto['id'] ?? 0);
-                      $fases = $fasesPorProyecto[$projectId] ?? [];
-                      $objetivos = $objetivosPorProyecto[$projectId] ?? [];
-                      $contratoProyecto = $contratosPorProyecto[$projectId] ?? null;
-                      $objetivosCompletados = count(array_filter($objetivos, static fn (array $objetivo): bool => ($objetivo['status'] ?? '') === 'delivered'));
-                      [$estadoTexto, $estadoClase] = $estadoProyecto($proyecto['status'] ?? '');
-                    ?>
-                    <article class="im-tarjeta im-cliente-avance__tarjeta">
-                      <div class="im-cliente-avance__resumen">
-                        <div>
-                          <p class="im-sobrelinea">Proyecto</p>
-                          <h4><?= $h($proyecto['project_name'] ?? '') ?></h4>
-                          <p><?= $h($proyecto['summary'] ?? $proyecto['scope_summary'] ?? 'Sin descripcion visible.') ?></p>
-                        </div>
-                        <div class="im-cliente-avance__metricas">
-                          <span class="im-chip <?= $h($estadoClase) ?>"><?= $h($estadoTexto) ?></span>
-                          <span class="im-chip"><?= (int) ($proyecto['progress_percent'] ?? 0) ?>% avance</span>
-                          <span class="im-chip"><?= (int) ($proyecto['fases_total'] ?? 0) ?> fases</span>
-                          <span class="im-chip"><?= $objetivosCompletados ?> / <?= count($objetivos) ?> objetivos entregados</span>
-                        </div>
-                      </div>
-                      <progress class="im-cliente-avance__barra" max="100" value="<?= (int) ($proyecto['progress_percent'] ?? 0) ?>"> <?= (int) ($proyecto['progress_percent'] ?? 0) ?>% </progress>
-                      <div class="im-cliente-avance__meta">
-                        <span>Entrega objetivo: <?= $fecha($proyecto['target_delivery_date'] ?? '') ?></span>
-                        <span><?= count($fases) ?> fases visibles</span>
-                        <span><?= count($objetivos) ?> objetivos visibles</span>
-                        <span><?= (int) ($proyecto['actualizaciones_total'] ?? 0) ?> actualizaciones</span>
-                      </div>
-
-                      <?php if (!$fases): ?>
-                        <div class="im-cliente-avance__vacio">Todavia no hay fases visibles cargadas para este proyecto.</div>
-                      <?php else: ?>
-                        <div class="im-cliente-avance__fases">
-                          <?php foreach ($fases as $fase): ?>
-                            <?php
-                              $faseId = (int) ($fase['id'] ?? 0);
-                              $objetivosFase = array_values(array_filter(
-                                  $objetivos,
-                                  static fn (array $objetivo): bool => (int) ($objetivo['phase_id'] ?? 0) === $faseId
-                              ));
-                              $objetivosFaseCompletados = count(array_filter(
-                                  $objetivosFase,
-                                  static fn (array $objetivo): bool => ($objetivo['status'] ?? '') === 'delivered'
-                              ));
-                              [$faseEstadoTexto, $faseEstadoClase, $faseEstadoIcono] = $estadoSeguimiento($fase['status'] ?? '');
-                            ?>
-                            <section class="im-cliente-avance__fase">
-                              <div class="im-cliente-avance__fase-cabecera">
-                                <div class="im-cliente-avance__encabezado-item">
-                                  <span class="material-symbols-rounded im-cliente-avance__icono" aria-hidden="true"><?= $h($faseEstadoIcono) ?></span>
-                                  <div class="im-cliente-avance__fase-titulo">
-                                    <strong><?= $h(($fase['phase_order'] ?? '') . '. ' . ($fase['title'] ?? '')) ?></strong>
-                                    <div class="im-cliente-avance__meta">
-                                      <span><?= $h($faseEstadoTexto) ?></span>
-                                      <span>Vence: <?= $fecha($fase['due_date'] ?? '') ?></span>
-                                      <span><?= $objetivosFaseCompletados ?> / <?= count($objetivosFase) ?> objetivos entregados</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <span class="im-chip <?= $h($faseEstadoClase) ?>"><?= $h($faseEstadoTexto) ?></span>
-                              </div>
-
-                              <?php if ($objetivosFase): ?>
-                                <div class="im-cliente-avance__objetivos">
-                                  <?php foreach ($objetivosFase as $objetivo): ?>
-                                    <?php [$objetivoEstadoTexto, $objetivoEstadoClase, $objetivoEstadoIcono] = $estadoSeguimiento($objetivo['status'] ?? ''); ?>
-                                    <article class="im-cliente-avance__objetivo">
-                                      <div class="im-cliente-avance__encabezado-item">
-                                        <span class="material-symbols-rounded im-cliente-avance__icono" aria-hidden="true"><?= $h($objetivoEstadoIcono) ?></span>
-                                        <div class="im-cliente-avance__objetivo-titulo">
-                                          <strong><?= $h($objetivo['title'] ?? '') ?></strong>
-                                          <div class="im-cliente-avance__objetivo-meta">
-                                            <span><?= $h($tipoObjetivo($objetivo['deliverable_type'] ?? '')) ?></span>
-                                            <span>Fecha limite: <?= $fecha($objetivo['due_date'] ?? '') ?></span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <span class="im-chip <?= $h($objetivoEstadoClase) ?>"><?= $h($objetivoEstadoTexto) ?></span>
-                                    </article>
-                                  <?php endforeach; ?>
-                                </div>
-                              <?php else: ?>
-                                <div class="im-cliente-avance__vacio">Esta fase todavia no tiene objetivos visibles.</div>
-                              <?php endif; ?>
-                            </section>
-                          <?php endforeach; ?>
-                        </div>
-                      <?php endif; ?>
-
-                      <?php if ($contratoProyecto): ?>
-                        <div class="im-alerta im-alerta--info im-cliente-contrato-barra">
-                          <div class="im-cliente-contrato-barra__texto">
-                            <strong>Contrato: <?= $h($contratoProyecto['contract_name'] ?? '') ?> - <?= (int) ($contratoProyecto['is_signed'] ?? 0) === 1 ? 'firmado' : 'pendiente de firma' ?>.</strong>
-                          </div>
-                          <div class="im-cliente-contrato-barra__acciones">
-                            <?php if ((int) ($contratoProyecto['is_signed'] ?? 0) === 1): ?>
-                              <span class="im-chip im-chip--completado">Contrato firmado</span>
-                            <?php else: ?>
-                              <button
-                                class="im-boton im-boton--principal"
-                                type="button"
-                                data-abrir-contrato-cliente="<?= (int) ($contratoProyecto['id'] ?? 0) ?>"
-                              >
-                                Firmar contrato
-                              </button>
-                            <?php endif; ?>
-                          </div>
-                        </div>
-                      <?php endif; ?>
-                    </article>
-                  <?php endforeach; ?>
-                </div>
-              <?php endif; ?>
-            </article>
-          </div>
+          <?php
+            $proyectosAvance = $proyectos;
+            $fasesPorProyectoAvance = $fasesPorProyecto;
+            $objetivosPorProyectoAvance = $objetivosPorProyecto;
+            $contratosPorProyectoAvance = $contratosPorProyecto;
+            $avanceTitulo = 'Mis proyectos';
+            $avanceDescripcion = 'Detalle de avances, entregables y contratos asociados a tu usuario cliente.';
+            $avanceMensajeVacio = 'Todavia no hay proyectos visibles para tu usuario.';
+            $avancePermiteFirmaContrato = true;
+            $avanceMostrarContenedor = true;
+            require __DIR__ . '/../../partials/components/project progress/view.php';
+          ?>
 
           <div class="im-grilla im-grilla--dashboard">
 

@@ -6,6 +6,10 @@ $paginaWebEstadoDefinicion = $paginaWebEstadoDefinicion ?? ['mision' => false, '
 $paginaWebDefinicionCompleta = $paginaWebDefinicionCompleta ?? false;
 $paginaWebSolicitud = $paginaWebSolicitud ?? [];
 $paginaWebSnackbar = $paginaWebSnackbar ?? null;
+$paginaWebProyectoData = $paginaWebProyectoData ?? [];
+$paginaWebProyectos = $paginaWebProyectoData['proyectos'] ?? [];
+$paginaWebFasesPorProyecto = $paginaWebProyectoData['fases'] ?? [];
+$paginaWebObjetivosPorProyecto = $paginaWebProyectoData['objetivos'] ?? [];
 
 if (!function_exists('paginaWebH')) {
     function paginaWebH(mixed $value): string
@@ -31,6 +35,7 @@ if (!function_exists('paginaWebFecha')) {
   <title>Pagina web | Impulsa Emprende</title>
   <link rel="icon" href="<?= htmlspecialchars(obtenerFaviconHref(), ENT_QUOTES, 'UTF-8'); ?>" type="image/x-icon">
   <link rel="stylesheet" href="/assets/impulsa_material/css/material.css?v=icons-local-1">
+  <?php require __DIR__ . '/../../partials/components/project progress/styles.php'; ?>
 </head>
 <body>
   <div class="im-aplicacion" data-menu-colapsado="false">
@@ -105,25 +110,46 @@ if (!function_exists('paginaWebFecha')) {
               </div>
             </article>
           <?php elseif ($paginaWebSolicitud): ?>
-            <article class="im-tarjeta">
-              <div class="im-tarjeta__cabecera">
-                <div>
-                  <h3>Solicitud enviada</h3>
-                  <p>Ya registramos una solicitud de pagina web para tu usuario.</p>
-                </div>
-                <span class="im-chip <?= (int) ($paginaWebSolicitud['completado'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= (int) ($paginaWebSolicitud['completado'] ?? 0) === 1 ? 'Completada' : 'Pendiente' ?></span>
-              </div>
-              <div class="im-tabla-contenedor">
-                <table class="im-tabla">
-                  <tbody>
-                    <tr><th>Emprendimiento</th><td><?= paginaWebH($paginaWebSolicitud['nombre_emprendimiento'] ?? '') ?></td></tr>
-                    <tr><th>Fundador</th><td><?= paginaWebH($paginaWebSolicitud['nombre_fundador'] ?? '') ?></td></tr>
-                    <tr><th>Telefono</th><td><?= paginaWebH($paginaWebSolicitud['telefono_contacto'] ?? '') ?></td></tr>
-                    <tr><th>Fecha de solicitud</th><td><?= paginaWebFecha($paginaWebSolicitud['created_at'] ?? '') ?></td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </article>
+            <div class="im-acordeon">
+              <details class="im-expansion" open>
+                <summary>
+                  Solicitud enviada
+                  <span class="im-chip <?= (int) ($paginaWebSolicitud['completado'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>">
+                    <?= (int) ($paginaWebSolicitud['completado'] ?? 0) === 1 ? 'Completada' : 'Pendiente' ?>
+                  </span>
+                </summary>
+                <article class="im-tarjeta">
+                  <div class="im-tarjeta__cabecera">
+                    <div>
+                      <h3>Solicitud enviada</h3>
+                      <p>Ya registramos una solicitud de pagina web para tu usuario.</p>
+                    </div>
+                  </div>
+                  <div class="im-tabla-contenedor">
+                    <table class="im-tabla">
+                      <tbody>
+                        <tr><th>Emprendimiento</th><td><?= paginaWebH($paginaWebSolicitud['nombre_emprendimiento'] ?? '') ?></td></tr>
+                        <tr><th>Fundador</th><td><?= paginaWebH($paginaWebSolicitud['nombre_fundador'] ?? '') ?></td></tr>
+                        <tr><th>Telefono</th><td><?= paginaWebH($paginaWebSolicitud['telefono_contacto'] ?? '') ?></td></tr>
+                        <tr><th>Fecha de solicitud</th><td><?= paginaWebFecha($paginaWebSolicitud['created_at'] ?? '') ?></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </article>
+              </details>
+            </div>
+
+            <?php
+              $proyectosAvance = $paginaWebProyectos;
+              $fasesPorProyectoAvance = $paginaWebFasesPorProyecto;
+              $objetivosPorProyectoAvance = $paginaWebObjetivosPorProyecto;
+              $avanceTitulo = 'Avance del proyecto asignado';
+              $avanceDescripcion = 'Seguimiento del proyecto de pagina web asociado a tu usuario.';
+              $avanceMensajeVacio = 'Tu solicitud ya fue registrada. Cuando el equipo te asigne un proyecto, vas a poder ver el avance aca.';
+              $avancePermiteFirmaContrato = false;
+              $avanceMostrarContenedor = true;
+              require __DIR__ . '/../../partials/components/project progress/view.php';
+            ?>
           <?php else: ?>
             <article class="im-tarjeta">
               <?php require __DIR__ . '/../../partials/pagina_web/pagina_web_view.php'; ?>
