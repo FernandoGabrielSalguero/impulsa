@@ -29,6 +29,7 @@ $fecha = static function (?string $value): string {
     .im-marca__isotipo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
     .im-accion-salir { color: #ba1a1a; }
     .im-bottom-sheet--perfil { max-width: 860px; max-height: min(760px, calc(100vh - 2rem)); overflow: auto; }
+    .im-nav-item__icono[data-icon]::before { content: attr(data-icon); }
   </style>
 </head>
 <body>
@@ -48,11 +49,13 @@ $fecha = static function (?string $value): string {
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/dashboard.php"><span class="material-symbols-rounded" aria-hidden="true">dashboard</span><span class="im-nav-item__texto">Dashboard</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminListUserController.php"><span class="material-symbols-rounded" aria-hidden="true">groups</span><span class="im-nav-item__texto">Usuarios</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminProyectosController.php"><span class="material-symbols-rounded" aria-hidden="true">work</span><span class="im-nav-item__texto">Proyectos</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminAPIconfigurationController.php"><span class="material-symbols-rounded" aria-hidden="true">key</span><span class="im-nav-item__texto">Integraciones API</span></a>
-        <a class="im-nav-item activo" href="/impulsa_emprende/controller/admin/adminChatbotController.php"><span class="material-symbols-rounded" aria-hidden="true">forum</span><span class="im-nav-item__texto">Chatbots</span></a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/dashboard.php"><span class="im-nav-item__icono" data-icon="dashboard" aria-hidden="true"></span><span class="im-nav-item__texto">Dashboard</span></a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminListUserController.php"><span class="im-nav-item__icono" data-icon="groups" aria-hidden="true"></span><span class="im-nav-item__texto">Usuarios</span></a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminSolicitudesPaginaWebSolicitudesController.php"><span class="im-nav-item__icono" data-icon="language" aria-hidden="true"></span><span class="im-nav-item__texto">Solicitudes web</span></a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminProyectosController.php"><span class="im-nav-item__icono" data-icon="work" aria-hidden="true"></span><span class="im-nav-item__texto">Proyectos</span></a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminAPIconfigurationController.php"><span class="im-nav-item__icono" data-icon="key" aria-hidden="true"></span><span class="im-nav-item__texto">Integraciones API</span></a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php"><span class="im-nav-item__icono" data-icon="mail" aria-hidden="true"></span><span class="im-nav-item__texto">Correos enviados</span></a>
+        <a class="im-nav-item activo" href="/impulsa_emprende/controller/admin/adminChatbotController.php"><span class="im-nav-item__icono" data-icon="forum" aria-hidden="true"></span><span class="im-nav-item__texto">Chatbots</span></a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>

@@ -160,6 +160,14 @@ $claseEstadoProyecto = static function (?string $estado): string {
           <span class="im-nav-item__icono" data-icon="key" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Integraciones API</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php">
+          <span class="im-nav-item__icono" data-icon="mail" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Correos enviados</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminChatbotController.php">
+          <span class="im-nav-item__icono" data-icon="forum" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Chatbots</span>
+        </a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>

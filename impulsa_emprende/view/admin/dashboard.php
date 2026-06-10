@@ -8,6 +8,7 @@ $totalUsuarios = array_sum(array_map(static fn (array $rol): int => (int) ($rol[
 $formatearRol = static function (string $rol): string {
     return ucwords(str_replace('_', ' ', $rol));
 };
+$adminActiveMenu = 'dashboard';
 ?>
 <!doctype html>
 <html lang="es">
@@ -64,7 +65,7 @@ $formatearRol = static function (string $rol): string {
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item activo" href="#dashboard">
+        <a class="im-nav-item activo" href="/impulsa_emprende/controller/admin/dashboard.php">
           <span class="im-nav-item__icono" data-icon="dashboard" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
@@ -83,6 +84,14 @@ $formatearRol = static function (string $rol): string {
         <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminAPIconfigurationController.php">
           <span class="im-nav-item__icono" data-icon="key" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Integraciones API</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php">
+          <span class="im-nav-item__icono" data-icon="mail" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Correos enviados</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminChatbotController.php">
+          <span class="im-nav-item__icono" data-icon="forum" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Chatbots</span>
         </a>
       </nav>
     </aside>
