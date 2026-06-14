@@ -32,6 +32,7 @@
   const featureEditor = document.querySelector('[data-marketing-feature-editor]');
   const pricingEditor = document.querySelector('[data-marketing-pricing-editor]');
   const plansModal = document.querySelector('[data-marketing-plans-modal]');
+  const publishedPlansContainer = document.querySelector('[data-marketing-published-plans]');
   let features = parseJson(planForm?.dataset.initialFeatures, []);
   let pricing = parseJson(planForm?.dataset.initialPricing, []);
   let editingFeatureIndex = null;
@@ -321,6 +322,9 @@
       if (data.plan) {
         loadPlan(data.plan, { closeModal: false, scroll: false });
       }
+      if (Array.isArray(data.published_plans)) {
+        renderPublishedPlans(data.published_plans);
+      }
     } catch (error) {
       showMarketingSnackbar(error.message || 'No se pudieron guardar los cambios.', 'error');
     } finally {
@@ -362,7 +366,7 @@
           <p>${escapeHtml([integerValue(item.quantity), item.unit].filter(Boolean).join(' '))}${item.feature_description ? ' - ' + escapeHtml(item.feature_description) : ''}</p>
         </div>
         <div class="marketing-inline-actions">
-          ${item.is_highlighted === '1' ? '<span class="im-chip im-chip--exito">Destacado</span>' : ''}
+          ${isTruthy(item.is_highlighted) ? '<span class="im-chip im-chip--exito">Destacado</span>' : ''}
           <button class="im-boton-icono material-symbols-rounded" type="button" data-marketing-edit-feature="${index}" aria-label="Editar">edit</button>
           <button class="im-boton-icono material-symbols-rounded" type="button" data-marketing-delete-feature="${index}" aria-label="Eliminar">delete</button>
         </div>
@@ -382,13 +386,55 @@
           <p>Total ${escapeHtml(formatMoney(item.total_price))} - Costo inicial ${escapeHtml(formatMoney(item.setup_fee))}</p>
         </div>
         <div class="marketing-inline-actions">
-          ${item.is_default === '1' ? '<span class="im-chip">Predeterminada</span>' : ''}
-          ${item.is_featured === '1' ? '<span class="im-chip im-chip--exito">Destacada</span>' : ''}
+          ${isTruthy(item.is_default) ? '<span class="im-chip">Predeterminada</span>' : ''}
+          ${isTruthy(item.is_featured) ? '<span class="im-chip im-chip--exito">Destacada</span>' : ''}
           <button class="im-boton-icono material-symbols-rounded" type="button" data-marketing-edit-pricing="${index}" aria-label="Editar">edit</button>
           <button class="im-boton-icono material-symbols-rounded" type="button" data-marketing-delete-pricing="${index}" aria-label="Eliminar">delete</button>
         </div>
       </article>
     `).join('') : emptyBuilder('No agregaste opciones de precio.');
+  }
+
+  function renderPublishedPlans(plans) {
+    if (!publishedPlansContainer) {
+      return;
+    }
+
+    const canRequest = publishedPlansContainer.dataset.canRequest === '1';
+    publishedPlansContainer.innerHTML = plans.length ? `
+      <div class="im-grilla im-grilla--tres-columnas">
+        ${plans.map((plan) => `
+          <article class="im-tarjeta marketing-plan-card">
+            <div class="im-tarjeta__cabecera">
+              <div>
+                <h3>${escapeHtml(plan.name || '')}</h3>
+                <p>${escapeHtml(plan.short_description || '')}</p>
+              </div>
+              <span class="im-chip im-chip--exito">Publicado</span>
+            </div>
+            ${plan.objective ? `<p><strong>Objetivo:</strong> ${escapeHtml(plan.objective)}</p>` : ''}
+            <ul class="marketing-plan-card__features">
+              ${(plan.features || []).map((feature) => `
+                <li class="${isTruthy(feature.is_highlighted) ? 'marketing-plan-card__feature--highlighted' : ''}">${escapeHtml(feature.feature_name || '')}</li>
+              `).join('')}
+            </ul>
+            <div class="marketing-pricing-list">
+              ${(plan.pricing_options || []).map((price) => `
+                <form class="marketing-pricing-option ${isTruthy(price.is_featured) ? 'marketing-pricing-option--featured' : ''}" method="post">
+                  <input type="hidden" name="marketing_action" value="subscription_request">
+                  <input type="hidden" name="plan_id" value="${escapeHtml(plan.id || '')}">
+                  <input type="hidden" name="pricing_option_id" value="${escapeHtml(price.id || '')}">
+                  <strong class="marketing-pricing-option__price">${escapeHtml(formatMoney(price.monthly_price))}/mes</strong>
+                  <span>${escapeHtml(integerValue(price.duration_months))} meses - ${escapeHtml(formatMoney(price.total_price))} total</span>
+                  ${isTruthy(price.is_featured) ? '<span class="im-chip im-chip--exito">Destacada</span>' : ''}
+                  ${canRequest ? '<button class="im-boton im-boton--principal" type="submit">Solicitar plan</button>' : ''}
+                </form>
+              `).join('')}
+            </div>
+          </article>
+        `).join('')}
+      </div>
+    ` : '<div class="marketing-empty"><span class="material-symbols-rounded">campaign</span><strong>No hay planes publicados.</strong><span>Cuando marketing publique un plan, aparecera aca.</span></div>';
   }
 
   function readEditor(container, prefix) {
@@ -438,6 +484,10 @@
   function formatMoney(value) {
     const number = Number(String(value ?? 0).replace(',', '.'));
     return '$' + (Number.isFinite(number) ? Math.trunc(number).toLocaleString('es-AR', { maximumFractionDigits: 0 }) : '0');
+  }
+
+  function isTruthy(value) {
+    return value === true || value === 1 || value === '1';
   }
 
   function clearEditor(container, prefix) {

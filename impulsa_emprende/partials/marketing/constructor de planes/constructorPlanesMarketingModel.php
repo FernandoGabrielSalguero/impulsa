@@ -36,6 +36,24 @@ class ConstructorPlanesMarketingModel
         return $plan;
     }
 
+    public function obtenerPlanesPublicadosCompletos(): array
+    {
+        $stmt = $this->pdo->query(
+            "SELECT id FROM marketing_plans
+             WHERE status = 'published' AND is_visible_to_clients = 1
+             ORDER BY name ASC"
+        );
+        $planes = [];
+        foreach (($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []) as $planId) {
+            $plan = $this->obtenerPlanCompleto((int) $planId);
+            if ($plan) {
+                $planes[] = $plan;
+            }
+        }
+
+        return $planes;
+    }
+
     public function guardarPlanCompleto(array $data, int $usuarioId): int
     {
         $this->pdo->beginTransaction();
@@ -135,7 +153,7 @@ class ConstructorPlanesMarketingModel
             'quantity' => $this->enteroONull($data['quantity'] ?? null),
             'unit' => $this->nullSiVacio($data['unit'] ?? null),
             'feature_order' => (int) ($data['feature_order'] ?? 0),
-            'is_highlighted' => !empty($data['is_highlighted']) ? 1 : 0,
+            'is_highlighted' => $this->booleano($data['is_highlighted'] ?? 0),
         ]);
     }
 
@@ -161,8 +179,8 @@ class ConstructorPlanesMarketingModel
             'total_price' => $total,
             'setup_fee' => $this->dinero($data['setup_fee'] ?? 0),
             'currency' => trim((string) ($data['currency'] ?? 'ARS')) ?: 'ARS',
-            'is_featured' => !empty($data['is_featured']) ? 1 : 0,
-            'is_default' => !empty($data['is_default']) ? 1 : 0,
+            'is_featured' => $this->booleano($data['is_featured'] ?? 0),
+            'is_default' => $this->booleano($data['is_default'] ?? 0),
             'display_order' => (int) ($data['display_order'] ?? 0),
         ]);
     }
@@ -267,6 +285,11 @@ class ConstructorPlanesMarketingModel
         return $valor === '' ? null : $this->dinero($valor);
     }
 
+    private function booleano(mixed $valor): int
+    {
+        return in_array($valor, [1, '1', true, 'true', 'on'], true) ? 1 : 0;
+    }
+
     private function estadoPlan(string $estado): string
     {
         return in_array($estado, ['draft', 'published', 'paused', 'archived'], true) ? $estado : 'draft';
@@ -289,7 +312,7 @@ class ConstructorPlanesMarketingModel
                 'quantity' => $this->enteroONull($feature['quantity'] ?? null),
                 'unit' => $this->nullSiVacio($feature['unit'] ?? null),
                 'feature_order' => (int) ($feature['feature_order'] ?? $index),
-                'is_highlighted' => !empty($feature['is_highlighted']) ? 1 : 0,
+                'is_highlighted' => $this->booleano($feature['is_highlighted'] ?? 0),
             ];
 
             if ($featureId > 0) {
@@ -340,8 +363,8 @@ class ConstructorPlanesMarketingModel
                 'total_price' => $total,
                 'setup_fee' => $this->dinero($precio['setup_fee'] ?? 0),
                 'currency' => trim((string) ($precio['currency'] ?? 'ARS')) ?: 'ARS',
-                'is_featured' => !empty($precio['is_featured']) ? 1 : 0,
-                'is_default' => !empty($precio['is_default']) ? 1 : 0,
+                'is_featured' => $this->booleano($precio['is_featured'] ?? 0),
+                'is_default' => $this->booleano($precio['is_default'] ?? 0),
                 'display_order' => (int) ($precio['display_order'] ?? $index),
             ];
 

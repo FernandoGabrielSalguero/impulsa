@@ -180,10 +180,20 @@
 .marketing-plan-card__features li::before {
   content: "check_circle";
   flex: 0 0 auto;
-  color: var(--im-color-secundario);
+  color: var(--im-color-texto-suave);
   font-family: "Material Symbols Rounded";
   font-size: 1.1rem;
   line-height: 1.35;
+}
+
+.marketing-plan-card__features .marketing-plan-card__feature--highlighted {
+  color: var(--im-color-principal);
+  font-weight: 800;
+}
+
+.marketing-plan-card__features .marketing-plan-card__feature--highlighted::before {
+  content: "stars";
+  color: var(--im-color-secundario);
 }
 
 .marketing-pricing-option {
@@ -193,6 +203,11 @@
   border: 1px solid var(--im-color-borde);
   border-radius: var(--im-radio);
   background: var(--im-color-superficie);
+}
+
+.marketing-pricing-option--featured {
+  border-color: var(--im-color-secundario);
+  background: color-mix(in srgb, var(--im-color-secundario-suave) 45%, var(--im-color-superficie));
 }
 
 .marketing-pricing-option__price {

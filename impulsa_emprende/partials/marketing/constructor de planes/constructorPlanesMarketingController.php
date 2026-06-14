@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && marketingUsuarioPuedeGestionar($usu
                         'ok' => true,
                         'message' => 'Plan guardado correctamente.',
                         'plan' => $constructorPlanesMarketingModel->obtenerPlanCompleto($planIdGuardado),
+                        'published_plans' => $constructorPlanesMarketingModel->obtenerPlanesPublicadosCompletos(),
                     ]);
                 }
             } elseif ($accionMarketing === 'plan_delete') {
@@ -36,7 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && marketingUsuarioPuedeGestionar($usu
                 unset($_SESSION['marketing_plan_activo']);
                 $_SESSION['marketing_estado'] = ['estado' => 'ok', 'mensaje' => 'Plan eliminado.'];
                 if ($marketingEsAjax) {
-                    $marketingResponderJson(['ok' => true, 'deleted' => true, 'message' => 'Plan eliminado.']);
+                    $marketingResponderJson([
+                        'ok' => true,
+                        'deleted' => true,
+                        'message' => 'Plan eliminado.',
+                        'published_plans' => $constructorPlanesMarketingModel->obtenerPlanesPublicadosCompletos(),
+                    ]);
                 }
             } elseif ($accionMarketing === 'feature_save') {
                 $constructorPlanesMarketingModel->guardarFeature($_POST);
