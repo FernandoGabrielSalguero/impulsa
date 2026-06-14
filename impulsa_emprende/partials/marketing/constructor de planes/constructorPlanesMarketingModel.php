@@ -71,9 +71,9 @@ class ConstructorPlanesMarketingModel
             'short_description' => $this->nullSiVacio($data['short_description'] ?? null),
             'full_description' => $this->nullSiVacio($data['full_description'] ?? null),
             'objective' => $this->nullSiVacio($data['objective'] ?? null),
-            'recommended_ad_budget_min' => $this->decimalONull($data['recommended_ad_budget_min'] ?? null),
-            'recommended_ad_budget_max' => $this->decimalONull($data['recommended_ad_budget_max'] ?? null),
-            'setup_fee' => $this->decimal($data['setup_fee'] ?? 0),
+            'recommended_ad_budget_min' => $this->dineroONull($data['recommended_ad_budget_min'] ?? null),
+            'recommended_ad_budget_max' => $this->dineroONull($data['recommended_ad_budget_max'] ?? null),
+            'setup_fee' => $this->dinero($data['setup_fee'] ?? 0),
             'billing_period' => trim((string) ($data['billing_period'] ?? 'Mensual')) ?: 'Mensual',
             'report_frequency' => $this->nullSiVacio($data['report_frequency'] ?? null),
             'support_level' => $this->nullSiVacio($data['support_level'] ?? null),
@@ -143,7 +143,7 @@ class ConstructorPlanesMarketingModel
     {
         $planId = (int) ($data['plan_id'] ?? 0);
         $duracion = (int) ($data['duration_months'] ?? 0);
-        $mensual = $this->decimal($data['monthly_price'] ?? 0);
+        $mensual = $this->dinero($data['monthly_price'] ?? 0);
         if ($planId <= 0 || $duracion <= 0 || $mensual <= 0) {
             throw new InvalidArgumentException('Selecciona un plan y completa duracion y precio mensual.');
         }
@@ -159,7 +159,7 @@ class ConstructorPlanesMarketingModel
             'duration_months' => $duracion,
             'monthly_price' => $mensual,
             'total_price' => $total,
-            'setup_fee' => $this->decimal($data['setup_fee'] ?? 0),
+            'setup_fee' => $this->dinero($data['setup_fee'] ?? 0),
             'currency' => trim((string) ($data['currency'] ?? 'ARS')) ?: 'ARS',
             'is_featured' => !empty($data['is_featured']) ? 1 : 0,
             'is_default' => !empty($data['is_default']) ? 1 : 0,
@@ -256,6 +256,17 @@ class ConstructorPlanesMarketingModel
         return $valor === '' ? null : (int) floor($this->decimal($valor));
     }
 
+    private function dinero(mixed $valor): int
+    {
+        return (int) floor($this->decimal($valor));
+    }
+
+    private function dineroONull(mixed $valor): ?int
+    {
+        $valor = trim((string) ($valor ?? ''));
+        return $valor === '' ? null : $this->dinero($valor);
+    }
+
     private function estadoPlan(string $estado): string
     {
         return in_array($estado, ['draft', 'published', 'paused', 'archived'], true) ? $estado : 'draft';
@@ -315,7 +326,7 @@ class ConstructorPlanesMarketingModel
         $idsEnviados = [];
         foreach ($precios as $index => $precio) {
             $duracion = (int) ($precio['duration_months'] ?? 0);
-            $mensual = $this->decimal($precio['monthly_price'] ?? 0);
+            $mensual = $this->dinero($precio['monthly_price'] ?? 0);
             if ($duracion <= 0 || $mensual <= 0) {
                 continue;
             }
@@ -327,7 +338,7 @@ class ConstructorPlanesMarketingModel
                 'duration_months' => $duracion,
                 'monthly_price' => $mensual,
                 'total_price' => $total,
-                'setup_fee' => $this->decimal($precio['setup_fee'] ?? 0),
+                'setup_fee' => $this->dinero($precio['setup_fee'] ?? 0),
                 'currency' => trim((string) ($precio['currency'] ?? 'ARS')) ?: 'ARS',
                 'is_featured' => !empty($precio['is_featured']) ? 1 : 0,
                 'is_default' => !empty($precio['is_default']) ? 1 : 0,
