@@ -67,7 +67,6 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
     </div>
     <div class="marketing-inline-actions">
       <button class="im-boton im-boton--tonal im-tooltip" type="button" data-marketing-open-plans data-tooltip="Abrir listado de planes existentes">
-        <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
         Ver planes existentes
       </button>
       <span class="im-chip"><?= number_format(count($planes), 0, ',', '.') ?> planes</span>
