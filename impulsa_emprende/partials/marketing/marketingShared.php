@@ -80,11 +80,11 @@ function marketingAyudaCampo(string $label, string $tooltip): string
 {
     $labelSeguro = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
     $tooltipSeguro = htmlspecialchars($tooltip, ENT_QUOTES, 'UTF-8');
-    $badge = '<span class="marketing-help-badge im-tooltip" data-tooltip="' . $tooltipSeguro . '" aria-label="' . $tooltipSeguro . '">?</span>';
+    $badge = '<button class="marketing-help-badge im-tooltip" type="button" data-tooltip="' . $tooltipSeguro . '" aria-label="' . $tooltipSeguro . '">?</button>';
 
     if ($labelSeguro === '') {
         return $badge;
     }
 
-    return '<span class="marketing-field-label">' . $labelSeguro . $badge . '</span>';
+    return '<span>' . $labelSeguro . '</span>' . $badge;
 }

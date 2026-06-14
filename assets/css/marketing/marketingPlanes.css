@@ -39,12 +39,30 @@
   width: 18px;
   height: 18px;
   place-items: center;
+  border: 0;
   border-radius: 999px;
   background: var(--im-color-principal-suave);
   color: var(--im-color-principal);
+  cursor: help;
   font-size: .72rem;
   font-weight: 800;
   line-height: 1;
+  padding: 0;
+}
+
+.im-campo-material > .marketing-help-badge {
+  position: absolute;
+  top: .95rem;
+  right: .85rem;
+  z-index: 3;
+}
+
+.im-campo-material:focus-within > .marketing-help-badge,
+.im-campo-material:has(input:not([data-im-placeholder])) > .marketing-help-badge,
+.im-campo-material:has(input[data-im-placeholder]:not(:placeholder-shown)) > .marketing-help-badge,
+.im-campo-material:has(textarea[data-im-placeholder]:not(:placeholder-shown)) > .marketing-help-badge,
+.im-campo-material:has(select) > .marketing-help-badge {
+  top: .42rem;
 }
 
 .marketing-dashboard-grid,
