@@ -66,7 +66,10 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
       <p>Crea un plan completo con datos base, items incluidos y alternativas comerciales.</p>
     </div>
     <div class="marketing-inline-actions">
-      <button class="im-boton-icono material-symbols-rounded im-tooltip" type="button" data-marketing-open-plans aria-label="Ver planes existentes" data-tooltip="Ver planes existentes">folder_open</button>
+      <button class="im-boton im-boton--tonal im-tooltip" type="button" data-marketing-open-plans data-tooltip="Abrir listado de planes existentes">
+        <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
+        Ver planes existentes
+      </button>
       <span class="im-chip"><?= number_format(count($planes), 0, ',', '.') ?> planes</span>
     </div>
   </div>
