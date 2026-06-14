@@ -1,131 +1,160 @@
-Vamos a construir por etapas el módulo de venta y gestión de planes de marketing.
+Vamos a ajustar el módulo de marketing ya implementado. No rehagas todo desde cero: trabajá sobre lo existente, revisá primero los archivos actuales y mantené el patrón MVC, roles, requires, CSS/JS externos y estética del CDN.
 
-Antes de tocar código:
-1. Revisá módulos existentes para entender patrón MVC, conexión a BBDD, sesiones/roles, requires, carga de CSS/JS, AJAX/controllers y estética.
-2. Revisá el CDN público https://impulsagroup.com/assets/impulsa_material/index.html y la copia local assets/impulsa_material/index.html. Usá la copia local para inspección detallada y el CDN público como referencia de consumo real.
-3. No uses CSS inline. Replicá el sistema visual mediante clases existentes del CDN y, solo si falta algo, CSS propio en archivo separado.
-4. Revisá estructure/copiaLocalEstructuraBBDD.md y usá las tablas existentes de marketing. No inventes tablas.
+Objetivo principal:
+Mejorar el Constructor de planes para que el foco sea crear un plan nuevo de forma clara, cómoda y completa. La edición de planes existentes debe hacerse desde un modal de selección/previsualización.
 
-Objetivo general:
-Crear componentes compartidos encapsulados en impulsa_emprende/partials/marketing/ para que los módulos por rol solo hagan require y no contengan lógica propia.
+Reglas generales:
+- No usar CSS inline.
+- Usar clases/componentes del CDN y la copia local assets/impulsa_material/index.html.
+- Si hace falta CSS nuevo, usar archivo CSS separado siguiendo la estructura actual.
+- Si hace falta JS nuevo, usar archivo JS separado siguiendo la estructura actual.
+- Mantener la lógica encapsulada en los componentes compartidos, no en los módulos por rol.
+- No romper admin/marketing/emprendedor/cliente.
+- Verificar sintaxis PHP y flujos principales al final.
 
-Componentes compartidos:
-- constructor de planes:
-  impulsa_emprende/partials/marketing/constructor de planes/constructorPlanesMarketingView.php
-  constructorPlanesMarketingModel.php
-  constructorPlanesMarketingController.php
+Cambios en Constructor de planes:
 
-- visualizador de planes:
-  impulsa_emprende/partials/marketing/visualizador de planes/visualizadorPlanesMarketingView.php
-  visualizadorPlanesMarketingModel.php
-  visualizadorPlanesMarketingController.php
+1. Unificar layout:
+Actualmente el constructor está dividido en 3 tarjetas: Editar plan, Ítems incluidos y Opciones de precio.
+Quiero que sea una sola experiencia/formulario, no 3 tarjetas separadas.
+Debe permitir:
+- crear un plan nuevo
+- agregar múltiples ítems incluidos y verlos todos en pantalla
+- agregar opciones de precio/duración y verlas todas en pantalla
+- actualizar un plan existente cuando se precargue desde el modal
 
-- monitor de planes:
-  impulsa_emprende/partials/marketing/monitor de planes/monitorPlanesMarketingView.php
-  monitorPlanesMarketingModel.php
-  monitorPlanesMarketingController.php
+2. Tarjeta/Formulario principal:
+El bloque puede seguir llamándose “Crear plan” o “Editar plan” según haya o no un plan cargado.
+Debe incluir todos los campos relevantes del plan, ítems y precios en una sola vista ordenada.
 
-- visualizador de resultados:
-  impulsa_emprende/partials/marketing/visualizador de resultados/visualizadorResultadosMarketingView.php
-  visualizadorResultadosMarketingModel.php
-  visualizadorResultadosMarketingController.php
+3. Campos desplegables:
+En la sección del plan, cambiar estos campos a select:
+- Objetivo
+- Frecuencia de reporte
+- Nivel de soporte
+- Periodo de cobro
 
-Si conviene renombrar carpetas para quitar espacios, hacelo y actualizá todos los require.
+Generá opciones básicas y útiles.
 
-Reglas de roles:
-- impulsa_administrador e impulsa_marketing ven los 4 componentes.
-- impulsa_emprendedor e impulsa_cliente ven solo visualizador de planes y visualizador de resultados.
-- Investigá cómo se valida el rol en el proyecto. Probablemente sea con $_SESSION['rol']; replicá el patrón existente.
+Opciones sugeridas para Objetivo:
+- Ganar visibilidad
+- Generar consultas
+- Aumentar ventas
+- Captar leads
+- Fidelizar clientes
+- Posicionar marca
 
-Módulos por rol:
-- Admin:
-  impulsa_emprende/view/admin/adminMarketingView.php
-  impulsa_emprende/model/admin/adminMarketingModel.php
-  impulsa_emprende/controller/admin/adminMarketingController.php
+Opciones sugeridas para Frecuencia de reporte:
+- Semanal
+- Quincenal
+- Mensual
+- Bimestral
+- Trimestral
+- Al finalizar campaña
 
-- Marketing:
-  impulsa_emprende/view/marketing/marketingDashboardView.php
-  impulsa_emprende/model/marketing/marketingDashboardModel.php
-  impulsa_emprende/controller/marketing/marketingDashboardController.php
+Opciones sugeridas para Nivel de soporte:
+- Básico
+- Estándar
+- Prioritario
+- Estratégico
+- Premium
+- A medida
 
-- Emprendedor:
-  impulsa_emprende/view/emprendedor/EmprendedorMarketingView.php
-  impulsa_emprende/model/emprendedor/EmprendedorMarketingModel.php
-  impulsa_emprende/controller/emprendedor/EmprendedorMarketingController.php
+Opciones sugeridas para Periodo de cobro:
+- Mensual
+- Bimestral
+- Trimestral
+- Semestral
+- Anual
+- Pago único
 
-- Cliente:
-  impulsa_emprende/view/client/ClienteMarketingView.php
-  impulsa_emprende/model/client/ClienteMarketingModel.php
-  impulsa_emprende/controller/client/ClienteMarketingController.php
+Aclaración:
+Los campos “Setup fee” y “Periodo de cobro” no están claros para el usuario final. Agregar microcopy/tooltips breves:
+- Setup fee: “Costo inicial de configuración del plan. Usar 0 si no aplica.”
+- Periodo de cobro: “Frecuencia con la que se cobrará el plan cuando se active el sistema de pagos.”
 
-Funcionalidad:
-1. Constructor de planes:
-   CRUD completo de planes usando marketing_plans, marketing_plan_features y marketing_plan_pricing_options.
-   Debe permitir crear el plan completo: datos base, features, opciones de precio/duración.
-   Admin/marketing pueden ver draft, published, paused y archived.
-   Moneda por defecto en BBDD: ARS. En interfaz puede mostrarse como ARG si el proyecto ya lo muestra así, pero guardar ARS.
+4. Ítems incluidos:
+Cambiar el label del campo “Item” por “Nombre”.
+Cambiar el campo “Unidad” a select con estas 9 opciones:
+- unidad
+- publicación
+- historia
+- reel
+- campaña
+- anuncio
+- hora
+- reunión
+- informe
 
-2. Visualizador de planes:
-   Mostrar planes publicados y visibles para clientes: status='published' e is_visible_to_clients=1.
-   Diseño atractivo tipo cards/pricing, siguiendo el CDN.
-   Emprendedor/cliente deben poder solicitar un plan.
-   Al solicitar, crear registro en marketing_plan_subscriptions con status='requested' y datos del plan/precio seleccionado.
+Los ítems deben poder agregarse dinámicamente, verse en una lista dentro del mismo formulario y poder editarse/eliminarse antes de guardar.
 
-3. Monitor de planes:
-   Mostrar usuarios con planes contratados, estado, duración, mes actual, fechas, plan y responsable.
-   Permitir cambiar estados de suscripción: requested, meeting_scheduled, active, paused, completed, cancelled.
-   Permitir cargar CSV de Meta usando:
-   https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js
-   Implementar preview + importación real a BBDD:
-   marketing_import_batches
-   marketing_import_rows
-   marketing_campaign_metrics
-   Match automático por nombre exacto de campaña contra campañas internas. Si no matchea, permitir asignación manual.
+5. Opciones de precio:
+La sección actual no se entiende bien. Rediseñarla con labels y microcopy más claros.
+Debe explicar que una opción de precio representa una alternativa comercial del mismo plan, por ejemplo:
+- 1 mes
+- 3 meses
+- 6 meses
+- 12 meses
 
-4. Visualizador de resultados:
-   Mostrar métricas y reportes de campañas/planes.
-   Emprendedor ve solo resultados donde entrepreneur_user_id sea el usuario logueado.
-   Cliente ve solo resultados donde client_user_id sea el usuario logueado.
-   Admin/marketing pueden filtrar todos.
-   Usar marketing_campaigns, marketing_campaign_metrics, marketing_commercial_metrics y marketing_reports según corresponda.
+Cambiar el título visual a algo más claro, por ejemplo:
+“Precios y duración del plan”
 
-UX/UI y estilos:
-- Usar HTML, CSS, JS y PHP.
-- Apoyarse en el CDN y en assets/impulsa_material/index.html.
-- No usar CSS inline en atributos style="".
-- No escribir estilos dentro del HTML salvo que el proyecto ya tenga ese patrón y sea inevitable.
-- Priorizar clases, componentes y utilidades existentes del CDN.
-- Antes de crear estilos nuevos, buscar si el CDN ya provee una clase/componente equivalente.
-- Si hacen falta estilos propios del módulo, crear un archivo CSS dedicado para marketing, por ejemplo:
-  assets/css/marketing/marketingPlanes.css
-  o seguir la carpeta/nomenclatura CSS existente del proyecto.
-- Cargar ese CSS desde las vistas/módulos correspondientes siguiendo el patrón actual del proyecto.
-- Mantener clases prefijadas para evitar conflictos, por ejemplo:
-  marketing-plan-card
-  marketing-plan-builder
-  marketing-results-panel
-  marketing-monitor-table
-- El JS también debe ir en archivo separado si el proyecto ya organiza scripts así. Evitar scripts inline grandes.
-- Permitido usar atributos data-* para comportamiento JS.
-- Diseño elegante, ordenado, responsive.
-- Para admin/marketing, integrar los 4 componentes en una sola página usando tabs, modales, drawers, bottom sheets o patrones similares.
-- Estados vacíos prolijos. No crear datos demo.
-- Cuidar los ítems de los menú. No crees submenú en las páginas. Actualiza todos los archivos para agregar los nuevos modulos a las páginas ya existentes. 
+Campos con labels claros:
+- Duración en meses
+- Precio mensual
+- Precio total
+- Costo inicial
+- Moneda
+- Opción destacada
+- Opción predeterminada
 
-Seguridad/calidad:
-- Usar queries preparadas y sanitización siguiendo el patrón del proyecto.
-- Implementar CSRF solo si el proyecto ya lo usa.
-- No duplicar lógica en módulos por rol; encapsular en componentes compartidos.
-- No romper rutas existentes.
-- Verificar sintaxis PHP y flujos principales.
+Agregar microcopy:
+“Podés crear varias opciones para el mismo plan, por ejemplo mensual, trimestral o anual.”
 
-Trabajá por etapas:
-Etapa 1: inspección del proyecto y plan técnico breve.
-Etapa 2: estructura MVC compartida + integración por rol con requires.
-Etapa 3: constructor CRUD de planes completo.
-Etapa 4: visualizador de planes + solicitud de plan.
-Etapa 5: monitor de planes + cambio de estados + carga CSV Meta.
-Etapa 6: visualizador de resultados.
-Etapa 7: revisión visual, limpieza y verificación final.
+Las opciones de precio deben poder agregarse dinámicamente, verse en una lista dentro del mismo formulario y poder editarse/eliminarse antes de guardar.
 
-Después de cada etapa, resumí qué hiciste, archivos modificados y qué queda pendiente antes de continuar.
+6. Modal de planes existentes:
+Los planes ya creados no deben aparecer como tarjeta fija al costado del formulario.
+En la cabecera, al lado del texto “Planes de marketing” y arriba/cerca del contador “1 planes”, agregar un ícono/botón visible para abrir un modal de planes existentes.
+
+Comportamiento del modal:
+- Al presionar el ícono, abrir modal.
+- El modal muestra tarjetas de planes existentes.
+- Las tarjetas deben previsualizar cómo lo ven clientes y emprendedores: nombre, descripción corta, estado, ítems principales, precios/duración y badge de publicado/borrador/pausado.
+- Al hacer click en un plan, cerrar modal y precargar sus datos en el formulario principal para actualizarlo.
+- Debe quedar claro si el formulario está creando un plan nuevo o editando uno existente.
+- Agregar botón “Nuevo plan” para limpiar el formulario y volver al modo creación.
+
+7. Eliminación y error de foreign key:
+Al intentar eliminar una opción de precio usada por una suscripción aparece este error:
+SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails (`u104036906_impulsaGroup`.`marketing_plan_subscriptions`, CONSTRAINT `fk_marketing_subscriptions_pricing` FOREIGN KEY (`pricing_option_id`) REFERENCES `marketing_plan_pricing_options` (`id`))
+
+Corregir este flujo.
+No permitir eliminar físicamente un plan, feature u opción de precio si está referenciado por suscripciones u otras tablas relacionadas.
+En esos casos:
+- mostrar un mensaje amigable
+- para planes, sugerir pausar o archivar
+- para opciones de precio, impedir eliminación si ya fue usada en una suscripción
+- para ítems, revisar si tiene referencias; si no tiene, permitir eliminar
+
+Si la tabla no tiene soft delete para pricing/features, no inventar columnas. Validar dependencias antes de borrar y responder con error controlado.
+
+8. UX esperada:
+- El constructor debe sentirse como un formulario único de creación/edición de plan.
+- Los planes existentes viven en modal, no ocupan espacio permanente.
+- Ítems y precios deben agregarse de forma clara y visible.
+- Mantener diseño elegante, responsive y consistente con el CDN.
+- No crear datos demo.
+
+Archivos esperados:
+Trabajar principalmente en el componente compartido:
+impulsa_emprende/partials/marketing/constructor de planes/constructorPlanesMarketingView.php
+impulsa_emprende/partials/marketing/constructor de planes/constructorPlanesMarketingModel.php
+impulsa_emprende/partials/marketing/constructor de planes/constructorPlanesMarketingController.php
+
+También actualizar CSS/JS del módulo si corresponde, respetando archivos externos y sin CSS inline.
+
+Al finalizar:
+- Resumí archivos modificados.
+- Explicá cómo quedó el nuevo flujo.
+- Indicá qué verificaciones hiciste.

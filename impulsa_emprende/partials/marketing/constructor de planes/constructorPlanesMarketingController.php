@@ -10,8 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && marketingUsuarioPuedeGestionar($usu
     $accionMarketing = (string) ($_POST['marketing_action'] ?? '');
     if (str_starts_with($accionMarketing, 'plan_') || str_starts_with($accionMarketing, 'feature_') || str_starts_with($accionMarketing, 'pricing_')) {
         try {
-            if ($accionMarketing === 'plan_save') {
-                $planIdGuardado = $constructorPlanesMarketingModel->guardarPlan($_POST, (int) $usuario['id']);
+            if ($accionMarketing === 'plan_save' || $accionMarketing === 'plan_save_full') {
+                $planIdGuardado = $accionMarketing === 'plan_save_full'
+                    ? $constructorPlanesMarketingModel->guardarPlanCompleto($_POST, (int) $usuario['id'])
+                    : $constructorPlanesMarketingModel->guardarPlan($_POST, (int) $usuario['id']);
                 $_SESSION['marketing_plan_activo'] = $planIdGuardado;
                 $_SESSION['marketing_estado'] = ['estado' => 'ok', 'mensaje' => 'Plan guardado correctamente.'];
             } elseif ($accionMarketing === 'plan_delete') {
@@ -44,5 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && marketingUsuarioPuedeGestionar($usu
 }
 
 $marketingPlanesAdmin = marketingUsuarioPuedeGestionar($usuario['rol'] ?? null) ? $constructorPlanesMarketingModel->obtenerPlanes() : [];
-$marketingPlanActivoId = (int) ($_SESSION['marketing_plan_activo'] ?? ($marketingPlanesAdmin[0]['id'] ?? 0));
+$marketingPlanesCompletos = [];
+foreach ($marketingPlanesAdmin as $marketingPlanResumen) {
+    $marketingPlanCompleto = $constructorPlanesMarketingModel->obtenerPlanCompleto((int) ($marketingPlanResumen['id'] ?? 0));
+    if ($marketingPlanCompleto) {
+        $marketingPlanesCompletos[] = $marketingPlanCompleto;
+    }
+}
+$marketingPlanActivoId = (int) ($_SESSION['marketing_plan_activo'] ?? 0);
 $marketingPlanActivo = $marketingPlanActivoId > 0 ? $constructorPlanesMarketingModel->obtenerPlanCompleto($marketingPlanActivoId) : null;
+unset($_SESSION['marketing_plan_activo']);

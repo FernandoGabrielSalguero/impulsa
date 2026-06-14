@@ -73,11 +73,34 @@
   gap: 1rem;
 }
 
-.marketing-plan-builder__layout {
+.marketing-plan-builder__card,
+.marketing-plan-builder__form,
+.marketing-builder-section {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, .7fr);
   gap: 1rem;
-  align-items: start;
+}
+
+.marketing-builder-section {
+  padding: 1rem;
+  border: 1px solid var(--im-color-borde);
+  border-radius: var(--im-radio);
+  background: var(--im-color-superficie);
+}
+
+.marketing-builder-section__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.marketing-builder-section__header h4 {
+  margin: 0;
+  color: var(--im-color-principal);
+}
+
+.marketing-builder-section__header p {
+  margin: .25rem 0 0;
+  color: var(--im-color-texto-suave);
 }
 
 .marketing-form-grid {
@@ -99,11 +122,37 @@
   align-items: center;
 }
 
+.marketing-form-actions--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  padding-block: .85rem;
+  border-top: 1px solid var(--im-color-borde);
+  background: var(--im-color-superficie);
+}
+
 .marketing-plan-list,
 .marketing-pricing-list,
-.marketing-results-list {
+.marketing-results-list,
+.marketing-builder-list {
   display: grid;
   gap: .75rem;
+}
+
+.marketing-builder-list__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: .85rem;
+  border: 1px solid var(--im-color-borde);
+  border-radius: var(--im-radio);
+  background: var(--im-color-superficie-2);
+}
+
+.marketing-builder-list__item p {
+  margin: .15rem 0 0;
+  color: var(--im-color-texto-suave);
 }
 
 .marketing-plan-card {
@@ -164,6 +213,11 @@
   text-align: center;
 }
 
+.marketing-empty--compact {
+  min-height: 96px;
+  padding: 1rem;
+}
+
 .marketing-empty .material-symbols-rounded {
   color: var(--im-color-principal);
   font-size: 2rem;
@@ -198,13 +252,21 @@
   color: var(--im-color-texto-suave);
 }
 
+.marketing-plan-modal {
+  width: min(1120px, calc(100vw - 2rem));
+}
+
+.marketing-plan-modal .im-dialog__contenido {
+  max-height: min(680px, calc(100vh - 9rem));
+  overflow: auto;
+}
+
 .im-chip--estado-cancelado {
   background: #f3d8df;
   color: #ba1a1a;
 }
 
 @media (max-width: 1000px) {
-  .marketing-plan-builder__layout,
   .marketing-kpi-grid {
     grid-template-columns: 1fr;
   }
@@ -213,5 +275,10 @@
 @media (max-width: 760px) {
   .marketing-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .marketing-builder-list__item {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
