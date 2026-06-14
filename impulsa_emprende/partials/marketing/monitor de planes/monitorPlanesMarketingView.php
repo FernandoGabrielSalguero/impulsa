@@ -40,6 +40,7 @@ $campaniasAsignacion = array_map(static fn (array $campania): array => [
                 <form class="marketing-inline-actions" method="post">
                   <input type="hidden" name="marketing_action" value="subscription_status_save">
                   <input type="hidden" name="subscription_id" value="<?= (int) ($sub['id'] ?? 0) ?>">
+                  <span class="marketing-field-label">Estado <?= marketingAyudaCampo('', 'Nuevo estado operativo de la suscripcion seleccionada.') ?></span>
                   <select name="status" aria-label="Estado">
                     <?php foreach ($estadosMonitor as $estado): ?>
                       <option value="<?= $h($estado) ?>" <?= ($sub['status'] ?? '') === $estado ? 'selected' : '' ?>><?= $h(marketingEstadoSuscripcionEtiqueta($estado)) ?></option>
@@ -65,7 +66,7 @@ $campaniasAsignacion = array_map(static fn (array $campania): array => [
     <form class="marketing-upload-preview" method="post" enctype="multipart/form-data">
       <input type="hidden" name="marketing_action" value="meta_csv_import">
       <label class="marketing-csv-drop">
-        <strong>Archivo CSV</strong>
+        <strong class="marketing-field-label">Archivo CSV <?= marketingAyudaCampo('', 'Exportacion CSV de Meta Ads con columnas de campania, resultados, gasto, impresiones y alcance.') ?></strong>
         <input type="file" name="meta_csv" accept=".csv,text/csv" required data-marketing-csv-input>
       </label>
       <div data-marketing-csv-preview></div>

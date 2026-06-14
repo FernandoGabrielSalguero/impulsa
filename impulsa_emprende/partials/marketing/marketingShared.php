@@ -75,3 +75,16 @@ function marketingJson(mixed $valor): string
 {
     return htmlspecialchars(json_encode($valor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
 }
+
+function marketingAyudaCampo(string $label, string $tooltip): string
+{
+    $labelSeguro = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
+    $tooltipSeguro = htmlspecialchars($tooltip, ENT_QUOTES, 'UTF-8');
+    $badge = '<span class="marketing-help-badge im-tooltip" data-tooltip="' . $tooltipSeguro . '" aria-label="' . $tooltipSeguro . '">?</span>';
+
+    if ($labelSeguro === '') {
+        return $badge;
+    }
+
+    return '<span class="marketing-field-label">' . $labelSeguro . $badge . '</span>';
+}

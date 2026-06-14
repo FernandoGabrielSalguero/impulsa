@@ -24,23 +24,23 @@ $planes = $marketingPlanesAdmin ?? [];
       <form class="marketing-form-grid" method="post" data-marketing-plan-form>
         <input type="hidden" name="marketing_action" value="plan_save">
         <input type="hidden" name="plan_id" value="<?= (int) ($plan['id'] ?? 0) ?>">
-        <label class="im-campo im-campo-material"><span>Nombre</span><input name="name" required value="<?= $h($plan['name'] ?? '') ?>"></label>
-        <label class="im-campo im-campo-material"><span>Slug</span><input name="slug" value="<?= $h($plan['slug'] ?? '') ?>"></label>
-        <label class="im-campo im-campo-material im-campo--ancho"><span>Descripcion corta</span><input name="short_description" maxlength="255" value="<?= $h($plan['short_description'] ?? '') ?>"></label>
-        <label class="im-campo im-campo-material im-campo--ancho"><span>Descripcion completa</span><textarea name="full_description" rows="4"><?= $h($plan['full_description'] ?? '') ?></textarea></label>
-        <label class="im-campo im-campo-material"><span>Objetivo</span><input name="objective" value="<?= $h($plan['objective'] ?? '') ?>"></label>
-        <label class="im-campo im-campo-material"><span>Frecuencia de reporte</span><input name="report_frequency" value="<?= $h($plan['report_frequency'] ?? '') ?>"></label>
-        <label class="im-campo im-campo-material"><span>Presupuesto minimo recomendado</span><input type="number" step="0.01" name="recommended_ad_budget_min" value="<?= $h($plan['recommended_ad_budget_min'] ?? '') ?>"></label>
-        <label class="im-campo im-campo-material"><span>Presupuesto maximo recomendado</span><input type="number" step="0.01" name="recommended_ad_budget_max" value="<?= $h($plan['recommended_ad_budget_max'] ?? '') ?>"></label>
-        <label class="im-campo im-campo-material"><span>Setup fee</span><input type="number" step="0.01" name="setup_fee" value="<?= $h($plan['setup_fee'] ?? '0') ?>"></label>
-        <label class="im-campo im-campo-material"><span>Periodo de cobro</span><input name="billing_period" value="<?= $h($plan['billing_period'] ?? 'monthly') ?>"></label>
-        <label class="im-campo im-campo-material"><span>Nivel de soporte</span><input name="support_level" value="<?= $h($plan['support_level'] ?? '') ?>"></label>
-        <label class="im-campo im-campo-material"><span>Estado</span><select name="status">
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Nombre', 'Nombre comercial del plan que van a ver administradores y clientes.') ?><input name="name" required value="<?= $h($plan['name'] ?? '') ?>"></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Slug', 'Identificador corto para URLs o referencias internas. Si lo dejas vacio se genera desde el nombre.') ?><input name="slug" value="<?= $h($plan['slug'] ?? '') ?>"></label>
+        <label class="im-campo im-campo-material im-campo--ancho"><?= marketingAyudaCampo('Descripcion corta', 'Resumen breve para la tarjeta del plan. Maximo 255 caracteres.') ?><input name="short_description" maxlength="255" value="<?= $h($plan['short_description'] ?? '') ?>"></label>
+        <label class="im-campo im-campo-material im-campo--ancho"><?= marketingAyudaCampo('Descripcion completa', 'Detalle ampliado del alcance del plan, condiciones y entregables principales.') ?><textarea name="full_description" rows="4"><?= $h($plan['full_description'] ?? '') ?></textarea></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Objetivo', 'Resultado principal que busca el plan, por ejemplo generar leads, ventas o posicionamiento.') ?><input name="objective" value="<?= $h($plan['objective'] ?? '') ?>"></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Frecuencia de reporte', 'Cada cuanto se entregaran reportes al cliente, por ejemplo semanal o mensual.') ?><input name="report_frequency" value="<?= $h($plan['report_frequency'] ?? '') ?>"></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Presupuesto minimo recomendado', 'Inversion publicitaria minima sugerida para que el plan tenga sentido. No es el precio del servicio.') ?><input type="number" step="0.01" name="recommended_ad_budget_min" value="<?= $h($plan['recommended_ad_budget_min'] ?? '') ?>"></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Presupuesto maximo recomendado', 'Tope sugerido de inversion publicitaria para este plan. No se cobra como fee de Impulsa.') ?><input type="number" step="0.01" name="recommended_ad_budget_max" value="<?= $h($plan['recommended_ad_budget_max'] ?? '') ?>"></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Setup fee', 'Cargo inicial del plan si corresponde. Se guarda en ARS.') ?><input type="number" step="0.01" name="setup_fee" value="<?= $h($plan['setup_fee'] ?? '0') ?>"></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Periodo de cobro', 'Periodo usado para facturar el servicio. El valor por defecto es monthly.') ?><input name="billing_period" value="<?= $h($plan['billing_period'] ?? 'monthly') ?>"></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Nivel de soporte', 'Tipo de acompanamiento incluido, por ejemplo basico, prioritario o personalizado.') ?><input name="support_level" value="<?= $h($plan['support_level'] ?? '') ?>"></label>
+        <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Estado', 'Controla el ciclo de vida del plan: borrador, publicado, pausado o archivado.') ?><select name="status">
           <?php foreach (['draft', 'published', 'paused', 'archived'] as $estado): ?>
             <option value="<?= $h($estado) ?>" <?= ($plan['status'] ?? 'draft') === $estado ? 'selected' : '' ?>><?= $h(marketingEstadoPlanEtiqueta($estado)) ?></option>
           <?php endforeach; ?>
         </select></label>
-        <label class="im-slide-toggle im-campo--ancho"><input type="checkbox" name="is_visible_to_clients" value="1" <?= (int) ($plan['is_visible_to_clients'] ?? 0) === 1 ? 'checked' : '' ?>><span></span> Visible para clientes</label>
+        <label class="im-slide-toggle im-campo--ancho"><input type="checkbox" name="is_visible_to_clients" value="1" <?= (int) ($plan['is_visible_to_clients'] ?? 0) === 1 ? 'checked' : '' ?>><span></span> Visible para clientes <?= marketingAyudaCampo('', 'Permite que emprendedores y clientes vean este plan si ademas esta publicado.') ?></label>
         <div class="marketing-form-actions">
           <button class="im-boton im-boton--principal" type="submit">Guardar plan</button>
           <?php if (!empty($plan['id'])): ?>
@@ -93,12 +93,12 @@ $planes = $marketingPlanesAdmin ?? [];
         <form class="marketing-form-grid" method="post">
           <input type="hidden" name="marketing_action" value="feature_save">
           <input type="hidden" name="plan_id" value="<?= (int) $plan['id'] ?>">
-          <label class="im-campo im-campo-material"><span>Item</span><input name="feature_name" required></label>
-          <label class="im-campo im-campo-material"><span>Orden</span><input type="number" name="feature_order" value="0"></label>
-          <label class="im-campo im-campo-material"><span>Cantidad</span><input type="number" step="0.01" name="quantity"></label>
-          <label class="im-campo im-campo-material"><span>Unidad</span><input name="unit"></label>
-          <label class="im-campo im-campo-material im-campo--ancho"><span>Descripcion</span><input name="feature_description"></label>
-          <label class="im-slide-toggle im-campo--ancho"><input type="checkbox" name="is_highlighted" value="1"><span></span> Destacado</label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Item', 'Beneficio, entregable o tarea incluida dentro del plan.') ?><input name="feature_name" required></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Orden', 'Numero usado para ordenar los items en la tarjeta del plan.') ?><input type="number" name="feature_order" value="0"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Cantidad', 'Cantidad incluida para este item, si aplica.') ?><input type="number" step="0.01" name="quantity"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Unidad', 'Unidad de la cantidad, por ejemplo posteos, reuniones, campanias o horas.') ?><input name="unit"></label>
+          <label class="im-campo im-campo-material im-campo--ancho"><?= marketingAyudaCampo('Descripcion', 'Aclaracion corta sobre el alcance de este item.') ?><input name="feature_description"></label>
+          <label class="im-slide-toggle im-campo--ancho"><input type="checkbox" name="is_highlighted" value="1"><span></span> Destacado <?= marketingAyudaCampo('', 'Marca este item como importante para resaltarlo visualmente.') ?></label>
           <div class="marketing-form-actions"><button class="im-boton im-boton--principal" type="submit">Agregar item</button></div>
         </form>
         <ul class="marketing-plan-card__features">
@@ -121,13 +121,13 @@ $planes = $marketingPlanesAdmin ?? [];
         <form class="marketing-form-grid" method="post">
           <input type="hidden" name="marketing_action" value="pricing_save">
           <input type="hidden" name="plan_id" value="<?= (int) $plan['id'] ?>">
-          <label class="im-campo im-campo-material"><span>Duracion meses</span><input type="number" name="duration_months" min="1" required></label>
-          <label class="im-campo im-campo-material"><span>Precio mensual ARS</span><input type="number" step="0.01" name="monthly_price" required></label>
-          <label class="im-campo im-campo-material"><span>Total ARS</span><input type="number" step="0.01" name="total_price"></label>
-          <label class="im-campo im-campo-material"><span>Setup fee ARS</span><input type="number" step="0.01" name="setup_fee" value="0"></label>
-          <label class="im-campo im-campo-material"><span>Orden</span><input type="number" name="display_order" value="0"></label>
-          <label class="im-slide-toggle"><input type="checkbox" name="is_default" value="1"><span></span> Default</label>
-          <label class="im-slide-toggle im-campo--ancho"><input type="checkbox" name="is_featured" value="1"><span></span> Destacado</label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Duracion meses', 'Cantidad de meses que dura esta opcion de contratacion.') ?><input type="number" name="duration_months" min="1" required></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Precio mensual ARS', 'Valor mensual del servicio. Siempre se guarda como ARS.') ?><input type="number" step="0.01" name="monthly_price" required></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Total ARS', 'Valor total del contrato para esta duracion. Si queda vacio se calcula mensual por meses.') ?><input type="number" step="0.01" name="total_price"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Setup fee ARS', 'Cargo inicial especifico para esta opcion de precio.') ?><input type="number" step="0.01" name="setup_fee" value="0"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Orden', 'Posicion en la que aparece esta opcion frente a otras duraciones.') ?><input type="number" name="display_order" value="0"></label>
+          <label class="im-slide-toggle"><input type="checkbox" name="is_default" value="1"><span></span> Default <?= marketingAyudaCampo('', 'Opcion preseleccionada o recomendada por defecto.') ?></label>
+          <label class="im-slide-toggle im-campo--ancho"><input type="checkbox" name="is_featured" value="1"><span></span> Destacado <?= marketingAyudaCampo('', 'Resalta esta opcion de precio en la tarjeta del plan.') ?></label>
           <div class="marketing-form-actions"><button class="im-boton im-boton--principal" type="submit">Agregar precio</button></div>
         </form>
         <div class="marketing-pricing-list">

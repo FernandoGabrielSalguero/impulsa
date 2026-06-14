@@ -39,7 +39,7 @@ $planes = $marketingPlanesPublicados ?? [];
                 <strong class="marketing-pricing-option__price"><?= $h(marketingFormatoMoneda($precio['monthly_price'] ?? 0, $precio['currency'] ?? 'ARS')) ?>/mes</strong>
                 <span><?= (int) ($precio['duration_months'] ?? 0) ?> meses · <?= $h(marketingFormatoMoneda($precio['total_price'] ?? 0, $precio['currency'] ?? 'ARS')) ?> total</span>
                 <?php if (marketingUsuarioPuedeVerCliente($usuario['rol'] ?? null)): ?>
-                  <label class="im-campo im-campo-material"><span>Nota opcional</span><input name="notes" placeholder="Contexto para el equipo"></label>
+                  <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Nota opcional', 'Comentario para que el equipo entienda el contexto de tu solicitud.') ?><input name="notes" placeholder="Contexto para el equipo"></label>
                   <button class="im-boton im-boton--principal" type="submit">Solicitar plan</button>
                 <?php endif; ?>
               </form>

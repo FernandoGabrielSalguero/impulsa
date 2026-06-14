@@ -1,4 +1,18 @@
 (function () {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-marketing-snackbar]').forEach((snackbar) => {
+      const message = (snackbar.dataset.marketingSnackbar || '').trim();
+      if (!message) {
+        return;
+      }
+      const text = snackbar.querySelector('span');
+      if (text) {
+        text.textContent = message;
+      }
+      snackbar.classList.add('abierto');
+    });
+  });
+
   const setActiveTab = (tabs, index) => {
     const buttons = [...tabs.querySelectorAll(':scope > button')];
     const panels = [...tabs.parentElement.querySelectorAll(':scope > .im-tab-panel')];
@@ -13,6 +27,11 @@
   });
 
   document.addEventListener('click', (event) => {
+    const snackbarClose = event.target.closest('[data-cerrar-snackbar]');
+    if (snackbarClose) {
+      snackbarClose.closest('.im-snackbar')?.classList.remove('abierto');
+    }
+
     const confirmButton = event.target.closest('[data-marketing-confirm]');
     if (confirmButton && !window.confirm(confirmButton.dataset.marketingConfirm || 'Confirmar accion?')) {
       event.preventDefault();
@@ -105,7 +124,7 @@
         <div class="marketing-form-grid">
           ${names.map((name) => `
             <label class="im-campo im-campo-material">
-              <span>${escapeHtml(name)}</span>
+              <span class="marketing-field-label">${escapeHtml(name)} <span class="marketing-help-badge im-tooltip" data-tooltip="Campania externa detectada en el CSV. Elegi una campania interna solo si el match automatico no corresponde." aria-label="Campania externa detectada en el CSV. Elegi una campania interna solo si el match automatico no corresponde.">?</span></span>
               <select name="manual_campaign[${escapeHtml(name)}]">
                 <option value="">Match automatico</option>
                 ${options}

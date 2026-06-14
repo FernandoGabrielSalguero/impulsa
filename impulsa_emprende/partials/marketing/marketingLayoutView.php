@@ -95,22 +95,14 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''
   </div>
 
   <?php require __DIR__ . '/../bottom_sheet_perfil/perfilView.php'; ?>
-  <div class="im-snackbar" role="status"><span></span><button type="button" data-cerrar-snackbar>Cerrar</button></div>
+  <div
+    class="im-snackbar"
+    role="status"
+    data-marketing-snackbar="<?= is_array($marketingMensaje) ? $h($marketingMensaje['mensaje'] ?? '') : '' ?>"
+    data-estado="<?= is_array($marketingMensaje) ? $h($marketingMensaje['estado'] ?? 'ok') : 'ok' ?>"
+  ><span></span><button type="button" data-cerrar-snackbar>Cerrar</button></div>
   <script src="../../../assets/impulsa_material/js/material.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="../../../assets/js/marketing/marketingPlanes.js"></script>
-  <?php if (is_array($marketingMensaje) && trim((string) ($marketingMensaje['mensaje'] ?? '')) !== ''): ?>
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const snackbar = document.querySelector('.im-snackbar');
-        if (!snackbar) {
-          return;
-        }
-        snackbar.dataset.estado = <?= json_encode((string) ($marketingMensaje['estado'] ?? 'ok'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-        snackbar.querySelector('span').textContent = <?= json_encode((string) ($marketingMensaje['mensaje'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-        snackbar.classList.add('abierto');
-      });
-    </script>
-  <?php endif; ?>
 </body>
 </html>
