@@ -280,17 +280,12 @@
   width: min(1120px, calc(100vw - 2rem));
 }
 
-.marketing-plan-detail-modal {
-  width: min(980px, calc(100vw - 2rem));
+.marketing-plan-detail-drawer {
+  width: min(760px, calc(100vw - 1rem));
 }
 
 .marketing-plan-modal .im-dialog__contenido {
   max-height: min(680px, calc(100vh - 9rem));
-  overflow: auto;
-}
-
-.marketing-plan-detail-modal .im-dialog__contenido {
-  max-height: min(720px, calc(100vh - 9rem));
   overflow: auto;
 }
 
