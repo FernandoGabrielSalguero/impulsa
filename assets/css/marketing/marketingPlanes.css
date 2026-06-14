@@ -1,0 +1,180 @@
+.im-marca__isotipo img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.im-nav-item__icono[data-icon]::before {
+  content: attr(data-icon);
+}
+
+.im-accion-salir {
+  color: #ba1a1a;
+}
+
+.im-snackbar[data-estado="error"] {
+  background: #ba1a1a;
+  color: #fff;
+}
+
+.im-snackbar[data-estado="error"] button {
+  color: #fff;
+}
+
+.marketing-tabs .im-tab-panel {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.marketing-dashboard-grid,
+.marketing-plan-builder,
+.marketing-results-panel,
+.marketing-monitor-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.marketing-plan-builder__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .7fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.marketing-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+.marketing-form-grid .im-campo--ancho,
+.marketing-form-grid .marketing-form-actions {
+  grid-column: 1 / -1;
+}
+
+.marketing-form-actions,
+.marketing-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+}
+
+.marketing-plan-list,
+.marketing-pricing-list,
+.marketing-results-list {
+  display: grid;
+  gap: .75rem;
+}
+
+.marketing-plan-card {
+  display: grid;
+  gap: .85rem;
+  min-height: 100%;
+}
+
+.marketing-plan-card__features {
+  display: grid;
+  gap: .35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marketing-plan-card__features li {
+  display: flex;
+  gap: .45rem;
+  align-items: flex-start;
+  color: var(--im-color-texto-suave);
+  font-weight: 650;
+}
+
+.marketing-plan-card__features li::before {
+  content: "check_circle";
+  flex: 0 0 auto;
+  color: var(--im-color-secundario);
+  font-family: "Material Symbols Rounded";
+  font-size: 1.1rem;
+  line-height: 1.35;
+}
+
+.marketing-pricing-option {
+  display: grid;
+  gap: .65rem;
+  padding: .85rem;
+  border: 1px solid var(--im-color-borde);
+  border-radius: var(--im-radio);
+  background: var(--im-color-superficie);
+}
+
+.marketing-pricing-option__price {
+  color: var(--im-color-principal);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.marketing-empty {
+  display: grid;
+  place-items: center;
+  gap: .35rem;
+  min-height: 180px;
+  padding: 1.5rem;
+  border: 1px dashed var(--im-color-borde);
+  border-radius: var(--im-radio);
+  color: var(--im-color-texto-suave);
+  text-align: center;
+}
+
+.marketing-empty .material-symbols-rounded {
+  color: var(--im-color-principal);
+  font-size: 2rem;
+}
+
+.marketing-upload-preview {
+  display: grid;
+  gap: .75rem;
+}
+
+.marketing-csv-drop {
+  display: grid;
+  gap: .5rem;
+  padding: 1rem;
+  border: 1px dashed var(--im-color-borde);
+  border-radius: var(--im-radio);
+  background: var(--im-color-superficie-2);
+}
+
+.marketing-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.marketing-report-card {
+  display: grid;
+  gap: .65rem;
+}
+
+.marketing-subtle {
+  color: var(--im-color-texto-suave);
+}
+
+.im-chip--estado-cancelado {
+  background: #f3d8df;
+  color: #ba1a1a;
+}
+
+@media (max-width: 1000px) {
+  .marketing-plan-builder__layout,
+  .marketing-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .marketing-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

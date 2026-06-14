@@ -1,0 +1,116 @@
+<?php
+$usuarioInicial = $usuarioInicial ?? '?';
+$usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
+$usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
+$marketingRolLabel = $marketingRolLabel ?? 'Marketing';
+$marketingNavItems = $marketingNavItems ?? [];
+$marketingGestiona = marketingUsuarioPuedeGestionar($usuario['rol'] ?? null);
+$marketingMensaje = $_SESSION['marketing_estado'] ?? null;
+unset($_SESSION['marketing_estado']);
+$h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
+?>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Marketing Impulsa</title>
+  <link rel="icon" href="<?= $h(obtenerFaviconHref()) ?>" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../../assets/impulsa_material/css/material.css">
+  <link rel="stylesheet" href="../../../assets/css/marketing/marketingPlanes.css">
+</head>
+<body>
+  <div class="im-aplicacion" data-menu-colapsado="false">
+    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
+      <div class="im-marca">
+        <span class="im-marca__isotipo" aria-hidden="true">
+          <?php if ($usuarioAvatarUrl): ?>
+            <img src="<?= $h($usuarioAvatarUrl) ?>" alt="">
+          <?php else: ?>
+            <?= $h($usuarioInicial) ?>
+          <?php endif; ?>
+        </span>
+        <div class="im-marca__texto">
+          <strong><?= $h($usuarioMarcaNombre) ?></strong>
+          <span><?= $h($marketingRolLabel) ?></span>
+        </div>
+      </div>
+      <nav class="im-navegacion">
+        <?php foreach ($marketingNavItems as $item): ?>
+          <a class="im-nav-item <?= !empty($item['active']) ? 'activo' : '' ?>" href="<?= $h($item['href'] ?? '#') ?>">
+            <span class="im-nav-item__icono" data-icon="<?= $h($item['icon'] ?? 'circle') ?>" aria-hidden="true"></span>
+            <span class="im-nav-item__texto"><?= $h($item['label'] ?? '') ?></span>
+          </a>
+        <?php endforeach; ?>
+      </nav>
+    </aside>
+    <div class="im-cortina" data-cerrar-menu></div>
+    <div class="im-contenedor">
+      <header class="im-barra-superior">
+        <div class="im-barra-superior__grupo">
+          <button class="im-boton-icono" type="button" data-alternar-menu aria-label="Menu"></button>
+          <div>
+            <p class="im-sobrelinea">Impulsa</p>
+            <h1>Marketing</h1>
+          </div>
+        </div>
+        <div class="im-barra-superior__acciones">
+          <button class="im-boton-icono im-boton-icono--principal im-tooltip" type="button" data-abrir-config-tema aria-label="Configurar temas" data-tooltip="Configurar estilos"></button>
+          <button class="im-boton-icono material-symbols-rounded im-tooltip" type="button" data-abrir-perfil aria-label="Mi perfil" data-tooltip="Mi perfil">account_circle</button>
+          <a class="im-boton-icono material-symbols-rounded im-tooltip im-accion-salir" href="/auth/logout.php" aria-label="Salir" data-tooltip="Salir">logout</a>
+        </div>
+      </header>
+
+      <main class="im-contenido">
+        <section class="im-seccion-documento activa">
+          <article class="im-tarjeta marketing-tabs">
+            <div class="im-tabs" data-marketing-tabs>
+              <?php if ($marketingGestiona): ?>
+                <button class="activo" type="button">Constructor</button>
+                <button type="button">Planes publicados</button>
+                <button type="button">Monitor</button>
+                <button type="button">Resultados</button>
+              <?php else: ?>
+                <button class="activo" type="button">Planes</button>
+                <button type="button">Resultados</button>
+              <?php endif; ?>
+            </div>
+
+            <?php if ($marketingGestiona): ?>
+              <div class="im-tab-panel activo"><?php require __DIR__ . '/constructor de planes/constructorPlanesMarketingView.php'; ?></div>
+              <div class="im-tab-panel"><?php require __DIR__ . '/visualizador de planes/visualizadorPlanesMarketingView.php'; ?></div>
+              <div class="im-tab-panel"><?php require __DIR__ . '/monitor de planes/monitorPlanesMarketingView.php'; ?></div>
+              <div class="im-tab-panel"><?php require __DIR__ . '/visualizador de resultados/visualizadorResultadosMarketingView.php'; ?></div>
+            <?php else: ?>
+              <div class="im-tab-panel activo"><?php require __DIR__ . '/visualizador de planes/visualizadorPlanesMarketingView.php'; ?></div>
+              <div class="im-tab-panel"><?php require __DIR__ . '/visualizador de resultados/visualizadorResultadosMarketingView.php'; ?></div>
+            <?php endif; ?>
+          </article>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <?php require __DIR__ . '/../bottom_sheet_perfil/perfilView.php'; ?>
+  <div class="im-snackbar" role="status"><span></span><button type="button" data-cerrar-snackbar>Cerrar</button></div>
+  <script src="../../../assets/impulsa_material/js/material.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="../../../assets/js/marketing/marketingPlanes.js"></script>
+  <?php if (is_array($marketingMensaje) && trim((string) ($marketingMensaje['mensaje'] ?? '')) !== ''): ?>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const snackbar = document.querySelector('.im-snackbar');
+        if (!snackbar) {
+          return;
+        }
+        snackbar.dataset.estado = <?= json_encode((string) ($marketingMensaje['estado'] ?? 'ok'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        snackbar.querySelector('span').textContent = <?= json_encode((string) ($marketingMensaje['mensaje'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        snackbar.classList.add('abierto');
+      });
+    </script>
+  <?php endif; ?>
+</body>
+</html>

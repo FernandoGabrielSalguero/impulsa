@@ -135,6 +135,10 @@ $formatearFecha = static function (?string $fecha): string {
           <span class="im-nav-item__icono" data-icon="work" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Proyectos</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminMarketingController.php">
+          <span class="im-nav-item__icono" data-icon="campaign" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Marketing</span>
+        </a>
         <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminAPIconfigurationController.php">
           <span class="im-nav-item__icono" data-icon="key" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Integraciones API</span>
