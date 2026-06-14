@@ -21,7 +21,13 @@ class MonitorPlanesMarketingModel
              ORDER BY mps.updated_at DESC"
         );
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $suscripciones = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        foreach ($suscripciones as &$suscripcion) {
+            $suscripcion['plan_detail'] = $this->obtenerPlanCompleto((int) ($suscripcion['plan_id'] ?? 0));
+        }
+        unset($suscripcion);
+
+        return $suscripciones;
     }
 
     public function obtenerCampanias(): array
@@ -34,6 +40,34 @@ class MonitorPlanesMarketingModel
              ORDER BY mc.campaign_name ASC"
         );
 
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    private function obtenerPlanCompleto(int $planId): ?array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM marketing_plans WHERE id = :id');
+        $stmt->execute(['id' => $planId]);
+        $plan = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$plan) {
+            return null;
+        }
+
+        $plan['features'] = $this->obtenerFeatures($planId);
+        $plan['pricing_options'] = $this->obtenerPrecios($planId);
+        return $plan;
+    }
+
+    private function obtenerFeatures(int $planId): array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM marketing_plan_features WHERE plan_id = :id ORDER BY feature_order ASC, id ASC');
+        $stmt->execute(['id' => $planId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    private function obtenerPrecios(int $planId): array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM marketing_plan_pricing_options WHERE plan_id = :id ORDER BY is_default DESC, display_order ASC, duration_months ASC');
+        $stmt->execute(['id' => $planId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 

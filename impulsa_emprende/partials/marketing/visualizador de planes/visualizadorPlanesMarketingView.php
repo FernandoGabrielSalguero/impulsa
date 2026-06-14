@@ -44,6 +44,7 @@ $puedeSolicitarPlan = marketingUsuarioPuedeVerCliente($usuario['rol'] ?? null);
                   <?php if ($puedeSolicitarPlan): ?>
                     <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Nota opcional', 'Comentario para que el equipo entienda el contexto de tu solicitud.') ?><input name="notes" placeholder="Contexto para el equipo"></label>
                     <button class="im-boton im-boton--principal" type="submit">Solicitar plan</button>
+                    <button class="im-boton im-boton--tonal" type="button" data-marketing-view-plan="<?= marketingJson($plan) ?>"><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver plan completo</button>
                   <?php endif; ?>
                 </form>
               <?php endforeach; ?>
@@ -53,4 +54,5 @@ $puedeSolicitarPlan = marketingUsuarioPuedeVerCliente($usuario['rol'] ?? null);
       </div>
     <?php endif; ?>
   </div>
+
 </section>

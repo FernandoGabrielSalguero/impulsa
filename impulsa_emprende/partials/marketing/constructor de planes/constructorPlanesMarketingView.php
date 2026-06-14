@@ -67,7 +67,7 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
     </div>
     <div class="marketing-inline-actions">
       <button class="im-boton im-boton--tonal im-tooltip" type="button" data-marketing-open-plans data-tooltip="Abrir listado de planes existentes">
-        <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
+        <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
         Ver planes existentes
       </button>
       <span class="im-chip"><?= number_format(count($planes), 0, ',', '.') ?> planes</span>
@@ -197,10 +197,13 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
                   <h3><?= $h($item['name'] ?? '') ?></h3>
                   <p><?= $h($item['short_description'] ?? '') ?></p>
                 </div>
-                <span class="im-chip <?= $h(marketingChipEstadoClase($item['status'] ?? '')) ?>"><?= $h(marketingEstadoPlanEtiqueta($item['status'] ?? '')) ?></span>
+                <div class="marketing-inline-actions">
+                  <span class="im-chip <?= $h(marketingChipEstadoClase($item['status'] ?? '')) ?>"><?= $h(marketingEstadoPlanEtiqueta($item['status'] ?? '')) ?></span>
+                  <button class="im-boton-icono material-symbols-rounded im-tooltip" type="button" data-marketing-view-plan="<?= marketingJson($item) ?>" aria-label="Ver plan completo" data-tooltip="Ver como cliente">visibility</button>
+                </div>
               </div>
               <ul class="marketing-plan-card__features">
-                <?php foreach (array_slice(($item['features'] ?? []), 0, 4) as $feature): ?><li><?= $h($feature['feature_name'] ?? '') ?></li><?php endforeach; ?>
+                <?php foreach (array_slice(($item['features'] ?? []), 0, 4) as $feature): ?><li class="<?= (int) ($feature['is_highlighted'] ?? 0) === 1 ? 'marketing-plan-card__feature--highlighted' : '' ?>"><?= $h($feature['feature_name'] ?? '') ?></li><?php endforeach; ?>
               </ul>
               <div class="marketing-pricing-list">
                 <?php foreach (array_slice(($item['pricing_options'] ?? []), 0, 2) as $precio): ?>

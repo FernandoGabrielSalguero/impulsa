@@ -31,7 +31,14 @@ $campaniasAsignacion = array_map(static fn (array $campania): array => [
               <td><?= (int) ($sub['id'] ?? 0) ?></td>
               <td class="im-tabla-tareas__nombre"><?= $h($sub['plan_name'] ?? '') ?><br><small><?= (int) ($sub['campaigns_total'] ?? 0) ?> campanias</small></td>
               <td><?= $h($sub['client_email'] ?: ($sub['entrepreneur_email'] ?? '')) ?></td>
-              <td><span class="im-chip <?= $h(marketingChipEstadoClase($sub['status'] ?? '')) ?>"><?= $h(marketingEstadoSuscripcionEtiqueta($sub['status'] ?? '')) ?></span></td>
+              <td>
+                <div class="marketing-inline-actions">
+                  <span class="im-chip <?= $h(marketingChipEstadoClase($sub['status'] ?? '')) ?>"><?= $h(marketingEstadoSuscripcionEtiqueta($sub['status'] ?? '')) ?></span>
+                  <?php if (!empty($sub['plan_detail'])): ?>
+                    <button class="im-boton-icono material-symbols-rounded im-tooltip" type="button" data-marketing-view-plan="<?= marketingJson($sub['plan_detail']) ?>" aria-label="Ver plan completo" data-tooltip="Ver plan completo">visibility</button>
+                  <?php endif; ?>
+                </div>
+              </td>
               <td><?= (int) ($sub['duration_months'] ?? 0) ?> meses</td>
               <td><?= $h($sub['start_date'] ?? '-') ?><br><small><?= $h($sub['end_date'] ?? '-') ?></small></td>
               <td><?= $h(marketingFormatoMoneda($sub['total_contract_value'] ?? 0, $sub['currency'] ?? 'ARS')) ?></td>

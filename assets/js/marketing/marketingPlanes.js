@@ -33,6 +33,8 @@
   const pricingEditor = document.querySelector('[data-marketing-pricing-editor]');
   const plansModal = document.querySelector('[data-marketing-plans-modal]');
   const publishedPlansContainer = document.querySelector('[data-marketing-published-plans]');
+  const planDetailModal = document.querySelector('[data-marketing-plan-detail-modal]');
+  const planDetailContent = document.querySelector('[data-marketing-plan-detail-content]');
   let features = parseJson(planForm?.dataset.initialFeatures, []);
   let pricing = parseJson(planForm?.dataset.initialPricing, []);
   let editingFeatureIndex = null;
@@ -84,6 +86,11 @@
       return;
     }
 
+    if (event.target.closest('[data-marketing-close-plan-detail]')) {
+      closePlanDetailModal();
+      return;
+    }
+
     if (event.target.closest('[data-marketing-new-plan]')) {
       resetPlanForm();
       closePlansModal();
@@ -130,6 +137,10 @@
 
     const trigger = event.target.closest('[data-marketing-load-plan]');
     if (!trigger || !planForm) {
+      const viewTrigger = event.target.closest('[data-marketing-view-plan]');
+      if (viewTrigger) {
+        openPlanDetail(JSON.parse(viewTrigger.dataset.marketingViewPlan || '{}'));
+      }
       return;
     }
 
@@ -140,6 +151,21 @@
   function closePlansModal() {
     plansModal?.classList.remove('abierto');
     plansModal?.setAttribute('aria-hidden', 'true');
+  }
+
+  function closePlanDetailModal() {
+    planDetailModal?.classList.remove('abierto');
+    planDetailModal?.setAttribute('aria-hidden', 'true');
+  }
+
+  function openPlanDetail(plan) {
+    if (!planDetailModal || !planDetailContent) {
+      return;
+    }
+    closePlansModal();
+    planDetailContent.innerHTML = renderPlanDetail(plan);
+    planDetailModal.classList.add('abierto');
+    planDetailModal.setAttribute('aria-hidden', 'false');
   }
 
   function loadPlan(plan, options = {}) {
@@ -220,7 +246,7 @@
     }
     item.quantity = integerValue(item.quantity);
     item.feature_order = integerValue(item.feature_order);
-    item.is_highlighted = item.is_highlighted ? '1' : '0';
+    item.is_highlighted = isTruthy(item.is_highlighted) ? '1' : '0';
     if (editingFeatureIndex === null) {
       features.push(item);
     } else {
@@ -240,8 +266,8 @@
     item.monthly_price = integerValue(item.monthly_price);
     item.setup_fee = integerValue(item.setup_fee);
     item.display_order = integerValue(item.display_order);
-    item.is_featured = item.is_featured ? '1' : '0';
-    item.is_default = item.is_default ? '1' : '0';
+    item.is_featured = isTruthy(item.is_featured) ? '1' : '0';
+    item.is_default = isTruthy(item.is_default) ? '1' : '0';
     item.total_price = calculatePricingTotal(item.duration_months, item.monthly_price);
     if (editingPricingIndex === null) {
       pricing.push(item);
@@ -428,6 +454,7 @@
                   <span>${escapeHtml(integerValue(price.duration_months))} meses - ${escapeHtml(formatMoney(price.total_price))} total</span>
                   ${isTruthy(price.is_featured) ? '<span class="im-chip im-chip--exito">Destacada</span>' : ''}
                   ${canRequest ? '<button class="im-boton im-boton--principal" type="submit">Solicitar plan</button>' : ''}
+                  ${canRequest ? `<button class="im-boton im-boton--tonal" type="button" data-marketing-view-plan="${escapeAttribute(JSON.stringify(plan))}"><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver plan completo</button>` : ''}
                 </form>
               `).join('')}
             </div>
@@ -435,6 +462,62 @@
         `).join('')}
       </div>
     ` : '<div class="marketing-empty"><span class="material-symbols-rounded">campaign</span><strong>No hay planes publicados.</strong><span>Cuando marketing publique un plan, aparecera aca.</span></div>';
+  }
+
+  function renderPlanDetail(plan) {
+    const features = plan.features || [];
+    const prices = plan.pricing_options || [];
+    return `
+      <article class="marketing-plan-detail">
+        <header class="marketing-plan-detail__hero">
+          <div>
+            <span class="im-chip im-chip--exito">${escapeHtml(plan.status === 'published' ? 'Publicado' : estadoPlan(plan.status))}</span>
+            <h2>${escapeHtml(plan.name || '')}</h2>
+            <p>${escapeHtml(plan.full_description || plan.short_description || '')}</p>
+          </div>
+          ${plan.objective ? `<div class="marketing-plan-detail__objective"><span>Objetivo</span><strong>${escapeHtml(plan.objective)}</strong></div>` : ''}
+        </header>
+        <div class="marketing-plan-detail__meta">
+          ${plan.report_frequency ? `<span><strong>Reportes</strong>${escapeHtml(plan.report_frequency)}</span>` : ''}
+          ${plan.support_level ? `<span><strong>Soporte</strong>${escapeHtml(plan.support_level)}</span>` : ''}
+          ${plan.billing_period ? `<span><strong>Cobro</strong>${escapeHtml(plan.billing_period)}</span>` : ''}
+          ${(plan.recommended_ad_budget_min || plan.recommended_ad_budget_max) ? `<span><strong>Inversion sugerida</strong>${escapeHtml(formatBudgetRange(plan.recommended_ad_budget_min, plan.recommended_ad_budget_max))}</span>` : ''}
+          ${Number(plan.setup_fee || 0) > 0 ? `<span><strong>Setup inicial</strong>${escapeHtml(formatMoney(plan.setup_fee))}</span>` : ''}
+        </div>
+        <section class="marketing-plan-detail__section">
+          <h4>Que incluye</h4>
+          <ul class="marketing-plan-card__features">
+            ${features.map((feature) => `<li class="${isTruthy(feature.is_highlighted) ? 'marketing-plan-card__feature--highlighted' : ''}">${escapeHtml(feature.feature_name || '')}${feature.quantity ? ` <small>${escapeHtml(integerValue(feature.quantity))} ${escapeHtml(feature.unit || '')}</small>` : ''}${feature.feature_description ? `<small>${escapeHtml(feature.feature_description)}</small>` : ''}</li>`).join('')}
+          </ul>
+        </section>
+        <section class="marketing-plan-detail__section">
+          <h4>Opciones comerciales</h4>
+          <div class="marketing-plan-detail__prices">
+            ${prices.map((price) => `
+              <article class="marketing-pricing-option ${isTruthy(price.is_featured) ? 'marketing-pricing-option--featured' : ''}">
+                <div class="marketing-inline-actions">
+                  ${isTruthy(price.is_featured) ? '<span class="im-chip im-chip--exito">Destacada</span>' : ''}
+                  ${isTruthy(price.is_default) ? '<span class="im-chip">Predeterminada</span>' : ''}
+                </div>
+                <strong class="marketing-pricing-option__price">${escapeHtml(formatMoney(price.monthly_price))}/mes</strong>
+                <span>${escapeHtml(integerValue(price.duration_months))} meses - ${escapeHtml(formatMoney(price.total_price))} total</span>
+                ${price.currency ? `<small>Moneda ${escapeHtml(price.currency)}</small>` : ''}
+                ${Number(price.setup_fee || 0) > 0 ? `<small>Costo inicial ${escapeHtml(formatMoney(price.setup_fee))}</small>` : ''}
+              </article>
+            `).join('')}
+          </div>
+        </section>
+      </article>
+    `;
+  }
+
+  function estadoPlan(status) {
+    return {
+      draft: 'Borrador',
+      published: 'Publicado',
+      paused: 'Pausado',
+      archived: 'Archivado'
+    }[status] || 'Plan';
   }
 
   function readEditor(container, prefix) {
@@ -484,6 +567,15 @@
   function formatMoney(value) {
     const number = Number(String(value ?? 0).replace(',', '.'));
     return '$' + (Number.isFinite(number) ? Math.trunc(number).toLocaleString('es-AR', { maximumFractionDigits: 0 }) : '0');
+  }
+
+  function formatBudgetRange(min, max) {
+    const minNumber = Number(integerValue(min) || 0);
+    const maxNumber = Number(integerValue(max) || 0);
+    if (minNumber > 0 && maxNumber > 0) {
+      return `${formatMoney(minNumber)} a ${formatMoney(maxNumber)}`;
+    }
+    return formatMoney(minNumber || maxNumber);
   }
 
   function isTruthy(value) {
@@ -599,5 +691,9 @@
       '"': '&quot;',
       "'": '&#039;'
     }[char]));
+  }
+
+  function escapeAttribute(value) {
+    return escapeHtml(value).replace(/`/g, '&#096;');
   }
 })();

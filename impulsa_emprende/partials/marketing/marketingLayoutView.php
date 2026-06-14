@@ -95,6 +95,13 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''
   </div>
 
   <?php require __DIR__ . '/../bottom_sheet_perfil/perfilView.php'; ?>
+  <section class="im-dialog marketing-plan-detail-modal" role="dialog" aria-modal="true" aria-labelledby="marketing-plan-detail-title" aria-hidden="true" data-marketing-plan-detail-modal>
+    <header class="im-dialog__cabecera">
+      <h3 id="marketing-plan-detail-title">Detalle del plan</h3>
+      <button class="im-boton-icono material-symbols-rounded" type="button" data-marketing-close-plan-detail aria-label="Cerrar dialog">close</button>
+    </header>
+    <div class="im-dialog__contenido" data-marketing-plan-detail-content></div>
+  </section>
   <div
     class="im-snackbar"
     role="status"

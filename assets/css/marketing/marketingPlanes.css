@@ -180,7 +180,7 @@
 .marketing-plan-card__features li::before {
   content: "check_circle";
   flex: 0 0 auto;
-  color: var(--im-color-texto-suave);
+  color: var(--im-color-principal);
   font-family: "Material Symbols Rounded";
   font-size: 1.1rem;
   line-height: 1.35;
@@ -188,12 +188,21 @@
 
 .marketing-plan-card__features .marketing-plan-card__feature--highlighted {
   color: var(--im-color-principal);
+  font-size: 1.06rem;
   font-weight: 800;
 }
 
 .marketing-plan-card__features .marketing-plan-card__feature--highlighted::before {
-  content: "stars";
-  color: var(--im-color-secundario);
+  content: "star";
+  color: #f6b400;
+  font-size: 1.25rem;
+}
+
+.marketing-plan-card__features li small {
+  flex-basis: 100%;
+  margin-left: 1.55rem;
+  color: var(--im-color-texto-suave);
+  font-weight: 500;
 }
 
 .marketing-pricing-option {
@@ -271,9 +280,87 @@
   width: min(1120px, calc(100vw - 2rem));
 }
 
+.marketing-plan-detail-modal {
+  width: min(980px, calc(100vw - 2rem));
+}
+
 .marketing-plan-modal .im-dialog__contenido {
   max-height: min(680px, calc(100vh - 9rem));
   overflow: auto;
+}
+
+.marketing-plan-detail-modal .im-dialog__contenido {
+  max-height: min(720px, calc(100vh - 9rem));
+  overflow: auto;
+}
+
+.marketing-plan-detail {
+  display: grid;
+  gap: 1rem;
+}
+
+.marketing-plan-detail__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .35fr);
+  gap: 1rem;
+  align-items: end;
+  padding: 1rem;
+  border-radius: var(--im-radio);
+  background: linear-gradient(135deg, var(--im-color-principal), color-mix(in srgb, var(--im-color-principal) 72%, var(--im-color-secundario)));
+  color: var(--im-color-principal-alto);
+}
+
+.marketing-plan-detail__hero h2 {
+  margin: .45rem 0 .25rem;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.05;
+}
+
+.marketing-plan-detail__hero p {
+  margin: 0;
+  color: inherit;
+  opacity: .92;
+}
+
+.marketing-plan-detail__objective {
+  display: grid;
+  gap: .25rem;
+  padding: .85rem;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: var(--im-radio);
+  background: rgba(255, 255, 255, .12);
+}
+
+.marketing-plan-detail__objective span,
+.marketing-plan-detail__meta span strong {
+  font-size: .78rem;
+  text-transform: uppercase;
+}
+
+.marketing-plan-detail__meta,
+.marketing-plan-detail__prices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .75rem;
+}
+
+.marketing-plan-detail__meta span {
+  display: grid;
+  gap: .15rem;
+  padding: .85rem;
+  border: 1px solid var(--im-color-borde);
+  border-radius: var(--im-radio);
+  background: var(--im-color-superficie);
+}
+
+.marketing-plan-detail__section {
+  display: grid;
+  gap: .75rem;
+}
+
+.marketing-plan-detail__section h4 {
+  margin: 0;
+  color: var(--im-color-principal);
 }
 
 .im-chip--estado-cancelado {
@@ -295,5 +382,11 @@
   .marketing-builder-list__item {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .marketing-plan-detail__hero,
+  .marketing-plan-detail__meta,
+  .marketing-plan-detail__prices {
+    grid-template-columns: 1fr;
   }
 }
