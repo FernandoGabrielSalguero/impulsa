@@ -40,6 +40,12 @@
   renderFeatures();
   renderPricing();
 
+  pricingEditor?.addEventListener('input', (event) => {
+    if (event.target.matches('[data-pricing-field="duration_months"], [data-pricing-field="monthly_price"]')) {
+      updatePricingTotal();
+    }
+  });
+
   document.addEventListener('click', (event) => {
     const snackbarClose = event.target.closest('[data-cerrar-snackbar]');
     if (snackbarClose) {
@@ -193,6 +199,8 @@
     if (!item.feature_name) {
       return;
     }
+    item.quantity = integerValue(item.quantity);
+    item.feature_order = integerValue(item.feature_order);
     item.is_highlighted = item.is_highlighted ? '1' : '0';
     if (editingFeatureIndex === null) {
       features.push(item);
@@ -209,11 +217,11 @@
     if (!item.duration_months || !item.monthly_price) {
       return;
     }
+    item.duration_months = integerValue(item.duration_months);
+    item.display_order = integerValue(item.display_order);
     item.is_featured = item.is_featured ? '1' : '0';
     item.is_default = item.is_default ? '1' : '0';
-    if (!item.total_price) {
-      item.total_price = String(Number(item.duration_months || 0) * Number(item.monthly_price || 0));
-    }
+    item.total_price = calculatePricingTotal(item.duration_months, item.monthly_price);
     if (editingPricingIndex === null) {
       pricing.push(item);
     } else {
@@ -239,6 +247,7 @@
       return;
     }
     writeEditor(pricingEditor, 'pricing', item);
+    updatePricingTotal();
     editingPricingIndex = index;
   }
 
@@ -251,7 +260,7 @@
         ${hiddenInputs('features', index, item, ['id', 'feature_name', 'feature_description', 'quantity', 'unit', 'feature_order', 'is_highlighted'])}
         <div>
           <strong>${escapeHtml(item.feature_name || '')}</strong>
-          <p>${escapeHtml([item.quantity, item.unit].filter(Boolean).join(' '))}${item.feature_description ? ' - ' + escapeHtml(item.feature_description) : ''}</p>
+          <p>${escapeHtml([integerValue(item.quantity), item.unit].filter(Boolean).join(' '))}${item.feature_description ? ' - ' + escapeHtml(item.feature_description) : ''}</p>
         </div>
         <div class="marketing-inline-actions">
           ${item.is_highlighted === '1' ? '<span class="im-chip im-chip--exito">Destacado</span>' : ''}
@@ -270,8 +279,8 @@
       <article class="marketing-builder-list__item">
         ${hiddenInputs('pricing', index, item, ['id', 'duration_months', 'monthly_price', 'total_price', 'setup_fee', 'currency', 'display_order', 'is_featured', 'is_default'])}
         <div>
-          <strong>${escapeHtml(item.duration_months || '')} meses - ${escapeHtml(item.currency || 'ARS')} ${escapeHtml(item.monthly_price || '0')}/mes</strong>
-          <p>Total ${escapeHtml(item.currency || 'ARS')} ${escapeHtml(item.total_price || '0')} - Costo inicial ${escapeHtml(item.setup_fee || '0')}</p>
+          <strong>${escapeHtml(integerValue(item.duration_months))} meses - ${escapeHtml(formatMoney(item.monthly_price))}/mes</strong>
+          <p>Total ${escapeHtml(formatMoney(item.total_price))} - Costo inicial ${escapeHtml(formatMoney(item.setup_fee))}</p>
         </div>
         <div class="marketing-inline-actions">
           ${item.is_default === '1' ? '<span class="im-chip">Predeterminada</span>' : ''}
@@ -297,10 +306,39 @@
       const key = field.dataset[`${prefix}Field`];
       if (field.type === 'checkbox') {
         field.checked = String(item[key] || '0') === '1';
+      } else if (['quantity', 'feature_order', 'duration_months', 'display_order'].includes(key)) {
+        field.value = integerValue(item[key]);
       } else {
         field.value = item[key] ?? '';
       }
     });
+  }
+
+  function updatePricingTotal() {
+    const duration = pricingEditor?.querySelector('[data-pricing-field="duration_months"]')?.value || 0;
+    const monthly = pricingEditor?.querySelector('[data-pricing-field="monthly_price"]')?.value || 0;
+    const total = pricingEditor?.querySelector('[data-pricing-field="total_price"]');
+    if (total) {
+      total.value = calculatePricingTotal(duration, monthly);
+    }
+  }
+
+  function calculatePricingTotal(duration, monthly) {
+    const value = Number(integerValue(duration) || 0) * Number(String(monthly || 0).replace(',', '.') || 0);
+    return value ? value.toFixed(2) : '0.00';
+  }
+
+  function integerValue(value) {
+    const number = Number(String(value ?? '').replace(',', '.'));
+    if (!Number.isFinite(number)) {
+      return '';
+    }
+    return String(Math.trunc(number));
+  }
+
+  function formatMoney(value) {
+    const number = Number(String(value ?? 0).replace(',', '.'));
+    return '$' + (Number.isFinite(number) ? number.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00');
   }
 
   function clearEditor(container, prefix) {

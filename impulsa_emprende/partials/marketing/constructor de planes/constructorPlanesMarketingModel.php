@@ -132,7 +132,7 @@ class ConstructorPlanesMarketingModel
             'plan_id' => $planId,
             'feature_name' => $nombre,
             'feature_description' => $this->nullSiVacio($data['feature_description'] ?? null),
-            'quantity' => $this->decimalONull($data['quantity'] ?? null),
+            'quantity' => $this->enteroONull($data['quantity'] ?? null),
             'unit' => $this->nullSiVacio($data['unit'] ?? null),
             'feature_order' => (int) ($data['feature_order'] ?? 0),
             'is_highlighted' => !empty($data['is_highlighted']) ? 1 : 0,
@@ -148,7 +148,7 @@ class ConstructorPlanesMarketingModel
             throw new InvalidArgumentException('Selecciona un plan y completa duracion y precio mensual.');
         }
 
-        $total = $this->decimal($data['total_price'] ?? ($mensual * $duracion));
+        $total = $mensual * $duracion;
         $stmt = $this->pdo->prepare(
             "INSERT INTO marketing_plan_pricing_options
              (plan_id, duration_months, monthly_price, total_price, setup_fee, currency, is_featured, is_default, display_order)
@@ -250,6 +250,12 @@ class ConstructorPlanesMarketingModel
         return $valor === '' ? null : $this->decimal($valor);
     }
 
+    private function enteroONull(mixed $valor): ?int
+    {
+        $valor = trim((string) ($valor ?? ''));
+        return $valor === '' ? null : (int) floor($this->decimal($valor));
+    }
+
     private function estadoPlan(string $estado): string
     {
         return in_array($estado, ['draft', 'published', 'paused', 'archived'], true) ? $estado : 'draft';
@@ -269,7 +275,7 @@ class ConstructorPlanesMarketingModel
                 'plan_id' => $planId,
                 'feature_name' => $nombre,
                 'feature_description' => $this->nullSiVacio($feature['feature_description'] ?? null),
-                'quantity' => $this->decimalONull($feature['quantity'] ?? null),
+                'quantity' => $this->enteroONull($feature['quantity'] ?? null),
                 'unit' => $this->nullSiVacio($feature['unit'] ?? null),
                 'feature_order' => (int) ($feature['feature_order'] ?? $index),
                 'is_highlighted' => !empty($feature['is_highlighted']) ? 1 : 0,
@@ -315,7 +321,7 @@ class ConstructorPlanesMarketingModel
             }
 
             $precioId = (int) ($precio['id'] ?? 0);
-            $total = $this->decimal($precio['total_price'] ?? ($mensual * $duracion));
+            $total = $mensual * $duracion;
             $payload = [
                 'plan_id' => $planId,
                 'duration_months' => $duracion,

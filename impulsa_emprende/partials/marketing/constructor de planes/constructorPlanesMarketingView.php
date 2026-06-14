@@ -113,9 +113,9 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
               <?php foreach ($periodosCobro as $opcion): ?><option value="<?= $h($opcion) ?>" <?= ($plan['billing_period'] ?? 'Mensual') === $opcion ? 'selected' : '' ?>><?= $h($opcion) ?></option><?php endforeach; ?>
             </select></label>
 
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Presupuesto minimo recomendado', 'Inversion publicitaria minima sugerida. No es el precio del servicio.') ?><input type="number" step="0.01" name="recommended_ad_budget_min" value="<?= $h($plan['recommended_ad_budget_min'] ?? '') ?>"></label>
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Presupuesto maximo recomendado', 'Tope sugerido de inversion publicitaria. No se cobra como fee de Impulsa.') ?><input type="number" step="0.01" name="recommended_ad_budget_max" value="<?= $h($plan['recommended_ad_budget_max'] ?? '') ?>"></label>
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Setup fee', 'Costo inicial de configuracion del plan. Usar 0 si no aplica.') ?><input type="number" step="0.01" name="setup_fee" value="<?= $h($plan['setup_fee'] ?? '0') ?>"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Presupuesto minimo recomendado', 'Inversion publicitaria minima sugerida. No es el precio del servicio.') ?><input type="number" step="0.01" name="recommended_ad_budget_min" value="<?= $h($plan['recommended_ad_budget_min'] ?? '') ?>"><b class="im-campo__prefijo" aria-hidden="true">$</b></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Presupuesto maximo recomendado', 'Tope sugerido de inversion publicitaria. No se cobra como fee de Impulsa.') ?><input type="number" step="0.01" name="recommended_ad_budget_max" value="<?= $h($plan['recommended_ad_budget_max'] ?? '') ?>"><b class="im-campo__prefijo" aria-hidden="true">$</b></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Setup fee', 'Costo inicial de configuracion del plan. Usar 0 si no aplica.') ?><input type="number" step="0.01" name="setup_fee" value="<?= $h($plan['setup_fee'] ?? '0') ?>"><b class="im-campo__prefijo" aria-hidden="true">$</b></label>
           <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Estado', 'Controla si el plan esta en borrador, publicado, pausado o archivado.') ?><select name="status">
               <?php foreach (['draft', 'published', 'paused', 'archived'] as $estado): ?><option value="<?= $h($estado) ?>" <?= ($plan['status'] ?? 'draft') === $estado ? 'selected' : '' ?>><?= $h(marketingEstadoPlanEtiqueta($estado)) ?></option><?php endforeach; ?>
             </select></label>
@@ -133,12 +133,12 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
         <div class="marketing-form-grid" data-marketing-feature-editor>
           <input type="hidden" data-feature-field="id">
           <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Nombre', 'Nombre del beneficio, entregable o tarea incluida.') ?><input data-feature-field="feature_name"></label>
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Cantidad', 'Cantidad incluida para este item, si aplica.') ?><input type="number" step="0.01" data-feature-field="quantity"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Cantidad', 'Cantidad incluida para este item, si aplica.') ?><input type="number" step="1" min="0" data-feature-field="quantity"></label>
           <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Unidad', 'Unidad de la cantidad incluida.') ?><select data-feature-field="unit">
               <option value="">Seleccionar</option>
               <?php foreach ($unidadesFeature as $unidad): ?><option value="<?= $h($unidad) ?>"><?= $h($unidad) ?></option><?php endforeach; ?>
             </select></label>
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Orden', 'Numero usado para ordenar los items en la tarjeta del plan.') ?><input type="number" data-feature-field="feature_order" value="0"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Orden', 'Numero usado para ordenar los items en la tarjeta del plan.') ?><input type="number" step="1" data-feature-field="feature_order" value="0"></label>
           <label class="im-campo im-campo-material im-campo--ancho"><?= marketingAyudaCampo('Descripcion', 'Aclaracion corta sobre el alcance de este item.') ?><input data-feature-field="feature_description"></label>
           <label class="im-slide-toggle"><input type="checkbox" data-feature-field="is_highlighted" value="1"><span></span> Destacado <?= marketingAyudaCampo('', 'Marca este item como importante para resaltarlo visualmente.') ?></label>
           <div class="marketing-form-actions"><button class="im-boton im-boton--tonal" type="button" data-marketing-add-feature>Agregar item</button></div>
@@ -155,14 +155,14 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
         </div>
         <div class="marketing-form-grid" data-marketing-pricing-editor>
           <input type="hidden" data-pricing-field="id">
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Duracion en meses', 'Cantidad de meses que dura esta alternativa comercial.') ?><input type="number" min="1" data-pricing-field="duration_months"></label>
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Precio mensual', 'Valor mensual del servicio para esta opcion.') ?><input type="number" step="0.01" data-pricing-field="monthly_price"></label>
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Precio total', 'Valor total del contrato para esta duracion. Si queda vacio, se calcula mensual por meses.') ?><input type="number" step="0.01" data-pricing-field="total_price"></label>
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Costo inicial', 'Costo inicial de configuracion para esta opcion. Usar 0 si no aplica.') ?><input type="number" step="0.01" data-pricing-field="setup_fee" value="0"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Duracion en meses', 'Cantidad de meses que dura esta alternativa comercial.') ?><input type="number" step="1" min="1" data-pricing-field="duration_months"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Precio mensual', 'Valor mensual del servicio para esta opcion.') ?><input type="number" step="0.01" min="0" data-pricing-field="monthly_price"><b class="im-campo__prefijo" aria-hidden="true">$</b></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Precio total', 'Se calcula automaticamente multiplicando duracion en meses por precio mensual.') ?><input type="number" step="0.01" min="0" data-pricing-field="total_price" readonly><b class="im-campo__prefijo" aria-hidden="true">$</b></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Costo inicial', 'Costo inicial de configuracion para esta opcion. Usar 0 si no aplica.') ?><input type="number" step="0.01" min="0" data-pricing-field="setup_fee" value="0"><b class="im-campo__prefijo" aria-hidden="true">$</b></label>
           <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Moneda', 'Moneda en la que se guardara esta opcion comercial.') ?><select data-pricing-field="currency">
               <?php foreach ($monedasPrecio as $moneda): ?><option value="<?= $h($moneda) ?>"><?= $h($moneda) ?></option><?php endforeach; ?>
             </select></label>
-          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Orden', 'Posicion en la que aparece esta opcion frente a otras duraciones.') ?><input type="number" data-pricing-field="display_order" value="0"></label>
+          <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Orden', 'Posicion en la que aparece esta opcion frente a otras duraciones.') ?><input type="number" step="1" data-pricing-field="display_order" value="0"></label>
           <label class="im-slide-toggle"><input type="checkbox" data-pricing-field="is_featured" value="1"><span></span> Opcion destacada <?= marketingAyudaCampo('', 'Resalta esta opcion en la tarjeta del plan.') ?></label>
           <label class="im-slide-toggle"><input type="checkbox" data-pricing-field="is_default" value="1"><span></span> Opcion predeterminada <?= marketingAyudaCampo('', 'Alternativa recomendada por defecto.') ?></label>
           <div class="marketing-form-actions"><button class="im-boton im-boton--tonal" type="button" data-marketing-add-pricing>Agregar precio</button></div>
@@ -201,7 +201,7 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
               </ul>
               <div class="marketing-pricing-list">
                 <?php foreach (array_slice(($item['pricing_options'] ?? []), 0, 2) as $precio): ?>
-                  <span class="im-chip"><?= (int) ($precio['duration_months'] ?? 0) ?> meses - <?= $h(marketingFormatoMoneda($precio['monthly_price'] ?? 0, $precio['currency'] ?? 'ARS')) ?>/mes</span>
+                  <span class="im-chip"><?= (int) ($precio['duration_months'] ?? 0) ?> meses - $<?= $h(number_format((float) ($precio['monthly_price'] ?? 0), 2, ',', '.')) ?>/mes</span>
                 <?php endforeach; ?>
               </div>
               <button class="im-boton im-boton--principal" type="button" data-marketing-load-plan="<?= marketingJson($item) ?>">Editar este plan</button>
