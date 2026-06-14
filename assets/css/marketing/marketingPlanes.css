@@ -358,6 +358,60 @@
   color: var(--im-color-principal);
 }
 
+.marketing-plan-detail__features-table {
+  overflow: hidden;
+  border: 1px solid var(--im-color-borde);
+  border-radius: var(--im-radio);
+  background: var(--im-color-superficie);
+}
+
+.marketing-plan-detail__features-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.marketing-plan-detail__features-table th,
+.marketing-plan-detail__features-table td {
+  padding: .8rem .85rem;
+  border-bottom: 1px solid var(--im-color-borde);
+  text-align: left;
+  vertical-align: top;
+}
+
+.marketing-plan-detail__features-table th {
+  background: var(--im-color-superficie-2);
+  color: var(--im-color-texto-suave);
+  font-size: .78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.marketing-plan-detail__features-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.marketing-plan-detail__feature-row--highlighted {
+  background: color-mix(in srgb, var(--im-color-principal-suave) 32%, var(--im-color-superficie));
+}
+
+.marketing-plan-detail__feature-name {
+  display: inline-flex;
+  gap: .45rem;
+  align-items: flex-start;
+  color: var(--im-color-principal);
+  font-weight: 800;
+}
+
+.marketing-plan-detail__feature-name .material-symbols-rounded {
+  color: var(--im-color-principal);
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.marketing-plan-detail__feature-row--highlighted .marketing-plan-detail__feature-name .material-symbols-rounded {
+  color: #f6b400;
+}
+
 .im-chip--estado-cancelado {
   background: #f3d8df;
   color: #ba1a1a;
@@ -383,5 +437,43 @@
   .marketing-plan-detail__meta,
   .marketing-plan-detail__prices {
     grid-template-columns: 1fr;
+  }
+
+  .marketing-plan-detail__features-table table,
+  .marketing-plan-detail__features-table thead,
+  .marketing-plan-detail__features-table tbody,
+  .marketing-plan-detail__features-table tr,
+  .marketing-plan-detail__features-table th,
+  .marketing-plan-detail__features-table td {
+    display: block;
+  }
+
+  .marketing-plan-detail__features-table thead {
+    display: none;
+  }
+
+  .marketing-plan-detail__features-table tr {
+    padding: .75rem;
+    border-bottom: 1px solid var(--im-color-borde);
+  }
+
+  .marketing-plan-detail__features-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .marketing-plan-detail__features-table td {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: .75rem;
+    padding: .35rem 0;
+    border-bottom: 0;
+  }
+
+  .marketing-plan-detail__features-table td::before {
+    content: attr(data-label);
+    color: var(--im-color-texto-suave);
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
   }
 }

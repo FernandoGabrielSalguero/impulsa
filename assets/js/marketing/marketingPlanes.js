@@ -502,9 +502,33 @@
         </div>
         <section class="marketing-plan-detail__section">
           <h4>Que incluye</h4>
-          <ul class="marketing-plan-card__features">
-            ${features.map((feature) => `<li class="${isTruthy(feature.is_highlighted) ? 'marketing-plan-card__feature--highlighted' : ''}">${escapeHtml(feature.feature_name || '')}${feature.quantity ? ` <small>${escapeHtml(integerValue(feature.quantity))} ${escapeHtml(feature.unit || '')}</small>` : ''}${feature.feature_description ? `<small>${escapeHtml(feature.feature_description)}</small>` : ''}</li>`).join('')}
-          </ul>
+          ${features.length ? `
+            <div class="marketing-plan-detail__features-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Cantidad</th>
+                    <th>Detalle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${features.map((feature) => `
+                    <tr class="${isTruthy(feature.is_highlighted) ? 'marketing-plan-detail__feature-row--highlighted' : ''}">
+                      <td data-label="Item">
+                        <span class="marketing-plan-detail__feature-name">
+                          ${isTruthy(feature.is_highlighted) ? '<span class="material-symbols-rounded" aria-hidden="true">star</span>' : '<span class="material-symbols-rounded" aria-hidden="true">check_circle</span>'}
+                          ${escapeHtml(feature.feature_name || '')}
+                        </span>
+                      </td>
+                      <td data-label="Cantidad">${feature.quantity ? `<span class="im-chip">${escapeHtml(integerValue(feature.quantity))} ${escapeHtml(feature.unit || '')}</span>` : '<span class="marketing-subtle">-</span>'}</td>
+                      <td data-label="Detalle">${feature.feature_description ? escapeHtml(feature.feature_description) : '<span class="marketing-subtle">Incluido en el plan</span>'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          ` : '<div class="marketing-empty marketing-empty--compact"><span class="material-symbols-rounded">checklist</span><strong>Este plan no tiene items cargados.</strong></div>'}
         </section>
         <section class="marketing-plan-detail__section">
           <h4>Opciones comerciales</h4>
