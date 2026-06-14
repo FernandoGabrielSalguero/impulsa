@@ -32,6 +32,7 @@
   const featureEditor = document.querySelector('[data-marketing-feature-editor]');
   const pricingEditor = document.querySelector('[data-marketing-pricing-editor]');
   const plansModal = document.querySelector('[data-marketing-plans-modal]');
+  const marketingDialogBackdrop = document.querySelector('[data-marketing-dialog-backdrop]');
   const publishedPlansContainer = document.querySelector('[data-marketing-published-plans]');
   const planDetailModal = document.querySelector('[data-marketing-plan-detail-modal]');
   const planDetailContent = document.querySelector('[data-marketing-plan-detail-content]');
@@ -76,13 +77,13 @@
     }
 
     if (event.target.closest('[data-marketing-open-plans]')) {
-      plansModal?.classList.add('abierto');
-      plansModal?.setAttribute('aria-hidden', 'false');
+      openMarketingDialog(plansModal);
       return;
     }
 
-    if (event.target.closest('[data-marketing-close-plans]')) {
+    if (event.target.closest('[data-marketing-close-plans], [data-marketing-dialog-backdrop]')) {
       closePlansModal();
+      closePlanDetailModal();
       return;
     }
 
@@ -149,13 +150,11 @@
   });
 
   function closePlansModal() {
-    plansModal?.classList.remove('abierto');
-    plansModal?.setAttribute('aria-hidden', 'true');
+    closeMarketingDialog(plansModal);
   }
 
   function closePlanDetailModal() {
-    planDetailModal?.classList.remove('abierto');
-    planDetailModal?.setAttribute('aria-hidden', 'true');
+    closeMarketingDialog(planDetailModal);
   }
 
   function openPlanDetail(plan) {
@@ -164,8 +163,21 @@
     }
     closePlansModal();
     planDetailContent.innerHTML = renderPlanDetail(plan);
-    planDetailModal.classList.add('abierto');
-    planDetailModal.setAttribute('aria-hidden', 'false');
+    openMarketingDialog(planDetailModal);
+  }
+
+  function openMarketingDialog(dialog) {
+    marketingDialogBackdrop?.classList.add('abierto');
+    dialog?.classList.add('abierto');
+    dialog?.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeMarketingDialog(dialog) {
+    dialog?.classList.remove('abierto');
+    dialog?.setAttribute('aria-hidden', 'true');
+    if (!plansModal?.classList.contains('abierto') && !planDetailModal?.classList.contains('abierto')) {
+      marketingDialogBackdrop?.classList.remove('abierto');
+    }
   }
 
   function loadPlan(plan, options = {}) {
@@ -427,6 +439,7 @@
     }
 
     const canRequest = publishedPlansContainer.dataset.canRequest === '1';
+    const canManage = publishedPlansContainer.dataset.canManage === '1';
     publishedPlansContainer.innerHTML = plans.length ? `
       <div class="im-grilla im-grilla--tres-columnas">
         ${plans.map((plan) => `
@@ -436,7 +449,10 @@
                 <h3>${escapeHtml(plan.name || '')}</h3>
                 <p>${escapeHtml(plan.short_description || '')}</p>
               </div>
-              <span class="im-chip im-chip--exito">Publicado</span>
+              <div class="marketing-inline-actions">
+                <span class="im-chip im-chip--exito">Publicado</span>
+                ${canManage ? `<button class="im-boton-icono material-symbols-rounded im-tooltip" type="button" data-marketing-view-plan="${escapeAttribute(JSON.stringify(plan))}" aria-label="Ver plan completo" data-tooltip="Ver como cliente">visibility</button>` : ''}
+              </div>
             </div>
             ${plan.objective ? `<p><strong>Objetivo:</strong> ${escapeHtml(plan.objective)}</p>` : ''}
             <ul class="marketing-plan-card__features">
@@ -454,7 +470,7 @@
                   <span>${escapeHtml(integerValue(price.duration_months))} meses - ${escapeHtml(formatMoney(price.total_price))} total</span>
                   ${isTruthy(price.is_featured) ? '<span class="im-chip im-chip--exito">Destacada</span>' : ''}
                   ${canRequest ? '<button class="im-boton im-boton--principal" type="submit">Solicitar plan</button>' : ''}
-                  ${canRequest ? `<button class="im-boton im-boton--tonal" type="button" data-marketing-view-plan="${escapeAttribute(JSON.stringify(plan))}"><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver plan completo</button>` : ''}
+                  ${canRequest ? `<button class="im-boton im-boton--tonal" type="button" data-marketing-view-plan="${escapeAttribute(JSON.stringify(plan))}">Ver plan completo</button>` : ''}
                 </form>
               `).join('')}
             </div>

@@ -152,7 +152,7 @@ function obtenerFaviconHref(string $version = '20260607'): string
 {
     $baseUrl = obtenerBaseAppUrl();
 
-    return ($baseUrl !== '' ? $baseUrl : '') . '/favicon.ico?v=' . rawurlencode($version);
+    return ($baseUrl !== '' ? $baseUrl : '') . '/impulsa_emprende/favicon.ico?v=' . rawurlencode($version);
 }
 
 function renderBotonPerfil(?string $avatarPath): string

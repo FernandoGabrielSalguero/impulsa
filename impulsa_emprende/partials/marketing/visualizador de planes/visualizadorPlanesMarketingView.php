@@ -2,6 +2,8 @@
 $h = $h ?? static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
 $planes = $marketingPlanesPublicados ?? [];
 $puedeSolicitarPlan = marketingUsuarioPuedeVerCliente($usuario['rol'] ?? null);
+$puedeGestionarPlan = marketingUsuarioPuedeGestionar($usuario['rol'] ?? null);
+$puedeVerDetallePlan = $puedeSolicitarPlan || $puedeGestionarPlan;
 ?>
 <section class="marketing-dashboard-grid">
   <div class="im-encabezado-seccion">
@@ -12,7 +14,7 @@ $puedeSolicitarPlan = marketingUsuarioPuedeVerCliente($usuario['rol'] ?? null);
     </div>
   </div>
 
-  <div data-marketing-published-plans data-can-request="<?= $puedeSolicitarPlan ? '1' : '0' ?>">
+  <div data-marketing-published-plans data-can-request="<?= $puedeSolicitarPlan ? '1' : '0' ?>" data-can-manage="<?= $puedeGestionarPlan ? '1' : '0' ?>">
     <?php if (!$planes): ?>
       <div class="marketing-empty"><span class="material-symbols-rounded">campaign</span><strong>No hay planes publicados.</strong><span>Cuando marketing publique un plan, aparecera aca.</span></div>
     <?php else: ?>
@@ -24,7 +26,12 @@ $puedeSolicitarPlan = marketingUsuarioPuedeVerCliente($usuario['rol'] ?? null);
                 <h3><?= $h($plan['name'] ?? '') ?></h3>
                 <p><?= $h($plan['short_description'] ?? '') ?></p>
               </div>
-              <span class="im-chip im-chip--exito">Publicado</span>
+              <div class="marketing-inline-actions">
+                <span class="im-chip im-chip--exito">Publicado</span>
+                <?php if ($puedeGestionarPlan): ?>
+                  <button class="im-boton-icono material-symbols-rounded im-tooltip" type="button" data-marketing-view-plan="<?= marketingJson($plan) ?>" aria-label="Ver plan completo" data-tooltip="Ver como cliente">visibility</button>
+                <?php endif; ?>
+              </div>
             </div>
             <?php if (!empty($plan['objective'])): ?><p><strong>Objetivo:</strong> <?= $h($plan['objective']) ?></p><?php endif; ?>
             <ul class="marketing-plan-card__features">
@@ -44,7 +51,9 @@ $puedeSolicitarPlan = marketingUsuarioPuedeVerCliente($usuario['rol'] ?? null);
                   <?php if ($puedeSolicitarPlan): ?>
                     <label class="im-campo im-campo-material"><?= marketingAyudaCampo('Nota opcional', 'Comentario para que el equipo entienda el contexto de tu solicitud.') ?><input name="notes" placeholder="Contexto para el equipo"></label>
                     <button class="im-boton im-boton--principal" type="submit">Solicitar plan</button>
-                    <button class="im-boton im-boton--tonal" type="button" data-marketing-view-plan="<?= marketingJson($plan) ?>"><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver plan completo</button>
+                  <?php endif; ?>
+                  <?php if ($puedeVerDetallePlan && !$puedeGestionarPlan): ?>
+                    <button class="im-boton im-boton--tonal" type="button" data-marketing-view-plan="<?= marketingJson($plan) ?>">Ver plan completo</button>
                   <?php endif; ?>
                 </form>
               <?php endforeach; ?>

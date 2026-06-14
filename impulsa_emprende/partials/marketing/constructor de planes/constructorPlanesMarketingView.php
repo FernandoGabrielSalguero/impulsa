@@ -215,5 +215,8 @@ $planPreciosIniciales = $plan['pricing_options'] ?? [];
         </div>
       <?php endif; ?>
     </div>
+    <footer class="im-dialog__acciones">
+      <button class="im-boton im-boton--tonal" type="button" data-marketing-close-plans>Cerrar</button>
+    </footer>
   </section>
 </section>
