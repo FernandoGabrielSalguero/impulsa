@@ -497,7 +497,7 @@
           ${plan.report_frequency ? `<span><strong>Reportes</strong>${escapeHtml(plan.report_frequency)}</span>` : ''}
           ${plan.support_level ? `<span><strong>Soporte</strong>${escapeHtml(plan.support_level)}</span>` : ''}
           ${plan.billing_period ? `<span><strong>Cobro</strong>${escapeHtml(plan.billing_period)}</span>` : ''}
-          ${(plan.recommended_ad_budget_min || plan.recommended_ad_budget_max) ? `<span><strong>Inversion sugerida</strong>${escapeHtml(formatBudgetRange(plan.recommended_ad_budget_min, plan.recommended_ad_budget_max))}</span>` : ''}
+          ${(plan.recommended_ad_budget_min || plan.recommended_ad_budget_max) ? `<span><strong>Inversion sugerida ${marketingHelpTooltip('Esta inversion es exclusiva para campanias publicitarias. El monto lo colocas vos siempre y cuando quieras abonar publicidad a META')}</strong>${escapeHtml(formatBudgetRange(plan.recommended_ad_budget_min, plan.recommended_ad_budget_max))}</span>` : ''}
           ${Number(plan.setup_fee || 0) > 0 ? `<span><strong>Setup inicial</strong>${escapeHtml(formatMoney(plan.setup_fee))}</span>` : ''}
         </div>
         <section class="marketing-plan-detail__section">
@@ -616,6 +616,11 @@
       return `${formatMoney(minNumber)} a ${formatMoney(maxNumber)}`;
     }
     return formatMoney(minNumber || maxNumber);
+  }
+
+  function marketingHelpTooltip(text) {
+    // Cambiar aca el texto del tooltip de ayuda de "Inversion sugerida".
+    return `<button class="marketing-help-badge im-tooltip" type="button" data-tooltip="${escapeAttribute(text)}" aria-label="${escapeAttribute(text)}">?</button>`;
   }
 
   function isTruthy(value) {
