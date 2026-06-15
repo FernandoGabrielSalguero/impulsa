@@ -3,13 +3,29 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
-require_once __DIR__ . '/../../model/admin/adminCorreosEnviadosModel.php';
+require_once __DIR__ . '/../../model/admin/adminMailModel.php';
+require_once __DIR__ . '/../../mail/Mail.php';
 
 $usuario = authRequiereRol('impulsa_administrador');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
-$adminCorreosEnviadosModel = new AdminCorreosEnviadosModel($pdo);
+$adminCorreosEnviadosModel = new AdminMailModel($pdo);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'reenviar_correo') {
+    $correoId = filter_input(INPUT_POST, 'correo_id', FILTER_VALIDATE_INT);
+    $estado = 'correo_reenvio_error';
+    if ($correoId && $correoId > 0) {
+        $correoLog = $adminCorreosEnviadosModel->obtenerCorreoPorId($correoId);
+        if ($correoLog) {
+            $resultado = \SVE\Mail\Mailer::reenviarCorreoLog($correoLog);
+            $estado = ($resultado['ok'] ?? false) ? 'correo_reenviado' : 'correo_reenvio_error';
+        }
+    }
+
+    header('Location: /impulsa_emprende/controller/admin/adminCorreosEnviadosController.php?estado=' . urlencode($estado));
+    exit;
+}
 
 $filtros = [
     'correo' => trim((string) ($_GET['correo'] ?? '')),
@@ -24,6 +40,7 @@ $totalCorreos = 0;
 $totalPaginas = 1;
 $correos = [];
 $errorCargaCorreos = null;
+$estadoVista = (string) ($_GET['estado'] ?? '');
 
 $normalizarSaltos = static function (string $texto): string {
     $texto = preg_replace("/\r\n?/", "\n", $texto) ?? $texto;
@@ -94,6 +111,7 @@ try {
 
         $correo['usuario_relacionado'] = $nombreUsuarioRelacionado($correo);
         $correo['contenido_legible'] = $contenidoLegible;
+        $correo['contenido_html'] = (string) ($correo['mensaje_html'] ?? '');
         $correo['meta_legible'] = $decodificarMeta($correo['meta'] ?? null);
 
         return $correo;

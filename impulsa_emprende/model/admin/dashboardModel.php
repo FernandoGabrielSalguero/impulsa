@@ -16,6 +16,23 @@ class DashboardModel
         );
         $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $conteos = [];
+        foreach (($stmt->fetchAll(PDO::FETCH_ASSOC) ?: []) as $fila) {
+            $conteos[(string) ($fila['rol'] ?? '')] = (int) ($fila['cantidad'] ?? 0);
+        }
+
+        $roles = [
+            'impulsa_administrador',
+            'impulsa_colaborador',
+            'impulsa_emprendedor',
+            'impulsa_usuario',
+            'impulsa_marketing',
+            'impulsa_cliente',
+        ];
+
+        return array_map(static fn (string $rol): array => [
+            'rol' => $rol,
+            'cantidad' => $conteos[$rol] ?? 0,
+        ], $roles);
     }
 }

@@ -12,8 +12,15 @@ $mensajesEstado = [
     'usuario_error_eliminar' => ['tipo' => 'error', 'texto' => 'No se pudo eliminar el usuario. Revisa las relaciones asociadas e intenta nuevamente.'],
     'usuario_id_invalido' => ['tipo' => 'error', 'texto' => 'El usuario seleccionado no es valido.'],
     'usuario_no_autodelete' => ['tipo' => 'error', 'texto' => 'No podes eliminar el usuario con el que tenes la sesion activa.'],
+    'usuario_creado' => ['tipo' => 'exito', 'texto' => 'Usuario creado correctamente y correo de credenciales enviado.'],
+    'usuario_creado_correo_fallido' => ['tipo' => 'error', 'texto' => 'Usuario creado, pero no se pudo enviar el correo de credenciales.'],
+    'usuario_correo_invalido' => ['tipo' => 'error', 'texto' => 'El correo ingresado no es valido.'],
+    'usuario_correo_existente' => ['tipo' => 'error', 'texto' => 'Ya existe un usuario registrado con ese correo.'],
+    'usuario_rol_invalido' => ['tipo' => 'error', 'texto' => 'El rol seleccionado no es valido.'],
+    'usuario_error_crear' => ['tipo' => 'error', 'texto' => 'No se pudo crear el usuario.'],
 ];
 $mensajeEstado = $mensajesEstado[$estado] ?? null;
+$rolesAltaUsuario = ['impulsa_administrador', 'impulsa_colaborador', 'impulsa_emprendedor', 'impulsa_usuario', 'impulsa_marketing', 'impulsa_cliente'];
 $formatearRol = static function (string $rol): string {
     return ucwords(str_replace('_', ' ', $rol));
 };
@@ -177,7 +184,13 @@ $formatearFecha = static function (?string $fecha): string {
               <h2>Listado de usuarios</h2>
               <p>Usuarios registrados con datos de acceso, perfil y contacto.</p>
             </div>
-            <span class="im-chip"><?= number_format($totalUsuarios, 0, ',', '.') ?> usuarios</span>
+            <div class="im-barra-superior__acciones">
+              <button class="im-boton im-boton--principal" type="button" data-abrir-alta-usuario>
+                <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
+                Dar de alta usuario
+              </button>
+              <span class="im-chip"><?= number_format($totalUsuarios, 0, ',', '.') ?> usuarios</span>
+            </div>
           </div>
 
           <?php if ($mensajeEstado): ?>
@@ -303,9 +316,71 @@ $formatearFecha = static function (?string $fecha): string {
     </form>
   </section>
 
+  <div class="im-bottom-sheet-cortina" data-cerrar-alta-usuario></div>
+  <section class="im-bottom-sheet im-bottom-sheet--config" role="dialog" aria-modal="true" aria-labelledby="alta-usuario-titulo" aria-hidden="true" data-alta-usuario-sheet>
+    <header class="im-bottom-sheet__cabecera">
+      <div>
+        <h3 id="alta-usuario-titulo">Dar de alta usuario</h3>
+        <p>La contrasena se genera automaticamente y se envia por correo.</p>
+      </div>
+      <button class="im-boton-icono" type="button" data-cerrar-alta-usuario aria-label="Cerrar dialog"></button>
+    </header>
+    <form class="im-config-tema" method="post" action="/impulsa_emprende/controller/admin/adminListUserController.php">
+      <input type="hidden" name="accion" value="crear_usuario_manual">
+      <div class="im-config-tema__grupo">
+        <h4>Acceso</h4>
+        <label class="im-campo im-campo-material" data-im-campo="email">
+          <span>Correo</span>
+          <input type="email" name="correo" required placeholder="usuario@dominio.com">
+          <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i>
+          <small data-im-error>Correo requerido.</small>
+        </label>
+        <label class="im-campo im-campo-material" data-im-campo="generico">
+          <span>Rol</span>
+          <select name="rol" required>
+            <?php foreach ($rolesAltaUsuario as $rolAlta): ?>
+              <option value="<?= $h($rolAlta) ?>"><?= $h($formatearRol($rolAlta)) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">admin_panel_settings</i>
+          <small data-im-error>Rol requerido.</small>
+        </label>
+      </div>
+      <div class="im-config-tema__grupo">
+        <h4>Perfil y contacto</h4>
+        <label class="im-campo im-campo-material"><span>Nombre</span><input name="nombre" placeholder="Nombre"></label>
+        <label class="im-campo im-campo-material"><span>Apellido</span><input name="apellido" placeholder="Apellido"></label>
+        <label class="im-campo im-campo-material"><span>Apodo</span><input name="apodo" placeholder="Nombre visible"></label>
+        <label class="im-campo im-campo-material"><span>WhatsApp</span><input name="whatsapp" placeholder="+54 11 1234 5678"></label>
+      </div>
+      <div class="im-config-tema__acciones">
+        <button class="im-boton im-boton--texto" type="button" data-cerrar-alta-usuario>Cancelar</button>
+        <button class="im-boton im-boton--principal" type="submit">Crear usuario y enviar acceso</button>
+      </div>
+    </form>
+  </section>
+
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="../../../assets/impulsa_material/js/material.js"></script>
   <script>
+    (() => {
+      const sheet = document.querySelector('[data-alta-usuario-sheet]');
+      const cortina = document.querySelector('[data-cerrar-alta-usuario].im-bottom-sheet-cortina');
+      const alternar = (abrir) => {
+        sheet?.classList.toggle('abierto', abrir);
+        cortina?.classList.toggle('abierto', abrir);
+        sheet?.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+      };
+      document.addEventListener('click', (evento) => {
+        if (evento.target.closest('[data-abrir-alta-usuario]')) {
+          alternar(true);
+        }
+        if (evento.target.closest('[data-cerrar-alta-usuario]')) {
+          alternar(false);
+        }
+      });
+    })();
+
     (() => {
       const input = document.querySelector('[data-buscar-usuarios]');
       const tbody = document.querySelector('[data-tabla-usuarios]');

@@ -64,6 +64,43 @@ class VisualizadorPlanesMarketingModel
         return (int) $this->pdo->lastInsertId();
     }
 
+    public function obtenerUsuarioMarketing(): ?array
+    {
+        $stmt = $this->pdo->prepare("SELECT id, correo, rol FROM user_auth WHERE rol = 'impulsa_marketing' LIMIT 1");
+        $stmt->execute();
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $usuario ?: null;
+    }
+
+    public function obtenerDetalleSolicitud(int $subscriptionId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT mps.*, mp.name AS plan_name, mp.short_description, mp.full_description, mp.objective,
+                    mp.report_frequency, mp.support_level, mp.billing_period,
+                    mp.recommended_ad_budget_min, mp.recommended_ad_budget_max, mp.setup_fee AS plan_setup_fee,
+                    mpo.currency, uc.correo AS client_email, ue.correo AS entrepreneur_email,
+                    uic.nombre AS client_nombre, uic.apellido AS client_apellido, uic.apodo AS client_apodo,
+                    uie.nombre AS entrepreneur_nombre, uie.apellido AS entrepreneur_apellido, uie.apodo AS entrepreneur_apodo
+             FROM marketing_plan_subscriptions mps
+             INNER JOIN marketing_plans mp ON mp.id = mps.plan_id
+             INNER JOIN marketing_plan_pricing_options mpo ON mpo.id = mps.pricing_option_id
+             LEFT JOIN user_auth uc ON uc.id = mps.client_user_id
+             LEFT JOIN user_auth ue ON ue.id = mps.entrepreneur_user_id
+             LEFT JOIN user_info uic ON uic.user_auth_id = uc.id
+             LEFT JOIN user_info uie ON uie.user_auth_id = ue.id
+             WHERE mps.id = :id"
+        );
+        $stmt->execute(['id' => $subscriptionId]);
+        $detalle = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$detalle) {
+            return null;
+        }
+
+        $detalle['features'] = $this->obtenerFeatures((int) $detalle['plan_id']);
+        return $detalle;
+    }
+
     private function obtenerFeatures(int $planId): array
     {
         $stmt = $this->pdo->prepare('SELECT * FROM marketing_plan_features WHERE plan_id = :id ORDER BY feature_order ASC, id ASC');

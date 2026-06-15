@@ -119,6 +119,93 @@ class AdminListUserModel
         }
     }
 
+    public function crearUsuarioManual(array $data, string $passwordPlano): array
+    {
+        $roles = [
+            'impulsa_administrador',
+            'impulsa_colaborador',
+            'impulsa_emprendedor',
+            'impulsa_usuario',
+            'impulsa_marketing',
+            'impulsa_cliente',
+        ];
+        $correo = strtolower(trim((string) ($data['correo'] ?? '')));
+        $rol = trim((string) ($data['rol'] ?? ''));
+        $nombre = trim((string) ($data['nombre'] ?? ''));
+        $apellido = trim((string) ($data['apellido'] ?? ''));
+        $apodo = trim((string) ($data['apodo'] ?? ''));
+        $whatsapp = trim((string) ($data['whatsapp'] ?? ''));
+
+        if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            return ['ok' => false, 'estado' => 'usuario_correo_invalido', 'mensaje' => 'El correo ingresado no es valido.'];
+        }
+        if (!in_array($rol, $roles, true)) {
+            return ['ok' => false, 'estado' => 'usuario_rol_invalido', 'mensaje' => 'El rol seleccionado no es valido.'];
+        }
+        if ($passwordPlano === '') {
+            return ['ok' => false, 'estado' => 'usuario_password_invalida', 'mensaje' => 'No se pudo generar la contrasena.'];
+        }
+
+        $stmt = $this->pdo->prepare('SELECT id FROM user_auth WHERE correo = :correo LIMIT 1');
+        $stmt->execute(['correo' => $correo]);
+        if ($stmt->fetchColumn()) {
+            return ['ok' => false, 'estado' => 'usuario_correo_existente', 'mensaje' => 'Ya existe un usuario con ese correo.'];
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO user_auth (correo, password, rol, verification_token, email_verified_at, created_at, updated_at)
+                 VALUES (:correo, :password, :rol, NULL, NOW(), NOW(), NOW())'
+            );
+            $stmt->execute([
+                'correo' => $correo,
+                'password' => password_hash($passwordPlano, PASSWORD_DEFAULT),
+                'rol' => $rol,
+            ]);
+            $userId = (int) $this->pdo->lastInsertId();
+
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO user_contacto (user_auth_id, correo, check_correo, permison_correo, whatsapp, check_whatsapp, permison_whatsapp, created_at, updated_at)
+                 VALUES (:user_auth_id, :correo, 1, 1, :whatsapp, :check_whatsapp, 1, NOW(), NOW())'
+            );
+            $stmt->execute([
+                'user_auth_id' => $userId,
+                'correo' => $correo,
+                'whatsapp' => $whatsapp !== '' ? $whatsapp : null,
+                'check_whatsapp' => $whatsapp !== '' ? 1 : 0,
+            ]);
+
+            if ($nombre !== '' || $apellido !== '' || $apodo !== '') {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO user_info (user_auth_id, nombre, apellido, apodo, created_at, updated_at)
+                     VALUES (:user_auth_id, :nombre, :apellido, :apodo, NOW(), NOW())'
+                );
+                $stmt->execute([
+                    'user_auth_id' => $userId,
+                    'nombre' => $nombre !== '' ? $nombre : null,
+                    'apellido' => $apellido !== '' ? $apellido : null,
+                    'apodo' => $apodo !== '' ? $apodo : null,
+                ]);
+            }
+
+            $this->pdo->commit();
+
+            return [
+                'ok' => true,
+                'estado' => 'usuario_creado',
+                'mensaje' => 'Usuario creado correctamente.',
+                'usuario' => ['id' => $userId, 'correo' => $correo, 'rol' => $rol, 'nombre' => $nombre],
+            ];
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            return ['ok' => false, 'estado' => 'usuario_error_crear', 'mensaje' => 'No se pudo crear el usuario: ' . $e->getMessage()];
+        }
+    }
+
     private function selectUsuariosSql(): string
     {
         return 'SELECT ua.id,

@@ -9,6 +9,7 @@ $totalPaginas = $totalPaginas ?? 1;
 $totalCorreos = $totalCorreos ?? count($correos);
 $porPagina = $porPagina ?? 20;
 $errorCargaCorreos = $errorCargaCorreos ?? null;
+$estadoVista = $estadoVista ?? '';
 $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
 $formatearFecha = static function (?string $fecha): string {
     if (!$fecha) {
@@ -23,6 +24,11 @@ $estadoClase = static function (string $estado): string {
 $estadoTexto = static function (string $estado): string {
     return $estado === 'enviado' ? 'Enviado' : 'Fallido';
 };
+$mensajesEstado = [
+    'correo_reenviado' => ['tipo' => 'exito', 'texto' => 'Correo reenviado correctamente.'],
+    'correo_reenvio_error' => ['tipo' => 'error', 'texto' => 'No se pudo reenviar el correo seleccionado.'],
+];
+$mensajeEstado = $mensajesEstado[$estadoVista] ?? null;
 $buildPageUrl = static function (int $page) use ($filtros): string {
     $params = [];
     if (trim((string) ($filtros['correo'] ?? '')) !== '') {
@@ -157,6 +163,9 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
           <?php if ($errorCargaCorreos): ?>
             <div class="im-alerta im-alerta--error" role="alert"><?= $h($errorCargaCorreos) ?></div>
           <?php endif; ?>
+          <?php if ($mensajeEstado): ?>
+            <div class="im-alerta im-alerta--<?= $h($mensajeEstado['tipo']) ?>" role="status"><?= $h($mensajeEstado['texto']) ?></div>
+          <?php endif; ?>
 
           <article class="im-tarjeta">
             <div class="im-tarjeta__cabecera">
@@ -198,10 +207,11 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
                     <tr>
                       <th>ID</th>
                       <th>Fecha</th>
-                      <th>Destinatario</th>
+                      <th>Usuario</th>
+                      <th>Correo</th>
                       <th>Asunto</th>
+                      <th>Template</th>
                       <th>Estado</th>
-                      <th>Usuario relacionado</th>
                       <th class="im-tabla-tareas__acciones">Acciones</th>
                     </tr>
                   </thead>
@@ -219,15 +229,17 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
                           'error' => (string) ($correo['error'] ?? ''),
                           'meta' => (string) ($correo['meta_legible'] ?? ''),
                           'contenido' => (string) ($correo['contenido_legible'] ?? ''),
+                          'contenido_html' => (string) ($correo['contenido_html'] ?? ''),
                       ];
                       ?>
                       <tr>
                         <td><?= (int) ($correo['id'] ?? 0) ?></td>
                         <td><?= $h($formatearFecha($correo['created_at'] ?? null)) ?></td>
+                        <td><?= $h($correo['usuario_relacionado'] ?? '-') ?></td>
                         <td class="im-tabla-tareas__nombre"><?= $h($correo['correo'] ?? '-') ?></td>
                         <td><?= $h($correo['asunto'] ?? '-') ?></td>
+                        <td><?= $h($correo['template'] ?? '-') ?></td>
                         <td><span class="im-chip <?= $h($estadoClase((string) ($correo['estado'] ?? 'fallido'))) ?>"><?= $h($estadoTexto((string) ($correo['estado'] ?? 'fallido'))) ?></span></td>
-                        <td><?= $h($correo['usuario_relacionado'] ?? '-') ?></td>
                         <td class="im-tabla-tareas__acciones">
                           <div class="im-menu-tabla" data-im-menu>
                             <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
@@ -235,6 +247,13 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
                               <button type="button" role="menuitem" data-ver-correo='<?= $h(json_encode($payloadDetalle, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)) ?>'>
                                 <span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver correo
                               </button>
+                              <form method="post" action="/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php">
+                                <input type="hidden" name="accion" value="reenviar_correo">
+                                <input type="hidden" name="correo_id" value="<?= (int) ($correo['id'] ?? 0) ?>">
+                                <button type="submit" role="menuitem">
+                                  <span class="material-symbols-rounded" aria-hidden="true">send</span>Reenviar correo
+                                </button>
+                              </form>
                             </div>
                           </div>
                         </td>
@@ -291,6 +310,7 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
       </div>
       <div>
         <h4>Contenido</h4>
+        <iframe class="im-correos-contenido" title="Vista HTML del correo" sandbox data-correo-detalle-html hidden></iframe>
         <pre class="im-correos-contenido" data-correo-detalle-contenido>-</pre>
       </div>
       <div>
@@ -335,6 +355,8 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
           node.textContent = value && String(value).trim() !== '' ? String(value) : fallback;
         }
       };
+      const iframeHtml = modal.querySelector('[data-correo-detalle-html]');
+      const contenidoTexto = modal.querySelector('[data-correo-detalle-contenido]');
 
       document.addEventListener('click', (evento) => {
         const botonVer = evento.target.closest('[data-ver-correo]');
@@ -356,7 +378,20 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
           setText('[data-correo-detalle-usuario]', data.usuario_relacionado);
           setText('[data-correo-detalle-error]', data.error, 'Sin error registrado');
           setText('[data-correo-detalle-asunto]', data.asunto);
-          setText('[data-correo-detalle-contenido]', data.contenido, 'No hay contenido disponible para este correo.');
+          if (iframeHtml && contenidoTexto && data.contenido_html) {
+            iframeHtml.hidden = false;
+            contenidoTexto.hidden = true;
+            iframeHtml.srcdoc = String(data.contenido_html);
+          } else {
+            if (iframeHtml) {
+              iframeHtml.hidden = true;
+              iframeHtml.removeAttribute('srcdoc');
+            }
+            if (contenidoTexto) {
+              contenidoTexto.hidden = false;
+            }
+            setText('[data-correo-detalle-contenido]', data.contenido, 'No hay contenido disponible para este correo.');
+          }
           setText('[data-correo-detalle-meta]', data.meta, 'Sin metadata adicional.');
           alternarModal(true);
           return;

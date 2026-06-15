@@ -665,4 +665,167 @@ final class Mailer
             return ['ok' => false, 'error' => $errorMsg . $debugText];
         }
     }
+
+    /**
+     * @return array{ok: bool, error?: string}
+     */
+    public static function enviarSolicitudMarketing(array $data): array
+    {
+        $debugLog = [];
+        $mail = null;
+        $html = '';
+
+        $correo = trim((string) ($data['correo'] ?? ''));
+        if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            return ['ok' => false, 'error' => 'Correo de marketing invalido.'];
+        }
+
+        $texto = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
+
+        try {
+            $tplPath = __DIR__ . '/template/solicitud_marketing.html';
+            if (!is_file($tplPath)) {
+                throw new \RuntimeException('Template solicitud_marketing.html no encontrado.');
+            }
+
+            $html = strtr((string) file_get_contents($tplPath), [
+                '{{title}}' => 'Nueva solicitud de plan de marketing',
+                '{{solicitante}}' => $texto($data['solicitante'] ?? ''),
+                '{{solicitante_correo}}' => $texto($data['solicitante_correo'] ?? ''),
+                '{{solicitante_rol}}' => $texto($data['solicitante_rol'] ?? ''),
+                '{{plan}}' => $texto($data['plan'] ?? ''),
+                '{{descripcion}}' => nl2br($texto($data['descripcion'] ?? '')),
+                '{{objetivo}}' => $texto($data['objetivo'] ?? ''),
+                '{{reportes}}' => $texto($data['reportes'] ?? 'Sin especificar'),
+                '{{soporte}}' => $texto($data['soporte'] ?? 'Sin especificar'),
+                '{{cobro}}' => $texto($data['cobro'] ?? 'Sin especificar'),
+                '{{inversion_sugerida}}' => $texto($data['inversion_sugerida'] ?? 'Sin especificar'),
+                '{{duracion}}' => $texto($data['duracion'] ?? ''),
+                '{{precio_mensual}}' => $texto($data['precio_mensual'] ?? ''),
+                '{{precio_total}}' => $texto($data['precio_total'] ?? ''),
+                '{{estado}}' => $texto($data['estado'] ?? 'Solicitado'),
+                '{{fecha}}' => $texto($data['fecha'] ?? ''),
+                '{{notas}}' => nl2br($texto($data['notas'] ?? 'Sin notas.')),
+                '{{items}}' => (string) ($data['items_html'] ?? ''),
+                '{{link}}' => $texto($data['link'] ?? 'https://impulsagroup.com/ingreso.html'),
+            ]);
+
+            $subject = 'Nueva solicitud de plan de marketing';
+            $mail = self::baseMailer($debugLog);
+            $mail->Subject = $subject;
+            $mail->Body = $html;
+            $mail->AltBody =
+                "Nueva solicitud de plan de marketing\n\n" .
+                "Solicitante: " . (string) ($data['solicitante'] ?? '') . "\n" .
+                "Correo: " . (string) ($data['solicitante_correo'] ?? '') . "\n" .
+                "Rol: " . (string) ($data['solicitante_rol'] ?? '') . "\n" .
+                "Plan: " . (string) ($data['plan'] ?? '') . "\n" .
+                "Duracion: " . (string) ($data['duracion'] ?? '') . "\n" .
+                "Precio mensual: " . (string) ($data['precio_mensual'] ?? '') . "\n" .
+                "Precio total: " . (string) ($data['precio_total'] ?? '') . "\n" .
+                "Estado inicial: " . (string) ($data['estado'] ?? 'Solicitado') . "\n" .
+                "Fecha: " . (string) ($data['fecha'] ?? '') . "\n" .
+                "Notas: " . (string) ($data['notas'] ?? 'Sin notas.') . "\n" .
+                "Acceso: " . (string) ($data['link'] ?? 'https://impulsagroup.com/ingreso.html');
+            $mail->addAddress($correo);
+            $mail->send();
+
+            self::logEmail([
+                'user_auth_id' => $data['user_auth_id'] ?? null,
+                'correo' => $correo,
+                'asunto' => $subject,
+                'template' => 'solicitud_marketing',
+                'mensaje_html' => $html,
+                'mensaje_text' => $mail->AltBody,
+                'estado' => 'enviado',
+                'meta' => $data['meta'] ?? null,
+            ]);
+
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            $mailError = $mail instanceof PHPMailer ? trim((string) $mail->ErrorInfo) : '';
+            $debugText = !empty($debugLog) ? ' SMTP Log: ' . implode(' | ', array_slice($debugLog, -10)) : '';
+            $errorMsg = $e->getMessage();
+            if ($mailError !== '' && stripos($errorMsg, $mailError) === false) {
+                $errorMsg .= ' | ErrorInfo: ' . $mailError;
+            }
+
+            self::logEmail([
+                'user_auth_id' => $data['user_auth_id'] ?? null,
+                'correo' => $correo,
+                'asunto' => 'Nueva solicitud de plan de marketing',
+                'template' => 'solicitud_marketing',
+                'mensaje_html' => $html ?: null,
+                'mensaje_text' => $mail instanceof PHPMailer ? ($mail->AltBody ?? null) : null,
+                'estado' => 'fallido',
+                'error' => $errorMsg . $debugText,
+                'meta' => $data['meta'] ?? null,
+            ]);
+
+            return ['ok' => false, 'error' => $errorMsg . $debugText];
+        }
+    }
+
+    /**
+     * @return array{ok: bool, error?: string}
+     */
+    public static function reenviarCorreoLog(array $data): array
+    {
+        $debugLog = [];
+        $mail = null;
+        $correo = trim((string) ($data['correo'] ?? ''));
+        $asunto = trim((string) ($data['asunto'] ?? ''));
+        $html = (string) ($data['mensaje_html'] ?? '');
+        $text = (string) ($data['mensaje_text'] ?? '');
+
+        if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            return ['ok' => false, 'error' => 'Correo de destino invalido.'];
+        }
+        if ($asunto === '') {
+            return ['ok' => false, 'error' => 'El asunto guardado esta vacio.'];
+        }
+
+        try {
+            $mail = self::baseMailer($debugLog);
+            $mail->Subject = $asunto;
+            $mail->Body = $html !== '' ? $html : nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+            $mail->AltBody = $text !== '' ? $text : trim(strip_tags($html));
+            $mail->addAddress($correo);
+            $mail->send();
+
+            self::logEmail([
+                'user_auth_id' => $data['user_auth_id'] ?? null,
+                'correo' => $correo,
+                'asunto' => $asunto,
+                'template' => (string) ($data['template'] ?? '') ?: 'reenvio_correo_log',
+                'mensaje_html' => $html !== '' ? $html : null,
+                'mensaje_text' => $mail->AltBody,
+                'estado' => 'enviado',
+                'meta' => ['reenviado_desde_correo_log_id' => $data['id'] ?? null],
+            ]);
+
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            $mailError = $mail instanceof PHPMailer ? trim((string) $mail->ErrorInfo) : '';
+            $debugText = !empty($debugLog) ? ' SMTP Log: ' . implode(' | ', array_slice($debugLog, -10)) : '';
+            $errorMsg = $e->getMessage();
+            if ($mailError !== '' && stripos($errorMsg, $mailError) === false) {
+                $errorMsg .= ' | ErrorInfo: ' . $mailError;
+            }
+
+            self::logEmail([
+                'user_auth_id' => $data['user_auth_id'] ?? null,
+                'correo' => $correo,
+                'asunto' => $asunto,
+                'template' => (string) ($data['template'] ?? '') ?: 'reenvio_correo_log',
+                'mensaje_html' => $html !== '' ? $html : null,
+                'mensaje_text' => $text !== '' ? $text : null,
+                'estado' => 'fallido',
+                'error' => $errorMsg . $debugText,
+                'meta' => ['reenviado_desde_correo_log_id' => $data['id'] ?? null],
+            ]);
+
+            return ['ok' => false, 'error' => $errorMsg . $debugText];
+        }
+    }
 }

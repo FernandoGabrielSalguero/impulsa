@@ -2,12 +2,36 @@
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
 require_once __DIR__ . '/../../model/admin/adminListUserModel.php';
+require_once __DIR__ . '/../../mail/Mail.php';
 
 $usuario = authRequiereRol('impulsa_administrador');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
 $adminListUserModel = new AdminListUserModel($pdo);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'crear_usuario_manual') {
+    try {
+        $passwordPlano = rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=') . 'A1!';
+        $resultadoUsuario = $adminListUserModel->crearUsuarioManual($_POST, $passwordPlano);
+        $estado = (string) ($resultadoUsuario['estado'] ?? 'usuario_error_crear');
+        if (($resultadoUsuario['ok'] ?? false) === true) {
+            $resultadoCorreo = \SVE\Mail\Mailer::enviarNuevoUsuarioCliente([
+                'correo' => (string) ($resultadoUsuario['usuario']['correo'] ?? ''),
+                'nombre' => (string) ($resultadoUsuario['usuario']['nombre'] ?? ''),
+                'password' => $passwordPlano,
+                'link' => 'https://impulsagroup.com/ingreso.html',
+                'user_auth_id' => (int) ($resultadoUsuario['usuario']['id'] ?? 0),
+            ]);
+            $estado = ($resultadoCorreo['ok'] ?? false) ? 'usuario_creado' : 'usuario_creado_correo_fallido';
+        }
+    } catch (Throwable) {
+        $estado = 'usuario_error_crear';
+    }
+
+    header('Location: /impulsa_emprende/controller/admin/adminListUserController.php?estado=' . urlencode($estado));
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'eliminar_usuario') {
     $usuarioId = filter_input(INPUT_POST, 'usuario_id', FILTER_VALIDATE_INT);
