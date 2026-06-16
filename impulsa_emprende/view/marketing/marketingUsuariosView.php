@@ -110,6 +110,12 @@ $nombreVisible = static function (array $usuario): string {
         <div>${value}</div>
       </article>
     `;
+    const detailRow = (label, value) => `
+      <div class="marketing-user-detail__row">
+        <dt>${escapeHtml(label)}</dt>
+        <dd>${value}</dd>
+      </div>
+    `;
     const displayName = (data) => {
       const nombre = `${data.nombre || ''} ${data.apellido || ''}`.trim();
       if (nombre) {
@@ -129,26 +135,40 @@ $nombreVisible = static function (array $usuario): string {
       const role = String(data.rol || '').replaceAll('_', ' ');
       const hasProject = Boolean(data.project_name);
       const hasLandingRequest = Boolean(data.nombre_emprendimiento);
+      const formattedRole = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Usuario externo';
       content.innerHTML = `
         <article class="marketing-user-detail">
           <div class="marketing-user-detail__hero">
             <div class="marketing-user-detail__hero-copy">
               <div class="marketing-user-detail__hero-chips">
-                <span class="im-chip">${escapeHtml(role)}</span>
+                <span class="im-chip">${escapeHtml(formattedRole)}</span>
                 <span class="im-chip im-chip--tonal">${hasProject ? 'Con proyecto' : 'Sin proyecto'}</span>
               </div>
               <h2>${escapeHtml(displayName(data))}</h2>
               <p>${escapeHtml(emprendimiento)}</p>
             </div>
           </div>
-          <div class="marketing-user-detail__meta">
-            ${detailStat('Proyecto', escapeHtml(projectName))}
-            ${detailStat('Correo', escapeHtml(contactEmail))}
-            ${detailStat('Telefono', escapeHtml(contactWhatsapp))}
+          <div class="marketing-user-detail__summary">
+            ${detailStat('Proyecto activo', escapeHtml(projectName))}
+            ${detailStat('Tipo de proyecto', escapeHtml(data.project_type || '-'))}
+            ${detailStat('Estado del proyecto', escapeHtml(data.project_status || '-'))}
             ${detailStat('Email verificado', statusChip(Boolean(data.email_verified_at), 'Verificado', 'Pendiente'))}
           </div>
-          <section class="marketing-plan-detail__section">
-            <h4>Perfil emprendedor</h4>
+          <section class="marketing-user-detail__section-card">
+            <div class="marketing-user-detail__section-head">
+              <h4>Contacto</h4>
+              <p>Datos visibles segun los permisos definidos por el usuario.</p>
+            </div>
+            <dl class="marketing-user-detail__list">
+              ${detailRow('Correo', escapeHtml(contactEmail))}
+              ${detailRow('Telefono', escapeHtml(contactWhatsapp))}
+            </dl>
+          </section>
+          <section class="marketing-user-detail__section-card">
+            <div class="marketing-user-detail__section-head">
+              <h4>Perfil emprendedor</h4>
+              <p>Base minima para conocer el nivel de avance y definicion del negocio.</p>
+            </div>
             <div class="marketing-user-detail__checks">
               ${detailStat('Mision', statusChip(Number(data.has_mision || 0) === 1))}
               ${detailStat('Vision', statusChip(Number(data.has_vision || 0) === 1))}
@@ -156,18 +176,19 @@ $nombreVisible = static function (array $usuario): string {
               ${detailStat('Pagina web solicitada', statusChip(hasLandingRequest, 'Solicitada', 'Sin solicitud'))}
             </div>
           </section>
-          <section class="marketing-plan-detail__section">
-            <h4>Solicitud web</h4>
-            <div class="marketing-user-detail__meta">
+          <section class="marketing-user-detail__section-card">
+            <div class="marketing-user-detail__section-head">
+              <h4>Solicitud web</h4>
+              <p>Estado general y datos comerciales que ayudan a contextualizar la necesidad.</p>
+            </div>
+            <div class="marketing-user-detail__checks">
               ${detailStat('Estado', statusChip(Number(data.landing_completado || 0) === 1, 'Completa', 'En proceso'))}
               ${detailStat('Fecha estimada', escapeHtml(data.fecha_inicio || '-'))}
               ${detailStat('Vende productos', statusChip(Number(data.vende_productos || 0) === 1, 'Si', 'No'))}
               ${detailStat('Vende servicios', statusChip(Number(data.vende_servicios || 0) === 1, 'Si', 'No'))}
               ${detailStat('Ya factura', statusChip(Number(data.ya_factura || 0) === 1, 'Si', 'No'))}
-              ${detailStat('Tipo de proyecto', escapeHtml(data.project_type || '-'))}
-              ${detailStat('Estado del proyecto', escapeHtml(data.project_status || '-'))}
             </div>
-            ${data.landing_descripcion ? `<div class="marketing-user-detail__description"><strong>Descripcion</strong><p>${escapeHtml(data.landing_descripcion)}</p></div>` : ''}
+            ${data.landing_descripcion ? `<div class="marketing-user-detail__description"><strong>Descripcion del pedido</strong><p>${escapeHtml(data.landing_descripcion)}</p></div>` : ''}
           </section>
         </article>
       `;
