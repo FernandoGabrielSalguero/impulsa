@@ -636,9 +636,41 @@ abstract class ApiContentSharedModel
             return $path;
         }
 
+        if (!$this->existeArchivoPublicoLocal($path)) {
+            return null;
+        }
+
         $baseUrl = $this->obtenerBasePublica();
 
         return $baseUrl !== '' ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $path;
+    }
+
+    private function existeArchivoPublicoLocal(string $path): bool
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return false;
+        }
+
+        $path = preg_replace('#^https?://[^/]+#i', '', $path) ?? $path;
+        $path = explode('?', $path, 2)[0];
+        $path = str_replace('\\', '/', $path);
+        $path = ltrim($path, '/');
+
+        $repoRoot = dirname(__DIR__, 3);
+        $appRoot = dirname(__DIR__, 2);
+        $candidatos = [
+            $repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path),
+            $appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $path) ?? $path),
+        ];
+
+        foreach ($candidatos as $candidato) {
+            if (is_file($candidato)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function obtenerBasePublica(): string

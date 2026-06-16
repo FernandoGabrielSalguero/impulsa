@@ -151,8 +151,20 @@ function obtenerBaseAppUrl(): string
 function obtenerFaviconHref(string $version = '20260607'): string
 {
     $baseUrl = obtenerBaseAppUrl();
+    $candidatos = [
+        '/Favicon.ico',
+        '/impulsa_emprende/favicon.ico',
+        '/assets/impulsa_material/Favicon.ico',
+    ];
 
-    return ($baseUrl !== '' ? $baseUrl : '') . '/impulsa_emprende/favicon.ico?v=' . rawurlencode($version);
+    foreach ($candidatos as $rutaPublica) {
+        $rutaLocal = __DIR__ . str_replace('/', DIRECTORY_SEPARATOR, $rutaPublica);
+        if (is_file($rutaLocal)) {
+            return ($baseUrl !== '' ? $baseUrl : '') . $rutaPublica . '?v=' . rawurlencode($version);
+        }
+    }
+
+    return ($baseUrl !== '' ? $baseUrl : '') . '/Favicon.ico?v=' . rawurlencode($version);
 }
 
 function renderBotonPerfil(?string $avatarPath): string
