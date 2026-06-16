@@ -104,6 +104,12 @@ $nombreVisible = static function (array $usuario): string {
       .replaceAll("'", '&#039;');
 
     const statusChip = (active, yes = 'Completo', no = 'Pendiente') => `<span class="im-chip ${active ? 'im-chip--exito' : 'im-chip--alerta'}">${active ? yes : no}</span>`;
+    const detailStat = (label, value) => `
+      <article class="marketing-user-detail__stat">
+        <strong>${escapeHtml(label)}</strong>
+        <div>${value}</div>
+      </article>
+    `;
     const displayName = (data) => {
       const nombre = `${data.nombre || ''} ${data.apellido || ''}`.trim();
       if (nombre) {
@@ -121,40 +127,45 @@ $nombreVisible = static function (array $usuario): string {
       const contactEmail = Number(data.permison_correo || 1) === 1 ? (data.correo_contacto || data.correo_login || '-') : '****';
       const contactWhatsapp = Number(data.permison_whatsapp || 1) === 1 ? (data.whatsapp || '-') : '****';
       const role = String(data.rol || '').replaceAll('_', ' ');
+      const hasProject = Boolean(data.project_name);
+      const hasLandingRequest = Boolean(data.nombre_emprendimiento);
       content.innerHTML = `
         <article class="marketing-user-detail">
           <div class="marketing-user-detail__hero">
-            <div>
-              <span class="im-chip">${escapeHtml(role)}</span>
+            <div class="marketing-user-detail__hero-copy">
+              <div class="marketing-user-detail__hero-chips">
+                <span class="im-chip">${escapeHtml(role)}</span>
+                <span class="im-chip im-chip--tonal">${hasProject ? 'Con proyecto' : 'Sin proyecto'}</span>
+              </div>
               <h2>${escapeHtml(displayName(data))}</h2>
               <p>${escapeHtml(emprendimiento)}</p>
             </div>
           </div>
           <div class="marketing-user-detail__meta">
-            <span><strong>Proyecto</strong>${escapeHtml(projectName)}</span>
-            <span><strong>Correo</strong>${escapeHtml(contactEmail)}</span>
-            <span><strong>Telefono</strong>${escapeHtml(contactWhatsapp)}</span>
-            <span><strong>Email verificado</strong>${statusChip(Boolean(data.email_verified_at), 'Verificado', 'Pendiente')}</span>
+            ${detailStat('Proyecto', escapeHtml(projectName))}
+            ${detailStat('Correo', escapeHtml(contactEmail))}
+            ${detailStat('Telefono', escapeHtml(contactWhatsapp))}
+            ${detailStat('Email verificado', statusChip(Boolean(data.email_verified_at), 'Verificado', 'Pendiente'))}
           </div>
           <section class="marketing-plan-detail__section">
             <h4>Perfil emprendedor</h4>
             <div class="marketing-user-detail__checks">
-              <span><strong>Mision</strong>${statusChip(Number(data.has_mision || 0) === 1)}</span>
-              <span><strong>Vision</strong>${statusChip(Number(data.has_vision || 0) === 1)}</span>
-              <span><strong>Buyer persona</strong>${statusChip(Number(data.has_buyer_persona || 0) === 1)}</span>
-              <span><strong>Pagina web solicitada</strong>${statusChip(Boolean(data.nombre_emprendimiento), 'Solicitada', 'Sin solicitud')}</span>
+              ${detailStat('Mision', statusChip(Number(data.has_mision || 0) === 1))}
+              ${detailStat('Vision', statusChip(Number(data.has_vision || 0) === 1))}
+              ${detailStat('Buyer persona', statusChip(Number(data.has_buyer_persona || 0) === 1))}
+              ${detailStat('Pagina web solicitada', statusChip(hasLandingRequest, 'Solicitada', 'Sin solicitud'))}
             </div>
           </section>
           <section class="marketing-plan-detail__section">
             <h4>Solicitud web</h4>
             <div class="marketing-user-detail__meta">
-              <span><strong>Estado</strong>${statusChip(Number(data.landing_completado || 0) === 1, 'Completa', 'En proceso')}</span>
-              <span><strong>Fecha estimada</strong>${escapeHtml(data.fecha_inicio || '-')}</span>
-              <span><strong>Vende productos</strong>${statusChip(Number(data.vende_productos || 0) === 1, 'Si', 'No')}</span>
-              <span><strong>Vende servicios</strong>${statusChip(Number(data.vende_servicios || 0) === 1, 'Si', 'No')}</span>
-              <span><strong>Ya factura</strong>${statusChip(Number(data.ya_factura || 0) === 1, 'Si', 'No')}</span>
-              <span><strong>Tipo de proyecto</strong>${escapeHtml(data.project_type || '-')}</span>
-              <span><strong>Estado del proyecto</strong>${escapeHtml(data.project_status || '-')}</span>
+              ${detailStat('Estado', statusChip(Number(data.landing_completado || 0) === 1, 'Completa', 'En proceso'))}
+              ${detailStat('Fecha estimada', escapeHtml(data.fecha_inicio || '-'))}
+              ${detailStat('Vende productos', statusChip(Number(data.vende_productos || 0) === 1, 'Si', 'No'))}
+              ${detailStat('Vende servicios', statusChip(Number(data.vende_servicios || 0) === 1, 'Si', 'No'))}
+              ${detailStat('Ya factura', statusChip(Number(data.ya_factura || 0) === 1, 'Si', 'No'))}
+              ${detailStat('Tipo de proyecto', escapeHtml(data.project_type || '-'))}
+              ${detailStat('Estado del proyecto', escapeHtml(data.project_status || '-'))}
             </div>
             ${data.landing_descripcion ? `<div class="marketing-user-detail__description"><strong>Descripcion</strong><p>${escapeHtml(data.landing_descripcion)}</p></div>` : ''}
           </section>

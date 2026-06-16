@@ -371,16 +371,27 @@
 .marketing-user-detail__hero {
   display: grid;
   gap: .75rem;
-  padding: 1rem;
+  padding: 1.15rem;
   border-radius: var(--im-radio);
   background: color-mix(in srgb, var(--im-color-principal) 88%, white);
   color: var(--im-color-principal-alto);
 }
 
+.marketing-user-detail__hero-copy {
+  display: grid;
+  gap: .75rem;
+}
+
+.marketing-user-detail__hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
 .marketing-user-detail__hero h2 {
-  margin: .35rem 0 0;
+  margin: 0;
   font-size: clamp(1.45rem, 3vw, 2.3rem);
-  line-height: 1.05;
+  line-height: 1.08;
 }
 
 .marketing-user-detail__hero p {
@@ -392,32 +403,43 @@
 .marketing-user-detail__meta,
 .marketing-user-detail__checks {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: .75rem;
 }
 
-.marketing-user-detail__meta span,
-.marketing-user-detail__checks span {
+.marketing-user-detail__stat {
   display: grid;
-  gap: .2rem;
-  padding: .85rem;
+  gap: .45rem;
+  align-content: start;
+  min-height: 100%;
+  padding: .9rem 1rem;
   border: 1px solid var(--im-color-borde);
   border-radius: var(--im-radio);
   background: var(--im-color-superficie);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
 }
 
-.marketing-user-detail__meta strong,
-.marketing-user-detail__checks strong,
+.marketing-user-detail__stat strong,
 .marketing-user-detail__description strong {
   color: var(--im-color-texto-suave);
   font-size: .78rem;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.marketing-user-detail__stat > div {
+  color: var(--im-color-texto);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .marketing-user-detail__description {
   display: grid;
-  gap: .35rem;
-  padding: .95rem 1rem;
+  gap: .5rem;
+  padding: 1rem;
   border: 1px solid var(--im-color-borde);
   border-radius: var(--im-radio);
   background: var(--im-color-superficie);
@@ -425,6 +447,8 @@
 
 .marketing-user-detail__description p {
   margin: 0;
+  color: var(--im-color-texto);
+  line-height: 1.65;
 }
 
 .marketing-plan-detail__features-table {
