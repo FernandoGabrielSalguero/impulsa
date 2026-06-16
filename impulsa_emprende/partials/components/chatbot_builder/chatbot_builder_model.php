@@ -2,14 +2,18 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../../api_content/api_content_shared_model.php';
+
 final class ChatbotBuilderModel
 {
     private const CHATBOT_STATUSES = ['active', 'inactive'];
     private const NODE_STATUSES = ['active', 'inactive'];
     private const ACTION_TYPES = ['go_to_node', 'whatsapp', 'restart', 'close'];
+    private ApiIntegrationAccessModel $integrationAccessModel;
 
     public function __construct(private PDO $pdo)
     {
+        $this->integrationAccessModel = new ApiIntegrationAccessModel($pdo);
     }
 
     public function obtenerContextoUsuario(int $userId): array
@@ -42,39 +46,40 @@ final class ChatbotBuilderModel
 
     public function obtenerIntegracionesAccesibles(int $userId): array
     {
-        $sql = "
-            SELECT DISTINCT
-                ai.id,
-                ai.project_name,
-                ai.allowed_domain,
-                ai.public_key,
-                ai.status AS integration_status,
-                c.id AS chatbot_id,
-                c.name AS chatbot_name,
-                c.status AS chatbot_status,
-                c.disabled_by_admin,
-                CASE
-                    WHEN p.id IS NOT NULL THEN 'project'
-                    WHEN lpr.id IS NOT NULL THEN 'landing_request'
-                    ELSE 'unknown'
-                END AS source_type
-            FROM api_integrations ai
-            LEFT JOIN chatbots c ON c.api_integration_id = ai.id
-            LEFT JOIN projects p
-                ON p.project_name = ai.project_name
-               AND p.client_user_id = :user_id
-               AND p.client_visible = 1
-            LEFT JOIN landing_page_request lpr
-                ON lpr.nombre_emprendimiento = ai.project_name
-               AND lpr.user_auth_id = :user_id
-            WHERE p.id IS NOT NULL OR lpr.id IS NOT NULL
-            ORDER BY ai.project_name ASC, ai.id ASC
-        ";
+        $integracionesBase = $this->integrationAccessModel->obtenerIntegracionesAccesibles($userId);
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':user_id' => $userId]);
+        if ($integracionesBase === []) {
+            return [];
+        }
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $ids = array_values(array_filter(array_map(
+            static fn (array $item): int => (int) ($item['id'] ?? 0),
+            $integracionesBase
+        )));
+
+        $stmt = $this->pdo->prepare(
+            'SELECT id, api_integration_id, name, status, disabled_by_admin
+             FROM chatbots
+             WHERE api_integration_id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')'
+        );
+        $stmt->execute($ids);
+        $chatbots = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $chatbotsPorIntegracion = [];
+
+        foreach ($chatbots as $chatbot) {
+            $chatbotsPorIntegracion[(int) ($chatbot['api_integration_id'] ?? 0)] = $chatbot;
+        }
+
+        foreach ($integracionesBase as &$integracion) {
+            $chatbot = $chatbotsPorIntegracion[(int) ($integracion['id'] ?? 0)] ?? null;
+            $integracion['chatbot_id'] = $chatbot['id'] ?? null;
+            $integracion['chatbot_name'] = $chatbot['name'] ?? null;
+            $integracion['chatbot_status'] = $chatbot['status'] ?? null;
+            $integracion['disabled_by_admin'] = $chatbot['disabled_by_admin'] ?? 0;
+        }
+        unset($integracion);
+
+        return $integracionesBase;
     }
 
     public function obtenerIntegracionAccesible(int $userId, int $integrationId): ?array

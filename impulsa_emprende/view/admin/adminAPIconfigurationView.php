@@ -238,7 +238,11 @@ $estadoTexto = static function (string $estado): string {
                           $visitSnippet = "<script>\nwindow.IMPULSA_API_CONFIG = {\n  publicKey: \"" . ($integracion['public_key'] ?? '') . "\",\n  apiBaseUrl: \"" . rtrim($appBaseUrl, '/') . "/api\"\n};\n</script>\n<script src=\"" . rtrim($appBaseUrl, '/') . "/assets/impulsa_material/js/visit-tracker.js\"></script>";
                           $formSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/contact_form_landing_page/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    page: window.location.pathname,\n    contact_nombre: formName,\n    contact_email: formEmail,\n    contact_whatsapp: formPhone,\n    contact_description: formMessage\n  })\n});";
                           $chatbotSnippet = "<script src=\"" . rtrim($appBaseUrl, '/') . "/api/chatbot_widget/widget.js?public_key=" . ($integracion['public_key'] ?? '') . "\"></script>";
-                          $allSnippets = "<!-- Visitas -->\n" . $visitSnippet . "\n\n<!-- Formulario -->\n<script>\n" . $formSnippet . "\n</script>\n\n<!-- Chatbot -->\n" . $chatbotSnippet;
+                          $blogListSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/blog_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"list\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\"\n  })\n});";
+                          $blogDetailSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/blog_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"detail\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    slug: \"mi-post\"\n  })\n});";
+                          $productoListSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/producto_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"list\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\"\n  })\n});";
+                          $productoDetailSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/producto_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"detail\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    slug: \"mi-producto\"\n  })\n});";
+                          $allSnippets = "<!-- Visitas -->\n" . $visitSnippet . "\n\n<!-- Formulario -->\n<script>\n" . $formSnippet . "\n</script>\n\n<!-- Chatbot -->\n" . $chatbotSnippet . "\n\n<!-- Blog list -->\n<script>\n" . $blogListSnippet . "\n</script>\n\n<!-- Blog detail -->\n<script>\n" . $blogDetailSnippet . "\n</script>\n\n<!-- Producto list -->\n<script>\n" . $productoListSnippet . "\n</script>\n\n<!-- Producto detail -->\n<script>\n" . $productoDetailSnippet . "\n</script>";
                           $payloadModal = [
                               'id' => $integrationId,
                               'project_name' => (string) ($integracion['project_name'] ?? ''),
@@ -252,6 +256,10 @@ $estadoTexto = static function (string $estado): string {
                               'visit_snippet' => $visitSnippet,
                               'form_snippet' => $formSnippet,
                               'chatbot_snippet' => $chatbotSnippet,
+                              'blog_list_snippet' => $blogListSnippet,
+                              'blog_detail_snippet' => $blogDetailSnippet,
+                              'producto_list_snippet' => $productoListSnippet,
+                              'producto_detail_snippet' => $productoDetailSnippet,
                               'all_snippets' => $allSnippets,
                           ];
                         ?>
@@ -417,6 +425,46 @@ $estadoTexto = static function (string $estado): string {
           </div>
           <pre id="api-detalle-chatbot-snippet"><code data-api-detalle-chatbot-snippet></code></pre>
         </div>
+        <div class="im-api-snippet">
+          <div class="im-tarjeta__cabecera">
+            <div>
+              <h4>Snippet blog list</h4>
+              <p>Consulta publicaciones activas para esta integracion.</p>
+            </div>
+            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-blog-list-snippet">Copiar</button>
+          </div>
+          <pre id="api-detalle-blog-list-snippet"><code data-api-detalle-blog-list-snippet></code></pre>
+        </div>
+        <div class="im-api-snippet">
+          <div class="im-tarjeta__cabecera">
+            <div>
+              <h4>Snippet blog detail</h4>
+              <p>Obtiene una publicacion por slug o id.</p>
+            </div>
+            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-blog-detail-snippet">Copiar</button>
+          </div>
+          <pre id="api-detalle-blog-detail-snippet"><code data-api-detalle-blog-detail-snippet></code></pre>
+        </div>
+        <div class="im-api-snippet">
+          <div class="im-tarjeta__cabecera">
+            <div>
+              <h4>Snippet producto list</h4>
+              <p>Consulta productos activos para esta integracion.</p>
+            </div>
+            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-producto-list-snippet">Copiar</button>
+          </div>
+          <pre id="api-detalle-producto-list-snippet"><code data-api-detalle-producto-list-snippet></code></pre>
+        </div>
+        <div class="im-api-snippet">
+          <div class="im-tarjeta__cabecera">
+            <div>
+              <h4>Snippet producto detail</h4>
+              <p>Obtiene un producto por slug o id.</p>
+            </div>
+            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-producto-detail-snippet">Copiar</button>
+          </div>
+          <pre id="api-detalle-producto-detail-snippet"><code data-api-detalle-producto-detail-snippet></code></pre>
+        </div>
       </div>
     </div>
     <footer class="im-dialog__acciones">
@@ -520,6 +568,10 @@ $estadoTexto = static function (string $estado): string {
           modal.querySelector('[data-api-detalle-visit-snippet]').textContent = data.visit_snippet || '';
           modal.querySelector('[data-api-detalle-form-snippet]').textContent = data.form_snippet || '';
           modal.querySelector('[data-api-detalle-chatbot-snippet]').textContent = data.chatbot_snippet || '';
+          modal.querySelector('[data-api-detalle-blog-list-snippet]').textContent = data.blog_list_snippet || '';
+          modal.querySelector('[data-api-detalle-blog-detail-snippet]').textContent = data.blog_detail_snippet || '';
+          modal.querySelector('[data-api-detalle-producto-list-snippet]').textContent = data.producto_list_snippet || '';
+          modal.querySelector('[data-api-detalle-producto-detail-snippet]').textContent = data.producto_detail_snippet || '';
 
           alternar(true);
         });

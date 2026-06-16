@@ -157,6 +157,14 @@ $tipoObjetivo = static function (?string $tipo): string {
           <span class="material-symbols-rounded" aria-hidden="true">forum</span>
           <span class="im-nav-item__texto">Chatbot</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteBlogController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">article</span>
+          <span class="im-nav-item__texto">Blog</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteProductController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+          <span class="im-nav-item__texto">Productos</span>
+        </a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>
