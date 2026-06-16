@@ -6,7 +6,7 @@ $usuario = authRequiereRol('impulsa_marketing');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
-require __DIR__ . '/../../partials/marketing/visualizador de planes/visualizadorPlanesMarketingController.php';
+require __DIR__ . '/../../partials/marketing/visualizador de resultados/visualizadorResultadosMarketingController.php';
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';
 
 $usuarioAvatarUrl = $perfilAvatarUrl;
@@ -18,8 +18,8 @@ if ($usuarioMarcaNombre === '') {
     $usuarioMarcaNombre = 'Marketing';
 }
 
-$marketingPageTitle = 'Planes publicados';
-$marketingActivePage = 'dashboard';
-$marketingContentView = __DIR__ . '/../../partials/marketing/visualizador de planes/visualizadorPlanesMarketingView.php';
+$marketingPageTitle = 'Resultados';
+$marketingActivePage = 'resultados';
+$marketingContentView = __DIR__ . '/../../partials/marketing/visualizador de resultados/visualizadorResultadosMarketingView.php';
 
-require __DIR__ . '/../../view/marketing/marketingDashboardView.php';
+require __DIR__ . '/../../view/marketing/marketingResultadosView.php';

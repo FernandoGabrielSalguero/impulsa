@@ -5,8 +5,9 @@ require_once __DIR__ . '/../../../auth/auth_helpers.php';
 $usuario = authRequiereRol('impulsa_marketing');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
+$marketingRedirectUrl = '/impulsa_emprende/controller/marketing/marketingMonitorController.php';
 
-require __DIR__ . '/../../partials/marketing/visualizador de planes/visualizadorPlanesMarketingController.php';
+require __DIR__ . '/../../partials/marketing/monitor de planes/monitorPlanesMarketingController.php';
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';
 
 $usuarioAvatarUrl = $perfilAvatarUrl;
@@ -18,8 +19,8 @@ if ($usuarioMarcaNombre === '') {
     $usuarioMarcaNombre = 'Marketing';
 }
 
-$marketingPageTitle = 'Planes publicados';
-$marketingActivePage = 'dashboard';
-$marketingContentView = __DIR__ . '/../../partials/marketing/visualizador de planes/visualizadorPlanesMarketingView.php';
+$marketingPageTitle = 'Monitor de planes';
+$marketingActivePage = 'monitor';
+$marketingContentView = __DIR__ . '/../../partials/marketing/monitor de planes/monitorPlanesMarketingView.php';
 
-require __DIR__ . '/../../view/marketing/marketingDashboardView.php';
+require __DIR__ . '/../../view/marketing/marketingMonitorView.php';
