@@ -38,7 +38,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteDashboardController.php">
+        <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
@@ -50,7 +50,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
           <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
           <span class="im-nav-item__texto">Marketing</span>
         </a>
-        <a class="im-nav-item activo" href="#chatbot-builder" data-seccion="chatbot-builder">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteChatbotController.php">
           <span class="material-symbols-rounded" aria-hidden="true">forum</span>
           <span class="im-nav-item__texto">Chatbot</span>
         </a>

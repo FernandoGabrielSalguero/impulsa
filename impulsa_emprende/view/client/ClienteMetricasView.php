@@ -64,11 +64,11 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteDashboardController.php">
+        <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
-        <a class="im-nav-item activo" href="#metricas" data-seccion="metricas">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteMetricasController.php">
           <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
           <span class="im-nav-item__texto">Metricas</span>
         </a>
@@ -79,6 +79,14 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
         <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteChatbotController.php">
           <span class="material-symbols-rounded" aria-hidden="true">forum</span>
           <span class="im-nav-item__texto">Chatbot</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteBlogController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">article</span>
+          <span class="im-nav-item__texto">Blog</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteProductController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+          <span class="im-nav-item__texto">Productos</span>
         </a>
       </nav>
     </aside>
