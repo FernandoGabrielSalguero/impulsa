@@ -12,6 +12,37 @@ $apiBlogCurrent = is_array($apiBlogEditingItem) ? $apiBlogEditingItem : [];
 $apiBlogDescriptionValue = (string) ($apiBlogCurrent['description_html'] ?? '<p></p>');
 $apiBlogBaseQuery = '?integration_id=' . (int) ($apiBlogSelectedIntegration['id'] ?? 0);
 $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) && ($apiBlogFlash['estado'] ?? '') === 'error');
+$apiBlogResolverImagen = static function (?string $path, ?string $resolvedUrl = null): array {
+    $candidatos = [];
+    $agregar = static function (?string $valor) use (&$candidatos): void {
+        $valor = trim((string) $valor);
+        if ($valor !== '' && !in_array($valor, $candidatos, true)) {
+            $candidatos[] = $valor;
+        }
+    };
+
+    $agregar($resolvedUrl);
+    $path = trim((string) $path);
+    if ($path === '') {
+        return $candidatos;
+    }
+
+    if (preg_match('#^https?://#i', $path)) {
+        $agregar($path);
+        return $candidatos;
+    }
+
+    $normalizado = '/' . ltrim(str_replace('\\', '/', $path), '/');
+    $agregar($normalizado);
+
+    if (str_starts_with($normalizado, '/impulsa_emprende/')) {
+        $agregar('/' . ltrim(substr($normalizado, strlen('/impulsa_emprende/')), '/'));
+    } else {
+        $agregar('/impulsa_emprende' . $normalizado);
+    }
+
+    return $candidatos;
+};
 $apiBlogEmptyState = [
     'item_id' => 0,
     'api_integration_id' => (int) ($apiBlogSelectedIntegration['id'] ?? 0),
@@ -274,6 +305,16 @@ $apiBlogEmptyState = [
       border-radius: 16px;
     }
 
+    .im-blog-current-cover {
+      width: 100%;
+      max-width: 280px;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 1px solid rgba(15, 23, 42, .08);
+      display: block;
+    }
+
     @media (max-width: 720px) {
       .im-blog-grid {
         grid-template-columns: 1fr;
@@ -373,11 +414,17 @@ $apiBlogEmptyState = [
                 ? 'im-chip--completado'
                 : ($itemStatus === 'draft' ? 'im-chip--pendiente' : 'im-chip--alerta');
             $itemExcerpt = trim((string) ($item['excerpt'] ?? ''));
+            $itemCoverCandidates = $apiBlogResolverImagen($item['cover_image_path'] ?? null, $item['cover_image_path_url'] ?? null);
             ?>
             <article class="im-blog-card">
               <div class="im-blog-card__media">
-                <?php if (!empty($item['cover_image_path_url'])): ?>
-                  <img src="<?= $h($item['cover_image_path_url']) ?>" alt="<?= $h($item['title'] ?? 'Portada del blog') ?>" loading="lazy" onerror="this.hidden=true;">
+                <?php if ($itemCoverCandidates !== []): ?>
+                  <img
+                    src="<?= $h($itemCoverCandidates[0] ?? '') ?>"
+                    alt="<?= $h($item['title'] ?? 'Portada del blog') ?>"
+                    loading="lazy"
+                    data-image-fallbacks='<?= $h(json_encode($itemCoverCandidates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') ?>'
+                  >
                 <?php endif; ?>
               </div>
 
@@ -415,6 +462,7 @@ $apiBlogEmptyState = [
                       type="button"
                       data-blog-view-open
                       data-blog-view='<?= $h(json_encode($item, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') ?>'
+                      data-blog-cover-fallbacks='<?= $h(json_encode($itemCoverCandidates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') ?>'
                     >
                       Ver
                     </button>
@@ -557,6 +605,15 @@ $apiBlogEmptyState = [
 
           <?php if (!empty($apiBlogCurrent['cover_image_path_url']) || !empty($apiBlogCurrent['attachment_path_url'])): ?>
             <div class="im-chip-lista im-campo--ancho">
+              <?php $currentCoverCandidates = $apiBlogResolverImagen($apiBlogCurrent['cover_image_path'] ?? null, $apiBlogCurrent['cover_image_path_url'] ?? null); ?>
+              <?php if ($currentCoverCandidates !== []): ?>
+                <img
+                  class="im-blog-current-cover"
+                  src="<?= $h($currentCoverCandidates[0] ?? '') ?>"
+                  alt="Portada actual"
+                  data-image-fallbacks='<?= $h(json_encode($currentCoverCandidates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') ?>'
+                >
+              <?php endif; ?>
               <?php if (!empty($apiBlogCurrent['cover_image_path_url'])): ?>
                 <a class="im-chip" href="<?= $h($apiBlogCurrent['cover_image_path_url']) ?>" target="_blank" rel="noreferrer">Ver portada actual</a>
               <?php endif; ?>
@@ -581,6 +638,37 @@ $apiBlogEmptyState = [
   </dialog>
 
   <script>
+    (() => {
+      const bindFallbacks = (image, fallbackList) => {
+        const fallbacks = Array.isArray(fallbackList)
+          ? fallbackList
+          : JSON.parse(image.getAttribute('data-image-fallbacks') || '[]');
+        let index = 0;
+        image.dataset.imageFallbacksBound = 'true';
+
+        image.addEventListener('error', () => {
+          index += 1;
+          if (index < fallbacks.length) {
+            image.src = fallbacks[index];
+            return;
+          }
+
+          image.hidden = true;
+        });
+
+        if (fallbacks.length > 0) {
+          image.src = fallbacks[0];
+        }
+      };
+
+      document.querySelectorAll('[data-image-fallbacks]').forEach((image) => {
+        if (image.dataset.imageFallbacksBound === 'true') return;
+        bindFallbacks(image);
+      });
+
+      window.imBindImageFallbacks = bindFallbacks;
+    })();
+
     (() => {
       const viewDialog = document.querySelector('[data-blog-view-dialog]');
       if (!viewDialog) return;
@@ -612,10 +700,16 @@ $apiBlogEmptyState = [
           authorNode.textContent = data.author ? 'Autor: ' + data.author : '';
           authorNode.hidden = !data.author;
 
-          if (data.cover_image_path_url) {
-            coverNode.src = data.cover_image_path_url;
+          const candidates = JSON.parse(button.dataset.blogCoverFallbacks || '[]');
+          if (candidates.length || data.cover_image_path_url || data.cover_image_path) {
             coverNode.alt = data.title || 'Portada de la publicacion';
             coverNode.hidden = false;
+            coverNode.dataset.imageFallbacksBound = 'false';
+            if (typeof window.imBindImageFallbacks === 'function') {
+              window.imBindImageFallbacks(coverNode, candidates.length ? candidates : [data.cover_image_path_url]);
+            } else {
+              coverNode.src = candidates[0] || data.cover_image_path_url;
+            }
           } else {
             coverNode.hidden = true;
             coverNode.removeAttribute('src');
