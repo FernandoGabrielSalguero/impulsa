@@ -98,14 +98,6 @@ $formatearFecha = static function (?string $fecha): string {
       color: #ba1a1a;
     }
 
-    .im-usuario-accion-modificar > span::before {
-      content: "edit";
-    }
-
-    .im-usuario-accion-eliminar > span::before {
-      content: "delete";
-    }
-
     .im-usuario-edicion-modal {
       width: min(760px, calc(100vw - 2rem));
     }
