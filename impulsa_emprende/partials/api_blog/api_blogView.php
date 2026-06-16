@@ -132,6 +132,18 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       gap: 1rem;
     }
 
+    .im-blog-form-layout .im-formulario__acciones {
+      position: sticky;
+      bottom: -1.5rem;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      justify-content: flex-end;
+      padding: 1rem 0 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .92) 18%, rgba(255, 255, 255, 1) 100%);
+    }
+
     .im-blog-editor {
       min-height: 320px;
       border-radius: 20px;
@@ -150,6 +162,16 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
     .im-blog-editor .ql-container {
       border: none;
       font-family: inherit;
+    }
+
+    .im-blog-editor .ql-picker,
+    .im-blog-editor .ql-stroke {
+      color: #334155;
+      stroke: #334155;
+    }
+
+    .im-blog-editor .ql-fill {
+      fill: #334155;
     }
 
     .im-blog-editor .ql-editor {
@@ -182,6 +204,10 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       .im-blog-dialog__header,
       .im-blog-dialog__body {
         padding: 1rem;
+      }
+
+      .im-blog-form-layout .im-formulario__acciones {
+        bottom: -1rem;
       }
     }
   </style>
@@ -463,46 +489,5 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       }
     })();
 
-    (() => {
-      document.querySelectorAll('[data-quill-form]').forEach((form) => {
-        const editorNode = form.querySelector('[data-quill-editor]');
-        const htmlHidden = form.querySelector('[data-quill-hidden]');
-        const excerptHidden = form.querySelector('[data-blog-excerpt-hidden]');
-
-        if (!editorNode || !htmlHidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
-
-        const quill = new Quill(editorNode, {
-          theme: 'snow',
-          placeholder: editorNode.dataset.placeholder || '',
-          modules: {
-            toolbar: [
-              [{ header: [1, 2, 3, false] }],
-              ['bold', 'italic', 'underline', 'strike'],
-              [{ list: 'ordered' }, { list: 'bullet' }],
-              [{ align: [] }],
-              ['blockquote', 'link'],
-              ['clean']
-            ]
-          }
-        });
-
-        quill.root.innerHTML = htmlHidden.value || '<p></p>';
-
-        const syncFields = () => {
-          const html = quill.root.innerHTML;
-          const plainText = (quill.getText() || '').replace(/\s+/g, ' ').trim();
-          htmlHidden.value = html;
-
-          if (excerptHidden) {
-            excerptHidden.value = plainText.slice(0, 300);
-          }
-        };
-
-        quill.on('text-change', syncFields);
-        form.addEventListener('submit', syncFields);
-        form.dataset.quillInitialized = 'true';
-        syncFields();
-      });
-    })();
   </script>
 </section>

@@ -64,12 +64,42 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
   <script>
     document.querySelectorAll('[data-quill-form]').forEach((form) => {
       const editorNode = form.querySelector('[data-quill-editor]');
-      const hidden = form.querySelector('[data-quill-hidden]');
-      if (!editorNode || !hidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
-      const quill = new Quill(editorNode, { theme: 'bubble' });
-      quill.root.innerHTML = hidden.value || '<p></p>';
+      const htmlHidden = form.querySelector('[data-quill-hidden]');
+      const excerptHidden = form.querySelector('[data-blog-excerpt-hidden]');
+      if (!editorNode || !htmlHidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
+
+      const quill = new Quill(editorNode, {
+        theme: 'snow',
+        placeholder: editorNode.dataset.placeholder || '',
+        modules: {
+          toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ color: [] }, { background: [] }],
+            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+            [{ align: [] }],
+            ['blockquote', 'code-block'],
+            ['link', 'image', 'video'],
+            ['clean']
+          ]
+        }
+      });
+
+      quill.root.innerHTML = htmlHidden.value || '<p></p>';
+
+      const syncFields = () => {
+        const html = quill.root.innerHTML;
+        const plainText = (quill.getText() || '').replace(/\s+/g, ' ').trim();
+        htmlHidden.value = html;
+        if (excerptHidden) {
+          excerptHidden.value = plainText.slice(0, 300);
+        }
+      };
+
       form.dataset.quillInitialized = 'true';
-      form.addEventListener('submit', () => { hidden.value = quill.root.innerHTML; });
+      quill.on('text-change', syncFields);
+      form.addEventListener('submit', syncFields);
+      syncFields();
     });
   </script>
 </body>
