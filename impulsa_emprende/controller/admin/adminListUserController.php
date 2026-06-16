@@ -52,6 +52,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'elimi
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'actualizar_usuario') {
+    $usuarioId = filter_input(INPUT_POST, 'usuario_id', FILTER_VALIDATE_INT);
+    if (!$usuarioId || $usuarioId <= 0) {
+        header('Location: /impulsa_emprende/controller/admin/adminListUserController.php?estado=usuario_id_invalido');
+        exit;
+    }
+
+    try {
+        $resultado = $adminListUserModel->actualizarUsuario($usuarioId, $_POST);
+        $estado = (string) ($resultado['estado'] ?? 'usuario_error_actualizar');
+    } catch (Throwable) {
+        $estado = 'usuario_error_actualizar';
+    }
+
+    header('Location: /impulsa_emprende/controller/admin/adminListUserController.php?estado=' . urlencode($estado));
+    exit;
+}
+
 if (($_GET['ajax'] ?? '') === 'usuarios') {
     header('Content-Type: application/json; charset=UTF-8');
 

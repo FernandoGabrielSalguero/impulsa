@@ -206,11 +206,191 @@ class AdminListUserModel
         }
     }
 
+    public function actualizarUsuario(int $usuarioId, array $data): array
+    {
+        $roles = [
+            'impulsa_administrador',
+            'impulsa_colaborador',
+            'impulsa_emprendedor',
+            'impulsa_usuario',
+            'impulsa_marketing',
+            'impulsa_cliente',
+        ];
+        $tiposUsuario = ['interno', 'externo'];
+
+        if ($usuarioId <= 0) {
+            return ['ok' => false, 'estado' => 'usuario_id_invalido', 'mensaje' => 'El usuario seleccionado no es valido.'];
+        }
+
+        $correo = strtolower(trim((string) ($data['correo'] ?? '')));
+        $rol = trim((string) ($data['rol'] ?? ''));
+        $usuarioTipo = trim((string) ($data['usuario_tipo'] ?? 'externo'));
+        $nombre = trim((string) ($data['nombre'] ?? ''));
+        $apellido = trim((string) ($data['apellido'] ?? ''));
+        $apodo = trim((string) ($data['apodo'] ?? ''));
+        $fechaNacimiento = trim((string) ($data['fecha_nacimiento'] ?? ''));
+        $correoContacto = strtolower(trim((string) ($data['correo_contacto'] ?? '')));
+        $whatsapp = trim((string) ($data['whatsapp'] ?? ''));
+        $paginaInicio = trim((string) ($data['pagina_inicio'] ?? ''));
+        $correoVerificado = (int) ($data['correo_verificado'] ?? 0) === 1;
+        $permisoCorreo = (int) ($data['permison_correo'] ?? 1) === 1 ? 1 : 0;
+        $permisoWhatsapp = (int) ($data['permison_whatsapp'] ?? 1) === 1 ? 1 : 0;
+
+        if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            return ['ok' => false, 'estado' => 'usuario_correo_invalido', 'mensaje' => 'El correo ingresado no es valido.'];
+        }
+        if (!in_array($rol, $roles, true)) {
+            return ['ok' => false, 'estado' => 'usuario_rol_invalido', 'mensaje' => 'El rol seleccionado no es valido.'];
+        }
+        if (!in_array($usuarioTipo, $tiposUsuario, true)) {
+            return ['ok' => false, 'estado' => 'usuario_tipo_invalido', 'mensaje' => 'El tipo de usuario no es valido.'];
+        }
+        if ($correoContacto !== '' && !filter_var($correoContacto, FILTER_VALIDATE_EMAIL)) {
+            return ['ok' => false, 'estado' => 'usuario_correo_contacto_invalido', 'mensaje' => 'El correo de contacto no es valido.'];
+        }
+        if ($fechaNacimiento !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaNacimiento)) {
+            return ['ok' => false, 'estado' => 'usuario_fecha_invalida', 'mensaje' => 'La fecha de nacimiento no es valida.'];
+        }
+
+        $stmt = $this->pdo->prepare('SELECT id FROM user_auth WHERE correo = :correo AND id <> :id LIMIT 1');
+        $stmt->execute([
+            'correo' => $correo,
+            'id' => $usuarioId,
+        ]);
+        if ($stmt->fetchColumn()) {
+            return ['ok' => false, 'estado' => 'usuario_correo_existente', 'mensaje' => 'Ya existe un usuario con ese correo.'];
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $stmt = $this->pdo->prepare('SELECT id FROM user_auth WHERE id = :id LIMIT 1 FOR UPDATE');
+            $stmt->execute(['id' => $usuarioId]);
+            if (!$stmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['ok' => false, 'estado' => 'usuario_id_invalido', 'mensaje' => 'El usuario seleccionado no existe.'];
+            }
+
+            $stmt = $this->pdo->prepare(
+                'UPDATE user_auth
+                 SET correo = :correo,
+                     rol = :rol,
+                     usuario_tipo = :usuario_tipo,
+                     email_verified_at = CASE WHEN :correo_verificado = 1 THEN COALESCE(email_verified_at, NOW()) ELSE NULL END,
+                     updated_at = NOW()
+                 WHERE id = :id'
+            );
+            $stmt->execute([
+                'correo' => $correo,
+                'rol' => $rol,
+                'usuario_tipo' => $usuarioTipo,
+                'correo_verificado' => $correoVerificado ? 1 : 0,
+                'id' => $usuarioId,
+            ]);
+
+            $stmt = $this->pdo->prepare('SELECT user_auth_id FROM user_contacto WHERE user_auth_id = :id LIMIT 1');
+            $stmt->execute(['id' => $usuarioId]);
+            if ($stmt->fetchColumn()) {
+                $stmt = $this->pdo->prepare(
+                    'UPDATE user_contacto
+                     SET correo = :correo_contacto,
+                         check_correo = :check_correo,
+                         permison_correo = :permison_correo,
+                         whatsapp = :whatsapp,
+                         check_whatsapp = :check_whatsapp,
+                         permison_whatsapp = :permison_whatsapp,
+                         updated_at = NOW()
+                     WHERE user_auth_id = :user_auth_id'
+                );
+            } else {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO user_contacto (user_auth_id, correo, check_correo, permison_correo, whatsapp, check_whatsapp, permison_whatsapp, created_at, updated_at)
+                     VALUES (:user_auth_id, :correo_contacto, :check_correo, :permison_correo, :whatsapp, :check_whatsapp, :permison_whatsapp, NOW(), NOW())'
+                );
+            }
+            $stmt->execute([
+                'user_auth_id' => $usuarioId,
+                'correo_contacto' => $correoContacto !== '' ? $correoContacto : $correo,
+                'check_correo' => ($correoContacto !== '' ? $correoContacto : $correo) !== '' ? 1 : 0,
+                'permison_correo' => $permisoCorreo,
+                'whatsapp' => $whatsapp !== '' ? $whatsapp : null,
+                'check_whatsapp' => $whatsapp !== '' ? 1 : 0,
+                'permison_whatsapp' => $permisoWhatsapp,
+            ]);
+
+            $stmt = $this->pdo->prepare('SELECT user_auth_id FROM user_info WHERE user_auth_id = :id LIMIT 1');
+            $stmt->execute(['id' => $usuarioId]);
+            if ($stmt->fetchColumn()) {
+                $stmt = $this->pdo->prepare(
+                    'UPDATE user_info
+                     SET nombre = :nombre,
+                         apellido = :apellido,
+                         apodo = :apodo,
+                         fecha_nacimiento = :fecha_nacimiento,
+                         updated_at = NOW()
+                     WHERE user_auth_id = :user_auth_id'
+                );
+            } else {
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO user_info (user_auth_id, nombre, apellido, apodo, fecha_nacimiento, created_at, updated_at)
+                     VALUES (:user_auth_id, :nombre, :apellido, :apodo, :fecha_nacimiento, NOW(), NOW())'
+                );
+            }
+            $stmt->execute([
+                'user_auth_id' => $usuarioId,
+                'nombre' => $nombre !== '' ? $nombre : null,
+                'apellido' => $apellido !== '' ? $apellido : null,
+                'apodo' => $apodo !== '' ? $apodo : null,
+                'fecha_nacimiento' => $fechaNacimiento !== '' ? $fechaNacimiento : null,
+            ]);
+
+            $stmt = $this->pdo->prepare('SELECT user_auth_id FROM user_params WHERE user_auth_id = :id LIMIT 1');
+            $stmt->execute(['id' => $usuarioId]);
+            $existeParametro = (bool) $stmt->fetchColumn();
+            if ($paginaInicio !== '') {
+                if ($existeParametro) {
+                    $stmt = $this->pdo->prepare(
+                        'UPDATE user_params
+                         SET page = :page,
+                             updated_at = NOW()
+                         WHERE user_auth_id = :user_auth_id'
+                    );
+                } else {
+                    $stmt = $this->pdo->prepare(
+                        'INSERT INTO user_params (user_auth_id, page, created_at, updated_at)
+                         VALUES (:user_auth_id, :page, NOW(), NOW())'
+                    );
+                }
+                $stmt->execute([
+                    'user_auth_id' => $usuarioId,
+                    'page' => $paginaInicio,
+                ]);
+            } elseif ($existeParametro) {
+                $stmt = $this->pdo->prepare('DELETE FROM user_params WHERE user_auth_id = :user_auth_id');
+                $stmt->execute(['user_auth_id' => $usuarioId]);
+            }
+
+            $this->pdo->commit();
+
+            return [
+                'ok' => true,
+                'estado' => 'usuario_actualizado',
+                'mensaje' => 'Usuario actualizado correctamente.',
+            ];
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            return ['ok' => false, 'estado' => 'usuario_error_actualizar', 'mensaje' => 'No se pudo actualizar el usuario: ' . $e->getMessage()];
+        }
+    }
+
     private function selectUsuariosSql(): string
     {
         return 'SELECT ua.id,
                     ua.correo AS correo_login,
                     ua.rol,
+                    ua.usuario_tipo,
                     ua.email_verified_at,
                     ua.created_at,
                     ua.updated_at,
@@ -218,8 +398,13 @@ class AdminListUserModel
                     ui.apellido,
                     ui.apodo,
                     ui.avatar_path,
+                    ui.fecha_nacimiento,
                     uc.correo AS correo_contacto,
                     uc.whatsapp,
+                    uc.check_correo,
+                    uc.permison_correo,
+                    uc.check_whatsapp,
+                    uc.permison_whatsapp,
                     up.page AS pagina_inicio
              FROM user_auth ua
              LEFT JOIN user_info ui ON ui.user_auth_id = ua.id

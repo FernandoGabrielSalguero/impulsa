@@ -7,6 +7,7 @@ $usuarios = $usuarios ?? [];
 $estado = $estado ?? '';
 $totalUsuarios = count($usuarios);
 $h = static fn ($valor): string => htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
+$toJson = static fn ($valor): string => htmlspecialchars((string) json_encode($valor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
 $mensajesEstado = [
     'usuario_eliminado' => ['tipo' => 'exito', 'texto' => 'Usuario eliminado correctamente.'],
     'usuario_error_eliminar' => ['tipo' => 'error', 'texto' => 'No se pudo eliminar el usuario. Revisa las relaciones asociadas e intenta nuevamente.'],
@@ -14,13 +15,19 @@ $mensajesEstado = [
     'usuario_no_autodelete' => ['tipo' => 'error', 'texto' => 'No podes eliminar el usuario con el que tenes la sesion activa.'],
     'usuario_creado' => ['tipo' => 'exito', 'texto' => 'Usuario creado correctamente y correo de credenciales enviado.'],
     'usuario_creado_correo_fallido' => ['tipo' => 'error', 'texto' => 'Usuario creado, pero no se pudo enviar el correo de credenciales.'],
+    'usuario_actualizado' => ['tipo' => 'exito', 'texto' => 'Usuario actualizado correctamente.'],
+    'usuario_error_actualizar' => ['tipo' => 'error', 'texto' => 'No se pudo actualizar el usuario.'],
     'usuario_correo_invalido' => ['tipo' => 'error', 'texto' => 'El correo ingresado no es valido.'],
+    'usuario_correo_contacto_invalido' => ['tipo' => 'error', 'texto' => 'El correo de contacto no es valido.'],
     'usuario_correo_existente' => ['tipo' => 'error', 'texto' => 'Ya existe un usuario registrado con ese correo.'],
     'usuario_rol_invalido' => ['tipo' => 'error', 'texto' => 'El rol seleccionado no es valido.'],
+    'usuario_tipo_invalido' => ['tipo' => 'error', 'texto' => 'El tipo de usuario seleccionado no es valido.'],
+    'usuario_fecha_invalida' => ['tipo' => 'error', 'texto' => 'La fecha de nacimiento no es valida.'],
     'usuario_error_crear' => ['tipo' => 'error', 'texto' => 'No se pudo crear el usuario.'],
 ];
 $mensajeEstado = $mensajesEstado[$estado] ?? null;
 $rolesAltaUsuario = ['impulsa_administrador', 'impulsa_colaborador', 'impulsa_emprendedor', 'impulsa_usuario', 'impulsa_marketing', 'impulsa_cliente'];
+$tiposUsuario = ['interno', 'externo'];
 $formatearRol = static function (string $rol): string {
     return ucwords(str_replace('_', ' ', $rol));
 };
@@ -91,8 +98,67 @@ $formatearFecha = static function (?string $fecha): string {
       color: #ba1a1a;
     }
 
+    .im-usuario-accion-modificar > span::before {
+      content: "edit";
+    }
+
     .im-usuario-accion-eliminar > span::before {
       content: "delete";
+    }
+
+    .im-usuario-edicion-modal {
+      width: min(760px, calc(100vw - 2rem));
+    }
+
+    .im-usuario-edicion-modal .im-dialog__contenido {
+      display: grid;
+      gap: 1rem;
+      max-height: min(72vh, 760px);
+      overflow: auto;
+    }
+
+    .im-usuario-edicion-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .9rem;
+    }
+
+    .im-usuario-edicion-grid .im-campo--ancho,
+    .im-usuario-edicion-grid .im-usuario-edicion-switches {
+      grid-column: 1 / -1;
+    }
+
+    .im-usuario-edicion-seccion {
+      display: grid;
+      gap: .85rem;
+      padding: 1rem;
+      border: 1px solid var(--im-color-borde);
+      border-radius: var(--im-radio);
+      background: var(--im-color-superficie);
+    }
+
+    .im-usuario-edicion-seccion h4,
+    .im-usuario-edicion-seccion p {
+      margin: 0;
+    }
+
+    .im-usuario-edicion-seccion p {
+      color: var(--im-color-texto-suave);
+    }
+
+    .im-usuario-edicion-switches {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .75rem;
+    }
+
+    .im-usuario-edicion-switches .im-switch {
+      width: 100%;
+      justify-content: space-between;
+      padding: .85rem 1rem;
+      border: 1px solid var(--im-color-borde);
+      border-radius: var(--im-radio);
+      background: var(--im-color-superficie-2);
     }
 
     .im-tabla-tareas__acciones {
@@ -106,6 +172,12 @@ $formatearFecha = static function (?string $fecha): string {
 
     .im-menu-tabla[data-im-menu] > .im-menu-tabla__panel {
       z-index: 130;
+    }
+
+    @media (max-width: 760px) {
+      .im-usuario-edicion-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -267,6 +339,10 @@ $formatearFecha = static function (?string $fecha): string {
                           <div class="im-menu-tabla" data-im-menu>
                             <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
                             <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
+                              <button class="im-usuario-accion-modificar" type="button" role="menuitem" data-modificar-usuario="<?= $toJson($usuarioListado) ?>">
+                                <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                                Modificar usuario
+                              </button>
                               <button class="im-usuario-accion-eliminar" type="button" role="menuitem" data-eliminar-usuario="<?= (int) ($usuarioListado['id'] ?? 0) ?>" data-usuario-nombre="<?= $h($nombreVisible) ?>" data-usuario-correo="<?= $h($correoLogin) ?>">
                                 <span class="material-symbols-rounded" aria-hidden="true">delete</span>
                                 Eliminar usuario
@@ -312,6 +388,107 @@ $formatearFecha = static function (?string $fecha): string {
       <footer class="im-dialog__acciones">
         <button class="im-boton im-boton--texto" type="button" data-cerrar-eliminar-usuario>Cancelar</button>
         <button class="im-boton im-boton--principal im-usuario-accion-eliminar" type="submit">Confirmar eliminacion</button>
+      </footer>
+    </form>
+  </section>
+
+  <div class="im-modal-cortina" data-cerrar-editar-usuario></div>
+  <section class="im-dialog im-usuario-edicion-modal" role="dialog" aria-modal="true" aria-labelledby="editar-usuario-titulo" aria-hidden="true" data-modal-editar-usuario>
+    <header class="im-dialog__cabecera">
+      <div>
+        <p class="im-sobrelinea">Administracion</p>
+        <h3 id="editar-usuario-titulo">Modificar usuario</h3>
+      </div>
+      <button class="im-boton-icono" type="button" data-cerrar-editar-usuario aria-label="Cerrar dialog"></button>
+    </header>
+    <form method="post" action="/impulsa_emprende/controller/admin/adminListUserController.php">
+      <input type="hidden" name="accion" value="actualizar_usuario">
+      <input type="hidden" name="usuario_id" value="" data-editar-usuario-id>
+      <div class="im-dialog__contenido">
+        <section class="im-usuario-edicion-seccion">
+          <div>
+            <h4>Acceso</h4>
+            <p>Datos principales para ingreso y clasificacion del usuario.</p>
+          </div>
+          <div class="im-usuario-edicion-grid">
+            <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="email">
+              <span>Correo de acceso</span>
+              <input type="email" name="correo" required data-editar-usuario-correo placeholder="usuario@dominio.com">
+              <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i>
+              <small data-im-error>Correo requerido.</small>
+            </label>
+            <label class="im-campo im-campo-material" data-im-campo="generico">
+              <span>Rol</span>
+              <select name="rol" required data-editar-usuario-rol>
+                <?php foreach ($rolesAltaUsuario as $rolAlta): ?>
+                  <option value="<?= $h($rolAlta) ?>"><?= $h($formatearRol($rolAlta)) ?></option>
+                <?php endforeach; ?>
+              </select>
+              <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">admin_panel_settings</i>
+              <small data-im-error>Rol requerido.</small>
+            </label>
+            <label class="im-campo im-campo-material" data-im-campo="generico">
+              <span>Tipo de usuario</span>
+              <select name="usuario_tipo" required data-editar-usuario-tipo>
+                <?php foreach ($tiposUsuario as $tipoUsuario): ?>
+                  <option value="<?= $h($tipoUsuario) ?>"><?= $h(ucfirst($tipoUsuario)) ?></option>
+                <?php endforeach; ?>
+              </select>
+              <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">badge</i>
+              <small data-im-error>Tipo requerido.</small>
+            </label>
+            <label class="im-campo im-campo-material">
+              <span>Pagina de inicio</span>
+              <input name="pagina_inicio" data-editar-usuario-pagina placeholder="/mi-ruta">
+              <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">home</i>
+            </label>
+            <label class="im-switch">
+              <span>Email verificado</span>
+              <input type="hidden" name="correo_verificado" value="0">
+              <input type="checkbox" name="correo_verificado" value="1" data-editar-usuario-verificado>
+            </label>
+          </div>
+        </section>
+
+        <section class="im-usuario-edicion-seccion">
+          <div>
+            <h4>Perfil</h4>
+            <p>Informacion visible del usuario dentro de la plataforma.</p>
+          </div>
+          <div class="im-usuario-edicion-grid">
+            <label class="im-campo im-campo-material"><span>Nombre</span><input name="nombre" data-editar-usuario-nombre placeholder="Nombre"></label>
+            <label class="im-campo im-campo-material"><span>Apellido</span><input name="apellido" data-editar-usuario-apellido placeholder="Apellido"></label>
+            <label class="im-campo im-campo-material"><span>Apodo</span><input name="apodo" data-editar-usuario-apodo placeholder="Nombre visible"></label>
+            <label class="im-campo im-campo-material"><span>Fecha de nacimiento</span><input type="date" name="fecha_nacimiento" data-editar-usuario-fecha></label>
+          </div>
+        </section>
+
+        <section class="im-usuario-edicion-seccion">
+          <div>
+            <h4>Contacto</h4>
+            <p>Canales y permisos asociados al perfil.</p>
+          </div>
+          <div class="im-usuario-edicion-grid">
+            <label class="im-campo im-campo-material"><span>Correo de contacto</span><input type="email" name="correo_contacto" data-editar-usuario-correo-contacto placeholder="contacto@dominio.com"></label>
+            <label class="im-campo im-campo-material"><span>WhatsApp</span><input name="whatsapp" data-editar-usuario-whatsapp placeholder="+54 11 1234 5678"></label>
+            <div class="im-usuario-edicion-switches">
+              <label class="im-switch">
+                <span>Permitir contacto por correo</span>
+                <input type="hidden" name="permison_correo" value="0">
+                <input type="checkbox" name="permison_correo" value="1" data-editar-usuario-permiso-correo>
+              </label>
+              <label class="im-switch">
+                <span>Permitir contacto por WhatsApp</span>
+                <input type="hidden" name="permison_whatsapp" value="0">
+                <input type="checkbox" name="permison_whatsapp" value="1" data-editar-usuario-permiso-whatsapp>
+              </label>
+            </div>
+          </div>
+        </section>
+      </div>
+      <footer class="im-dialog__acciones">
+        <button class="im-boton im-boton--texto" type="button" data-cerrar-editar-usuario>Cancelar</button>
+        <button class="im-boton im-boton--principal" type="submit">Guardar cambios</button>
       </footer>
     </form>
   </section>
@@ -425,6 +602,10 @@ $formatearFecha = static function (?string $fecha): string {
         <div class="im-menu-tabla" data-im-menu data-im-menu-dinamico>
           <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
           <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
+            <button class="im-usuario-accion-modificar" type="button" role="menuitem" data-modificar-usuario='${escapeHtml(JSON.stringify(usuario))}'>
+              <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+              Modificar usuario
+            </button>
             <button class="im-usuario-accion-eliminar" type="button" role="menuitem" data-eliminar-usuario="${Number(usuario.id ?? 0)}" data-usuario-nombre="${escapeHtml(nombreVisible)}" data-usuario-correo="${escapeHtml(correoLogin)}">
               <span class="material-symbols-rounded" aria-hidden="true">delete</span>
               Eliminar usuario
@@ -567,6 +748,91 @@ $formatearFecha = static function (?string $fecha): string {
       document.addEventListener('keydown', (evento) => {
         if (evento.key === 'Escape') {
           cerrarMenus();
+          alternarModal(false);
+        }
+      });
+    })();
+
+    (() => {
+      const modal = document.querySelector('[data-modal-editar-usuario]');
+      const cortina = document.querySelector('[data-cerrar-editar-usuario].im-modal-cortina');
+      if (!modal || !cortina) {
+        return;
+      }
+
+      const fields = {
+        id: modal.querySelector('[data-editar-usuario-id]'),
+        correo: modal.querySelector('[data-editar-usuario-correo]'),
+        rol: modal.querySelector('[data-editar-usuario-rol]'),
+        tipo: modal.querySelector('[data-editar-usuario-tipo]'),
+        pagina: modal.querySelector('[data-editar-usuario-pagina]'),
+        verificado: modal.querySelector('[data-editar-usuario-verificado]'),
+        nombre: modal.querySelector('[data-editar-usuario-nombre]'),
+        apellido: modal.querySelector('[data-editar-usuario-apellido]'),
+        apodo: modal.querySelector('[data-editar-usuario-apodo]'),
+        fecha: modal.querySelector('[data-editar-usuario-fecha]'),
+        correoContacto: modal.querySelector('[data-editar-usuario-correo-contacto]'),
+        whatsapp: modal.querySelector('[data-editar-usuario-whatsapp]'),
+        permisoCorreo: modal.querySelector('[data-editar-usuario-permiso-correo]'),
+        permisoWhatsapp: modal.querySelector('[data-editar-usuario-permiso-whatsapp]'),
+      };
+
+      const alternarModal = (abrir) => {
+        modal.classList.toggle('abierto', abrir);
+        cortina.classList.toggle('abierto', abrir);
+        modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+      };
+
+      const setValue = (element, value) => {
+        if (element) {
+          element.value = value ?? '';
+          element.dispatchEvent(new Event('input', { bubbles: true }));
+          element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+
+      const setChecked = (element, value) => {
+        if (element) {
+          element.checked = Boolean(value);
+          element.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+
+      const cargarUsuario = (usuario) => {
+        setValue(fields.id, usuario.id ?? '');
+        setValue(fields.correo, usuario.correo_login ?? '');
+        setValue(fields.rol, usuario.rol ?? 'impulsa_usuario');
+        setValue(fields.tipo, usuario.usuario_tipo ?? 'externo');
+        setValue(fields.pagina, usuario.pagina_inicio ?? '');
+        setChecked(fields.verificado, Boolean(usuario.email_verified_at));
+        setValue(fields.nombre, usuario.nombre ?? '');
+        setValue(fields.apellido, usuario.apellido ?? '');
+        setValue(fields.apodo, usuario.apodo ?? '');
+        setValue(fields.fecha, usuario.fecha_nacimiento ?? '');
+        setValue(fields.correoContacto, usuario.correo_contacto ?? usuario.correo_login ?? '');
+        setValue(fields.whatsapp, usuario.whatsapp ?? '');
+        setChecked(fields.permisoCorreo, Number(usuario.permison_correo ?? 1) === 1);
+        setChecked(fields.permisoWhatsapp, Number(usuario.permison_whatsapp ?? 1) === 1);
+      };
+
+      document.addEventListener('click', (evento) => {
+        const trigger = evento.target.closest('[data-modificar-usuario]');
+        if (trigger) {
+          try {
+            cargarUsuario(JSON.parse(trigger.getAttribute('data-modificar-usuario') || '{}'));
+            alternarModal(true);
+          } catch (error) {
+            return;
+          }
+        }
+
+        if (evento.target.closest('[data-cerrar-editar-usuario]')) {
+          alternarModal(false);
+        }
+      });
+
+      document.addEventListener('keydown', (evento) => {
+        if (evento.key === 'Escape') {
           alternarModal(false);
         }
       });
