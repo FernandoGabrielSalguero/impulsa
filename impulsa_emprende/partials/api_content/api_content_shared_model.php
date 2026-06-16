@@ -529,15 +529,26 @@ abstract class ApiContentSharedModel
             throw new RuntimeException('El archivo ' . $fieldConfig['label'] . ' no tiene un MIME permitido.');
         }
 
-        if (!is_dir($fieldConfig['upload_dir']) && !mkdir($fieldConfig['upload_dir'], 0775, true) && !is_dir($fieldConfig['upload_dir'])) {
+        $uploadDir = $this->normalizarRutaDirectorio((string) ($fieldConfig['upload_dir'] ?? ''));
+        if ($uploadDir === '') {
+            throw new RuntimeException('No se definio la carpeta de destino para ' . $fieldConfig['label'] . '.');
+        }
+
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
             throw new RuntimeException('No se pudo preparar la carpeta de uploads para ' . $fieldConfig['label'] . '.');
         }
 
-        $fileName = $fieldConfig['prefix'] . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
-        $destination = rtrim($fieldConfig['upload_dir'], DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $fileName;
+        @chmod($uploadDir, 0775);
 
-        if (!move_uploaded_file($tmpName, $destination)) {
-            throw new RuntimeException('No se pudo guardar el archivo ' . $fieldConfig['label'] . '.');
+        $fileName = $this->generarNombreArchivoSeguro(
+            (string) ($fieldConfig['prefix'] ?? 'archivo'),
+            pathinfo($originalName, PATHINFO_FILENAME),
+            $extension
+        );
+        $destination = $uploadDir . DIRECTORY_SEPARATOR . $fileName;
+
+        if (!$this->moverArchivoSubido($tmpName, $destination)) {
+            throw new RuntimeException('No se pudo guardar el archivo ' . $fieldConfig['label'] . ' en ' . $uploadDir . '.');
         }
 
         return rtrim($fieldConfig['public_path'], '/') . '/' . $fileName;
@@ -874,13 +885,63 @@ abstract class ApiContentSharedModel
         return substr($text, 0, 220);
     }
 
+    private function generarNombreArchivoSeguro(string $prefix, string $originalBaseName, string $extension): string
+    {
+        $prefix = $this->slugify($prefix);
+        if ($prefix === '') {
+            $prefix = 'archivo';
+        }
+
+        $originalBaseName = $this->slugify($originalBaseName);
+        if ($originalBaseName === '') {
+            $originalBaseName = 'adjunto';
+        }
+
+        return $prefix . '_' . $originalBaseName . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
+    }
+
+    private function moverArchivoSubido(string $tmpName, string $destination): bool
+    {
+        if (move_uploaded_file($tmpName, $destination)) {
+            @chmod($destination, 0664);
+            return true;
+        }
+
+        if (@rename($tmpName, $destination)) {
+            @chmod($destination, 0664);
+            return true;
+        }
+
+        if (@copy($tmpName, $destination)) {
+            @unlink($tmpName);
+            @chmod($destination, 0664);
+            return true;
+        }
+
+        return false;
+    }
+
+    private function normalizarRutaDirectorio(string $path): string
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return '';
+        }
+
+        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+
+        return rtrim($path, DIRECTORY_SEPARATOR);
+    }
+
     protected function buildBlogFileFields(): array
     {
+        $blogUploadDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'API_Blog';
+
         return [
             'cover_image_file' => [
                 'column' => 'cover_image_path',
                 'label' => 'portada',
-                'upload_dir' => dirname(__DIR__, 2) . '/uploads/API_Blog',
+                'upload_dir' => $blogUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Blog',
                 'extensions' => self::BLOG_IMAGE_EXTENSIONS,
                 'mime_types' => self::BLOG_IMAGE_MIME_TYPES,
@@ -890,7 +951,7 @@ abstract class ApiContentSharedModel
             'attachment_file' => [
                 'column' => 'attachment_path',
                 'label' => 'adjunto',
-                'upload_dir' => dirname(__DIR__, 2) . '/uploads/API_Blog',
+                'upload_dir' => $blogUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Blog',
                 'extensions' => self::BLOG_ATTACHMENT_EXTENSIONS,
                 'mime_types' => self::BLOG_ATTACHMENT_MIME_TYPES,
@@ -902,11 +963,13 @@ abstract class ApiContentSharedModel
 
     protected function buildProductFileFields(): array
     {
+        $productUploadDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'API_Productos';
+
         return [
             'main_image_file' => [
                 'column' => 'main_image_path',
                 'label' => 'imagen principal',
-                'upload_dir' => dirname(__DIR__, 2) . '/uploads/API_Productos',
+                'upload_dir' => $productUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Productos',
                 'extensions' => self::BLOG_IMAGE_EXTENSIONS,
                 'mime_types' => self::BLOG_IMAGE_MIME_TYPES,
@@ -916,7 +979,7 @@ abstract class ApiContentSharedModel
             'thumbnail_file' => [
                 'column' => 'thumbnail_path',
                 'label' => 'miniatura',
-                'upload_dir' => dirname(__DIR__, 2) . '/uploads/API_Productos',
+                'upload_dir' => $productUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Productos',
                 'extensions' => self::BLOG_IMAGE_EXTENSIONS,
                 'mime_types' => self::BLOG_IMAGE_MIME_TYPES,
@@ -926,7 +989,7 @@ abstract class ApiContentSharedModel
             'attachment_file' => [
                 'column' => 'attachment_path',
                 'label' => 'adjunto',
-                'upload_dir' => dirname(__DIR__, 2) . '/uploads/API_Productos',
+                'upload_dir' => $productUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Productos',
                 'extensions' => self::PRODUCT_ATTACHMENT_EXTENSIONS,
                 'mime_types' => self::PRODUCT_ATTACHMENT_MIME_TYPES,
