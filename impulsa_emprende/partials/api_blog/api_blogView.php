@@ -358,6 +358,8 @@ $apiBlogEmptyState = [
         </label>
       </form>
 
+      <br>
+
       <?php if (!$apiBlogIntegraciones): ?>
         <div class="im-alerta im-alerta--info">Todavia no hay integraciones accesibles para tu cuenta.</div>
       <?php elseif (!$apiBlogItems): ?>
