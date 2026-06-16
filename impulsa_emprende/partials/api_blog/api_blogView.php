@@ -41,7 +41,9 @@ $apiBlogEmptyState = [
 
     .im-blog-grid {
       display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 1rem;
+      align-items: start;
     }
 
     .im-blog-card {
@@ -79,6 +81,7 @@ $apiBlogEmptyState = [
     .im-blog-card__body {
       flex-direction: column;
       padding: 1.25rem;
+      min-height: 100%;
     }
 
     .im-blog-card__head,
@@ -86,11 +89,24 @@ $apiBlogEmptyState = [
     .im-blog-card__actions {
       align-items: center;
       justify-content: space-between;
+      margin-top: auto;
     }
 
     .im-blog-card__head h4,
     .im-blog-card__head p {
       margin-top: 0;
+    }
+
+    .im-blog-card__head h4 {
+      margin-bottom: .35rem;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+
+    .im-blog-card__head p {
+      margin-bottom: 0;
+      font-size: .92rem;
+      line-height: 1.45;
     }
 
     .im-blog-card__head p,
@@ -106,7 +122,8 @@ $apiBlogEmptyState = [
     .im-blog-card__excerpt {
       margin: 0;
       color: rgba(15, 23, 42, .74);
-      line-height: 1.55;
+      font-size: .94rem;
+      line-height: 1.5;
       display: -webkit-box;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 3;
@@ -258,6 +275,10 @@ $apiBlogEmptyState = [
     }
 
     @media (max-width: 720px) {
+      .im-blog-grid {
+        grid-template-columns: 1fr;
+      }
+
       .im-blog-dialog {
         width: calc(100vw - 1rem);
         height: calc(100vh - .5rem);
@@ -273,6 +294,18 @@ $apiBlogEmptyState = [
 
       .im-blog-form-layout .im-formulario__acciones {
         bottom: -1rem;
+      }
+    }
+
+    @media (min-width: 721px) and (max-width: 1100px) {
+      .im-blog-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 1101px) and (max-width: 1399px) {
+      .im-blog-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
   </style>
@@ -342,7 +375,7 @@ $apiBlogEmptyState = [
             <article class="im-blog-card">
               <div class="im-blog-card__media">
                 <?php if (!empty($item['cover_image_path_url'])): ?>
-                  <img src="<?= $h($item['cover_image_path_url']) ?>" alt="<?= $h($item['title'] ?? 'Portada del blog') ?>">
+                  <img src="<?= $h($item['cover_image_path_url']) ?>" alt="<?= $h($item['title'] ?? 'Portada del blog') ?>" loading="lazy" onerror="this.hidden=true;">
                 <?php endif; ?>
               </div>
 
