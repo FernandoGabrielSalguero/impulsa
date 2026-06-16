@@ -17,6 +17,32 @@ updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 🔗 Relaciones:
 Columna created_by_user_id referencia a user_auth.id
 Columna responsable_user_id referencia a user_auth.id
+📄 Tabla: api_blog_posts
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+api_integration_id	bigint(20) unsigned	NO	MUL		
+title	varchar(180)	NO			
+slug	varchar(220)	NO			
+subtitle	varchar(255)	YES			
+author	varchar(180)	YES			
+bibliography	text	YES			
+cover_image_path	varchar(255)	YES			
+attachment_path	varchar(255)	YES			
+category	varchar(120)	YES			
+subcategory	varchar(120)	YES			
+excerpt	varchar(300)	YES			
+description_html	longtext	NO			
+publication_date	datetime	YES	MUL		
+status	enum('active','inactive','draft')	NO		draft	
+sort_order	int(10) unsigned	NO		1	
+metadata_json	longtext	YES			
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	timestamp	NO	MUL	current_timestamp()	
+updated_at	timestamp	NO	MUL	current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
+Columna api_integration_id referencia a api_integrations.id
 📄 Tabla: api_integrations
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment
@@ -29,6 +55,36 @@ created_at	timestamp	NO		current_timestamp()
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 last_used_at	datetime	YES			
 
+📄 Tabla: api_products
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+api_integration_id	bigint(20) unsigned	NO	MUL		
+title	varchar(180)	NO			
+slug	varchar(220)	NO			
+sku	varchar(80)	YES	MUL		
+short_description	varchar(300)	YES			
+description_html	longtext	NO			
+main_image_path	varchar(255)	YES			
+thumbnail_path	varchar(255)	YES			
+attachment_path	varchar(255)	YES			
+category	varchar(120)	YES			
+subcategory	varchar(120)	YES			
+price	decimal(12,2)	YES			
+compare_at_price	decimal(12,2)	YES			
+currency	varchar(8)	NO		ARS	
+stock_quantity	int(11)	YES			
+availability	enum('in_stock','out_of_stock','preorder','on_request')	NO		on_request	
+status	enum('active','inactive','draft')	NO		draft	
+featured	tinyint(1)	NO		0	
+sort_order	int(10) unsigned	NO		1	
+metadata_json	longtext	YES			
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	timestamp	NO	MUL	current_timestamp()	
+updated_at	timestamp	NO	MUL	current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
+Columna api_integration_id referencia a api_integrations.id
 📄 Tabla: chatbot_events
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment

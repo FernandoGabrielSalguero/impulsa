@@ -587,11 +587,21 @@ $apiBlogEmptyState = [
             <span>Bibliografia</span>
             <textarea name="bibliography" rows="3" data-blog-field="bibliography"><?= $h($apiBlogCurrent['bibliography'] ?? '') ?></textarea>
           </label>
+          <label class="im-campo im-campo-material im-campo--ancho">
+            <span>Extracto</span>
+            <textarea
+              name="excerpt"
+              rows="4"
+              maxlength="300"
+              data-blog-excerpt-editor
+              data-blog-field="excerpt"
+            ><?= $h($apiBlogCurrent['excerpt'] ?? '') ?></textarea>
+          </label>
 
           <div class="im-campo im-campo--ancho">
             <span>Contenido de la publicacion</span>
             <div class="im-blog-editor im-muestra" data-quill-editor data-placeholder="Escribe aqui el cuerpo completo de la publicacion..."><?= $apiBlogDescriptionValue ?></div>
-            <p class="im-blog-form-help">Haz click en cualquier parte del editor para escribir. El extracto corto se genera automaticamente.</p>
+            <p class="im-blog-form-help">Haz click en cualquier parte del editor para escribir. El extracto se edita manualmente en su propio campo.</p>
           </div>
 
           <label class="im-campo im-campo-material">
@@ -747,6 +757,7 @@ $apiBlogEmptyState = [
       const emptyState = JSON.parse(emptyStateNode?.value || '{}');
       const hiddenHtml = form.querySelector('[data-quill-hidden]');
       const hiddenExcerpt = form.querySelector('[data-blog-excerpt-hidden]');
+      const excerptEditor = form.querySelector('[data-blog-excerpt-editor]');
 
       const resetFormState = () => {
         form.reset();
@@ -763,6 +774,7 @@ $apiBlogEmptyState = [
         if (slugField) slugField.value = emptyState.slug ?? '';
         if (hiddenHtml) hiddenHtml.value = emptyState.description_html ?? '<p></p>';
         if (hiddenExcerpt) hiddenExcerpt.value = emptyState.excerpt ?? '';
+        if (excerptEditor) excerptEditor.value = emptyState.excerpt ?? '';
         if (formTitle) formTitle.textContent = 'Nueva publicacion';
         if (formSubtitle) formSubtitle.textContent = 'Completa los campos del blog y guarda la publicacion cuando el contenido este listo.';
 
@@ -827,6 +839,7 @@ $apiBlogEmptyState = [
         const editorNode = form.querySelector('[data-quill-editor]');
         const htmlHidden = form.querySelector('[data-quill-hidden]');
         const excerptHidden = form.querySelector('[data-blog-excerpt-hidden]');
+        const excerptEditor = form.querySelector('[data-blog-excerpt-editor]');
 
         if (!editorNode || !htmlHidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
 
@@ -853,14 +866,17 @@ $apiBlogEmptyState = [
         editorNode.addEventListener('click', () => quill.focus());
 
         const syncFields = () => {
-          const html = quill.root.innerHTML;
-          const plainText = (quill.getText() || '').replace(/\s+/g, ' ').trim();
-          htmlHidden.value = html;
-
-          if (excerptHidden) {
-            excerptHidden.value = plainText.slice(0, 300);
-          }
+          htmlHidden.value = quill.root.innerHTML;
         };
+
+        if (excerptEditor && excerptHidden) {
+          const syncExcerpt = () => {
+            excerptHidden.value = excerptEditor.value.slice(0, 300);
+          };
+
+          excerptEditor.addEventListener('input', syncExcerpt);
+          syncExcerpt();
+        }
 
         quill.on('text-change', syncFields);
         form.addEventListener('submit', syncFields);
