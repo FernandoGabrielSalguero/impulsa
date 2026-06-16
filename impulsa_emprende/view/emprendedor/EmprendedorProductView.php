@@ -62,9 +62,10 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
     document.querySelectorAll('[data-quill-form]').forEach((form) => {
       const editorNode = form.querySelector('[data-quill-editor]');
       const hidden = form.querySelector('[data-quill-hidden]');
-      if (!editorNode || !hidden || typeof Quill === 'undefined') return;
+      if (!editorNode || !hidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
       const quill = new Quill(editorNode, { theme: 'bubble' });
       quill.root.innerHTML = hidden.value || '<p></p>';
+      form.dataset.quillInitialized = 'true';
       form.addEventListener('submit', () => { hidden.value = quill.root.innerHTML; });
     });
   </script>
