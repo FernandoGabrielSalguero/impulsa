@@ -16,10 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $usuario,
                 $_POST['notes'] ?? null
             );
-            $marketingUser = $visualizadorPlanesMarketingModel->obtenerUsuarioMarketing();
+            $marketingUsers = $visualizadorPlanesMarketingModel->obtenerUsuariosMarketing();
             $detalle = $visualizadorPlanesMarketingModel->obtenerDetalleSolicitud($subscriptionId);
-            $resultadoCorreo = ['ok' => false, 'error' => 'No se encontro usuario marketing.'];
-            if ($marketingUser && $detalle) {
+            $resultadoCorreo = ['ok' => false, 'error' => 'No se encontraron usuarios marketing.'];
+            if ($marketingUsers && $detalle) {
                 $features = array_map(static function (array $feature): string {
                     $nombre = htmlspecialchars((string) ($feature['feature_name'] ?? ''), ENT_QUOTES, 'UTF-8');
                     $cantidad = trim((string) ($feature['quantity'] ?? '') . ' ' . (string) ($feature['unit'] ?? ''));
@@ -37,9 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $inversionSugerida = $budgetMin > 0 || $budgetMax > 0
                     ? '$' . number_format($budgetMin ?: $budgetMax, 0, ',', '.') . ($budgetMin > 0 && $budgetMax > 0 ? ' a $' . number_format($budgetMax, 0, ',', '.') : '')
                     : 'Sin especificar';
-                $resultadoCorreo = \SVE\Mail\Mailer::enviarSolicitudMarketing([
-                    'correo' => (string) ($marketingUser['correo'] ?? ''),
-                    'user_auth_id' => (int) ($marketingUser['id'] ?? 0),
+                $payloadCorreoMarketing = [
                     'solicitante' => $solicitanteNombre,
                     'solicitante_correo' => $solicitanteCorreo,
                     'solicitante_rol' => (string) ($usuario['rol'] ?? ''),
@@ -59,11 +57,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'items_html' => $itemsHtml,
                     'link' => 'https://impulsagroup.com/ingreso.html',
                     'meta' => ['subscription_id' => $subscriptionId, 'plan_id' => (int) ($detalle['plan_id'] ?? 0)],
-                ]);
+                ];
+                $enviosCorrectos = 0;
+                $erroresEnvio = [];
+                foreach ($marketingUsers as $marketingUser) {
+                    $resultadoEnvio = \SVE\Mail\Mailer::enviarSolicitudMarketing($payloadCorreoMarketing + [
+                        'correo' => (string) ($marketingUser['correo'] ?? ''),
+                        'user_auth_id' => (int) ($marketingUser['id'] ?? 0),
+                    ]);
+                    if (($resultadoEnvio['ok'] ?? false) === true) {
+                        $enviosCorrectos++;
+                        continue;
+                    }
+                    $erroresEnvio[] = (string) ($marketingUser['correo'] ?? 'sin correo') . ': ' . (string) ($resultadoEnvio['error'] ?? 'Error no informado.');
+                }
+                $resultadoCorreo = $enviosCorrectos > 0
+                    ? ['ok' => true, 'enviados' => $enviosCorrectos, 'fallidos' => count($erroresEnvio), 'errores' => $erroresEnvio]
+                    : ['ok' => false, 'error' => implode(' | ', $erroresEnvio) ?: 'No se pudo enviar el correo a ningun usuario marketing.'];
             }
-            $_SESSION['marketing_estado'] = ($resultadoCorreo['ok'] ?? false)
-                ? ['estado' => 'ok', 'mensaje' => 'Solicitud enviada. El equipo de marketing la revisara.']
-                : ['estado' => 'ok', 'mensaje' => 'Solicitud guardada. No pudimos enviar el correo a marketing: ' . (string) ($resultadoCorreo['error'] ?? 'Error no informado.')];
+            if (($resultadoCorreo['ok'] ?? false) === true) {
+                $mensajeCorreo = 'Solicitud enviada. El equipo de marketing la revisara.';
+                if ((int) ($resultadoCorreo['fallidos'] ?? 0) > 0) {
+                    $mensajeCorreo .= ' Algunos correos de marketing no pudieron enviarse.';
+                }
+                $_SESSION['marketing_estado'] = ['estado' => 'ok', 'mensaje' => $mensajeCorreo];
+            } else {
+                $_SESSION['marketing_estado'] = ['estado' => 'ok', 'mensaje' => 'Solicitud guardada. No pudimos enviar el correo a marketing: ' . (string) ($resultadoCorreo['error'] ?? 'Error no informado.')];
+            }
         } catch (Throwable $e) {
             $_SESSION['marketing_estado'] = ['estado' => 'error', 'mensaje' => $e->getMessage()];
         }

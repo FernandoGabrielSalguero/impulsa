@@ -64,13 +64,12 @@ class VisualizadorPlanesMarketingModel
         return (int) $this->pdo->lastInsertId();
     }
 
-    public function obtenerUsuarioMarketing(): ?array
+    public function obtenerUsuariosMarketing(): array
     {
-        $stmt = $this->pdo->prepare("SELECT id, correo, rol FROM user_auth WHERE rol = 'impulsa_marketing' LIMIT 1");
+        $stmt = $this->pdo->prepare("SELECT id, correo, rol FROM user_auth WHERE rol = 'impulsa_marketing' ORDER BY id ASC");
         $stmt->execute();
-        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $usuario ?: null;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     public function obtenerDetalleSolicitud(int $subscriptionId): ?array
