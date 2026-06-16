@@ -12,6 +12,22 @@ $apiBlogCurrent = is_array($apiBlogEditingItem) ? $apiBlogEditingItem : [];
 $apiBlogDescriptionValue = (string) ($apiBlogCurrent['description_html'] ?? '<p></p>');
 $apiBlogBaseQuery = '?integration_id=' . (int) ($apiBlogSelectedIntegration['id'] ?? 0);
 $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) && ($apiBlogFlash['estado'] ?? '') === 'error');
+$apiBlogEmptyState = [
+    'item_id' => 0,
+    'api_integration_id' => (int) ($apiBlogSelectedIntegration['id'] ?? 0),
+    'slug' => '',
+    'description_html' => '<p></p>',
+    'excerpt' => '',
+    'title' => '',
+    'subtitle' => '',
+    'author' => '',
+    'category' => '',
+    'subcategory' => '',
+    'status' => 'draft',
+    'publication_date' => '',
+    'sort_order' => 1,
+    'bibliography' => '',
+];
 ?>
 <section class="im-seccion-documento activa" id="api-blog-builder" data-panel="api-blog-builder">
   <style>
@@ -32,53 +48,73 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       border: 1px solid rgba(15, 23, 42, .08);
       border-radius: 24px;
       background: linear-gradient(180deg, rgba(255, 255, 255, .98) 0%, rgba(248, 250, 252, .94) 100%);
-      padding: 1.25rem;
+      overflow: hidden;
       box-shadow: 0 18px 40px rgba(15, 23, 42, .08);
     }
 
+    .im-blog-card__media {
+      aspect-ratio: 16 / 9;
+      background:
+        linear-gradient(135deg, rgba(59, 130, 246, .18) 0%, rgba(16, 185, 129, .18) 100%),
+        linear-gradient(180deg, rgba(241, 245, 249, 1) 0%, rgba(226, 232, 240, 1) 100%);
+      overflow: hidden;
+    }
+
+    .im-blog-card__media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .im-blog-card__body,
     .im-blog-card__head,
     .im-blog-card__meta,
     .im-blog-card__actions {
       display: flex;
       flex-wrap: wrap;
       gap: .75rem;
+    }
+
+    .im-blog-card__body {
+      flex-direction: column;
+      padding: 1.25rem;
+    }
+
+    .im-blog-card__head,
+    .im-blog-card__meta,
+    .im-blog-card__actions {
       align-items: center;
       justify-content: space-between;
     }
 
     .im-blog-card__head h4,
-    .im-blog-card__head p,
-    .im-blog-card__content > :first-child {
+    .im-blog-card__head p {
       margin-top: 0;
     }
 
     .im-blog-card__head p,
-    .im-blog-card__content,
     .im-blog-card__empty {
       color: rgba(15, 23, 42, .78);
     }
 
     .im-blog-card__meta {
       justify-content: flex-start;
-      margin: 1rem 0;
+      margin: 0;
     }
 
-    .im-blog-card__content {
-      border-top: 1px solid rgba(15, 23, 42, .08);
-      margin-top: 1rem;
-      padding-top: 1rem;
-      line-height: 1.65;
-      overflow-wrap: anywhere;
-    }
-
-    .im-blog-card__content img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 16px;
+    .im-blog-card__excerpt {
+      margin: 0;
+      color: rgba(15, 23, 42, .74);
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
     }
 
     .im-blog-card__empty {
-      margin: 1rem 0 0;
+      margin: 0;
       font-style: italic;
     }
 
@@ -150,6 +186,7 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       border: 1px solid rgba(15, 23, 42, .12);
       background: #fff;
       overflow: hidden;
+      cursor: text;
     }
 
     .im-blog-editor .ql-toolbar {
@@ -177,6 +214,7 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
     .im-blog-editor .ql-editor {
       min-height: 250px;
       padding: 1rem;
+      cursor: text;
     }
 
     .im-blog-editor .ql-editor.ql-blank::before {
@@ -190,6 +228,33 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       margin: .35rem 0 0;
       color: rgba(15, 23, 42, .62);
       font-size: .92rem;
+    }
+
+    .im-blog-view-content {
+      display: grid;
+      gap: 1rem;
+      line-height: 1.65;
+      color: rgba(15, 23, 42, .88);
+    }
+
+    .im-blog-view-cover {
+      width: 100%;
+      max-height: 320px;
+      object-fit: cover;
+      border-radius: 18px;
+      display: block;
+    }
+
+    .im-blog-view-richtext {
+      border-top: 1px solid rgba(15, 23, 42, .08);
+      padding-top: 1rem;
+      overflow-wrap: anywhere;
+    }
+
+    .im-blog-view-richtext img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 16px;
     }
 
     @media (max-width: 720px) {
@@ -272,63 +337,99 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
             $itemStatusClass = $itemStatus === 'active'
                 ? 'im-chip--completado'
                 : ($itemStatus === 'draft' ? 'im-chip--pendiente' : 'im-chip--alerta');
-            $itemContent = trim((string) ($item['description_html'] ?? ''));
+            $itemExcerpt = trim((string) ($item['excerpt'] ?? ''));
             ?>
             <article class="im-blog-card">
-              <div class="im-blog-card__head">
-                <div>
-                  <h4><?= $h($item['title'] ?? '') ?></h4>
-                  <?php if (trim((string) ($item['subtitle'] ?? '')) !== ''): ?>
-                    <p><?= $h($item['subtitle'] ?? '') ?></p>
-                  <?php endif; ?>
+              <div class="im-blog-card__media">
+                <?php if (!empty($item['cover_image_path_url'])): ?>
+                  <img src="<?= $h($item['cover_image_path_url']) ?>" alt="<?= $h($item['title'] ?? 'Portada del blog') ?>">
+                <?php endif; ?>
+              </div>
+
+              <div class="im-blog-card__body">
+                <div class="im-blog-card__head">
+                  <div>
+                    <h4><?= $h($item['title'] ?? '') ?></h4>
+                    <?php if (trim((string) ($item['subtitle'] ?? '')) !== ''): ?>
+                      <p><?= $h($item['subtitle'] ?? '') ?></p>
+                    <?php endif; ?>
+                  </div>
+                  <span class="im-chip <?= $itemStatusClass ?>"><?= $h($itemStatus) ?></span>
                 </div>
-                <span class="im-chip <?= $itemStatusClass ?>"><?= $h($itemStatus) ?></span>
-              </div>
 
-              <div class="im-blog-card__meta im-chip-lista">
-                <?php if (trim((string) ($item['category'] ?? '')) !== ''): ?>
-                  <span class="im-chip"><?= $h($item['category'] ?? '') ?></span>
-                <?php endif; ?>
-                <?php if (trim((string) ($item['subcategory'] ?? '')) !== ''): ?>
-                  <span class="im-chip"><?= $h($item['subcategory'] ?? '') ?></span>
-                <?php endif; ?>
-                <?php if (trim((string) ($item['author'] ?? '')) !== ''): ?>
-                  <span class="im-chip">Autor: <?= $h($item['author'] ?? '') ?></span>
-                <?php endif; ?>
-                <span class="im-chip">Publicacion: <?= $h($item['publication_date'] ?? '-') ?></span>
-              </div>
-
-              <div class="im-blog-card__actions">
-                <div class="im-chip-lista">
-                  <a class="im-boton im-boton--texto" href="<?= $h($apiBlogBaseQuery . '&edit_id=' . (int) ($item['id'] ?? 0)) ?>">Editar</a>
-                  <?php if (!empty($item['cover_image_path_url'])): ?>
-                    <a class="im-boton im-boton--texto" href="<?= $h($item['cover_image_path_url']) ?>" target="_blank" rel="noreferrer">Ver portada</a>
+                <div class="im-blog-card__meta im-chip-lista">
+                  <?php if (trim((string) ($item['category'] ?? '')) !== ''): ?>
+                    <span class="im-chip"><?= $h($item['category'] ?? '') ?></span>
                   <?php endif; ?>
-                  <?php if (!empty($item['attachment_path_url'])): ?>
-                    <a class="im-boton im-boton--texto" href="<?= $h($item['attachment_path_url']) ?>" target="_blank" rel="noreferrer">Ver adjunto</a>
+                  <?php if (trim((string) ($item['author'] ?? '')) !== ''): ?>
+                    <span class="im-chip">Autor: <?= $h($item['author'] ?? '') ?></span>
                   <?php endif; ?>
+                  <span class="im-chip">Publicacion: <?= $h($item['publication_date'] ?? '-') ?></span>
                 </div>
-                <form method="post">
-                  <input type="hidden" name="api_blog_action_scope" value="<?= $h($apiBlogPostAction) ?>">
-                  <input type="hidden" name="item_id" value="<?= (int) ($item['id'] ?? 0) ?>">
-                  <input type="hidden" name="target_status" value="<?= $itemStatus === 'active' ? 'inactive' : 'active' ?>">
-                  <button class="im-boton im-boton--texto" type="submit" name="api_blog_submit" value="toggle_status">
-                    <?= $itemStatus === 'active' ? 'Desactivar' : 'Activar' ?>
-                  </button>
-                </form>
-              </div>
 
-              <?php if ($itemContent !== ''): ?>
-                <div class="im-blog-card__content"><?= $itemContent ?></div>
-              <?php else: ?>
-                <p class="im-blog-card__empty">Esta publicacion todavia no tiene contenido enriquecido.</p>
-              <?php endif; ?>
+                <?php if ($itemExcerpt !== ''): ?>
+                  <p class="im-blog-card__excerpt"><?= $h($itemExcerpt) ?></p>
+                <?php else: ?>
+                  <p class="im-blog-card__empty">Esta publicacion todavia no tiene extracto.</p>
+                <?php endif; ?>
+
+                <div class="im-blog-card__actions">
+                  <div class="im-chip-lista">
+                    <button
+                      class="im-boton im-boton--texto"
+                      type="button"
+                      data-blog-view-open
+                      data-blog-view='<?= $h(json_encode($item, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') ?>'
+                    >
+                      Ver
+                    </button>
+                    <a class="im-boton im-boton--texto" href="<?= $h($apiBlogBaseQuery . '&edit_id=' . (int) ($item['id'] ?? 0)) ?>">Editar</a>
+                  </div>
+                  <form method="post">
+                    <input type="hidden" name="api_blog_action_scope" value="<?= $h($apiBlogPostAction) ?>">
+                    <input type="hidden" name="item_id" value="<?= (int) ($item['id'] ?? 0) ?>">
+                    <input type="hidden" name="target_status" value="<?= $itemStatus === 'active' ? 'inactive' : 'active' ?>">
+                    <button class="im-boton im-boton--texto" type="submit" name="api_blog_submit" value="toggle_status">
+                      <?= $itemStatus === 'active' ? 'Desactivar' : 'Activar' ?>
+                    </button>
+                  </form>
+                </div>
+              </div>
             </article>
           <?php endforeach; ?>
         </div>
       <?php endif; ?>
     </article>
   </div>
+
+  <dialog class="im-blog-dialog" data-blog-view-dialog>
+    <div class="im-blog-dialog__shell">
+      <div class="im-blog-dialog__header">
+        <div>
+          <h3 data-blog-view-title>Publicacion</h3>
+          <p data-blog-view-subtitle>Detalle completo del blog seleccionado.</p>
+        </div>
+        <button class="im-boton im-boton--texto" type="button" data-blog-view-close>Cerrar</button>
+      </div>
+
+      <div class="im-blog-dialog__body">
+        <div class="im-blog-view-content">
+          <img class="im-blog-view-cover" data-blog-view-cover alt="" hidden>
+          <div class="im-chip-lista">
+            <span class="im-chip" data-blog-view-status></span>
+            <span class="im-chip" data-blog-view-category hidden></span>
+            <span class="im-chip" data-blog-view-author hidden></span>
+            <span class="im-chip" data-blog-view-date></span>
+          </div>
+          <p data-blog-view-excerpt></p>
+          <div class="im-blog-view-richtext" data-blog-view-content></div>
+          <div class="im-chip-lista">
+            <a class="im-chip" href="#" data-blog-view-attachment target="_blank" rel="noreferrer" hidden>Ver adjunto</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
 
   <dialog
     class="im-blog-dialog"
@@ -338,8 +439,8 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
     <div class="im-blog-dialog__shell">
       <div class="im-blog-dialog__header">
         <div>
-          <h3><?= $apiBlogCurrent ? 'Editar publicacion' : 'Nueva publicacion' ?></h3>
-          <p>Completa los campos del blog y guarda la publicacion cuando el contenido este listo.</p>
+          <h3 data-blog-form-title><?= $apiBlogCurrent ? 'Editar publicacion' : 'Nueva publicacion' ?></h3>
+          <p data-blog-form-subtitle>Completa los campos del blog y guarda la publicacion cuando el contenido este listo.</p>
         </div>
         <button class="im-boton im-boton--texto" type="button" data-blog-dialog-close>Cerrar</button>
       </div>
@@ -347,14 +448,15 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       <div class="im-blog-dialog__body">
         <form method="post" enctype="multipart/form-data" class="im-formulario im-blog-form-layout" data-quill-form>
           <input type="hidden" name="api_blog_action_scope" value="<?= $h($apiBlogPostAction) ?>">
-          <input type="hidden" name="item_id" value="<?= (int) ($apiBlogCurrent['id'] ?? 0) ?>">
-          <input type="hidden" name="slug" value="<?= $h($apiBlogCurrent['slug'] ?? '') ?>">
+          <input type="hidden" name="item_id" value="<?= (int) ($apiBlogCurrent['id'] ?? 0) ?>" data-blog-item-id>
+          <input type="hidden" name="slug" value="<?= $h($apiBlogCurrent['slug'] ?? '') ?>" data-blog-slug>
           <input type="hidden" name="description_html" value="<?= $h($apiBlogDescriptionValue) ?>" data-quill-hidden>
           <input type="hidden" name="excerpt" value="<?= $h($apiBlogCurrent['excerpt'] ?? '') ?>" data-blog-excerpt-hidden>
+          <input type="hidden" data-blog-empty-state value="<?= $h(json_encode($apiBlogEmptyState, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') ?>">
 
           <label class="im-campo im-campo-material im-campo--ancho">
             <span>Integracion asociada</span>
-            <select name="api_integration_id" required>
+            <select name="api_integration_id" required data-blog-field="api_integration_id">
               <?php foreach ($apiBlogIntegraciones as $integration): ?>
                 <option value="<?= (int) ($integration['id'] ?? 0) ?>" <?= (int) ($integration['id'] ?? 0) === (int) (($apiBlogCurrent['api_integration_id'] ?? $apiBlogSelectedIntegration['id'] ?? 0)) ? 'selected' : '' ?>>
                   <?= $h(($integration['project_name'] ?? '') . ' - ' . ($integration['allowed_domain'] ?? '')) ?>
@@ -364,27 +466,27 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
           </label>
           <label class="im-campo im-campo-material">
             <span>Titulo</span>
-            <input type="text" name="title" maxlength="180" value="<?= $h($apiBlogCurrent['title'] ?? '') ?>" required>
+            <input type="text" name="title" maxlength="180" value="<?= $h($apiBlogCurrent['title'] ?? '') ?>" required data-blog-field="title">
           </label>
           <label class="im-campo im-campo-material">
             <span>Subtitulo</span>
-            <input type="text" name="subtitle" maxlength="255" value="<?= $h($apiBlogCurrent['subtitle'] ?? '') ?>">
+            <input type="text" name="subtitle" maxlength="255" value="<?= $h($apiBlogCurrent['subtitle'] ?? '') ?>" data-blog-field="subtitle">
           </label>
           <label class="im-campo im-campo-material">
             <span>Autor</span>
-            <input type="text" name="author" maxlength="180" value="<?= $h($apiBlogCurrent['author'] ?? '') ?>">
+            <input type="text" name="author" maxlength="180" value="<?= $h($apiBlogCurrent['author'] ?? '') ?>" data-blog-field="author">
           </label>
           <label class="im-campo im-campo-material">
             <span>Categoria</span>
-            <input type="text" name="category" maxlength="120" value="<?= $h($apiBlogCurrent['category'] ?? '') ?>">
+            <input type="text" name="category" maxlength="120" value="<?= $h($apiBlogCurrent['category'] ?? '') ?>" data-blog-field="category">
           </label>
           <label class="im-campo im-campo-material">
             <span>Subcategoria</span>
-            <input type="text" name="subcategory" maxlength="120" value="<?= $h($apiBlogCurrent['subcategory'] ?? '') ?>">
+            <input type="text" name="subcategory" maxlength="120" value="<?= $h($apiBlogCurrent['subcategory'] ?? '') ?>" data-blog-field="subcategory">
           </label>
           <label class="im-campo im-campo-material">
             <span>Estado</span>
-            <select name="status">
+            <select name="status" data-blog-field="status">
               <option value="draft" <?= ($apiBlogCurrent['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Borrador</option>
               <option value="active" <?= ($apiBlogCurrent['status'] ?? '') === 'active' ? 'selected' : '' ?>>Activo</option>
               <option value="inactive" <?= ($apiBlogCurrent['status'] ?? '') === 'inactive' ? 'selected' : '' ?>>Inactivo</option>
@@ -392,21 +494,21 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
           </label>
           <label class="im-campo im-campo-material">
             <span>Fecha de publicacion</span>
-            <input type="datetime-local" name="publication_date" value="<?= isset($apiBlogCurrent['publication_date']) && $apiBlogCurrent['publication_date'] ? $h(date('Y-m-d\TH:i', strtotime((string) $apiBlogCurrent['publication_date']))) : '' ?>">
+            <input type="datetime-local" name="publication_date" value="<?= isset($apiBlogCurrent['publication_date']) && $apiBlogCurrent['publication_date'] ? $h(date('Y-m-d\TH:i', strtotime((string) $apiBlogCurrent['publication_date']))) : '' ?>" data-blog-field="publication_date">
           </label>
           <label class="im-campo im-campo-material">
             <span>Orden</span>
-            <input type="number" name="sort_order" min="1" value="<?= (int) ($apiBlogCurrent['sort_order'] ?? 1) ?>">
+            <input type="number" name="sort_order" min="1" value="<?= (int) ($apiBlogCurrent['sort_order'] ?? 1) ?>" data-blog-field="sort_order">
           </label>
           <label class="im-campo im-campo-material im-campo--ancho">
             <span>Bibliografia</span>
-            <textarea name="bibliography" rows="3"><?= $h($apiBlogCurrent['bibliography'] ?? '') ?></textarea>
+            <textarea name="bibliography" rows="3" data-blog-field="bibliography"><?= $h($apiBlogCurrent['bibliography'] ?? '') ?></textarea>
           </label>
 
           <div class="im-campo im-campo--ancho">
             <span>Contenido de la publicacion</span>
             <div class="im-blog-editor im-muestra" data-quill-editor data-placeholder="Escribe aqui el cuerpo completo de la publicacion..."><?= $apiBlogDescriptionValue ?></div>
-            <p class="im-blog-form-help">El extracto corto se genera automaticamente a partir del contenido.</p>
+            <p class="im-blog-form-help">Haz click en cualquier parte del editor para escribir. El extracto corto se genera automaticamente.</p>
           </div>
 
           <label class="im-campo im-campo-material">
@@ -445,15 +547,117 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
 
   <script>
     (() => {
+      const viewDialog = document.querySelector('[data-blog-view-dialog]');
+      if (!viewDialog) return;
+
+      const titleNode = viewDialog.querySelector('[data-blog-view-title]');
+      const subtitleNode = viewDialog.querySelector('[data-blog-view-subtitle]');
+      const statusNode = viewDialog.querySelector('[data-blog-view-status]');
+      const categoryNode = viewDialog.querySelector('[data-blog-view-category]');
+      const authorNode = viewDialog.querySelector('[data-blog-view-author]');
+      const dateNode = viewDialog.querySelector('[data-blog-view-date]');
+      const excerptNode = viewDialog.querySelector('[data-blog-view-excerpt]');
+      const contentNode = viewDialog.querySelector('[data-blog-view-content]');
+      const coverNode = viewDialog.querySelector('[data-blog-view-cover]');
+      const attachmentNode = viewDialog.querySelector('[data-blog-view-attachment]');
+
+      document.querySelectorAll('[data-blog-view-open]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const data = JSON.parse(button.dataset.blogView || '{}');
+
+          titleNode.textContent = data.title || 'Publicacion';
+          subtitleNode.textContent = data.subtitle || 'Detalle completo del blog seleccionado.';
+          statusNode.textContent = data.status || 'draft';
+          dateNode.textContent = 'Publicacion: ' + (data.publication_date || '-');
+          excerptNode.textContent = data.excerpt || '';
+          contentNode.innerHTML = data.description_html || '<p>Sin contenido.</p>';
+
+          categoryNode.textContent = data.category || '';
+          categoryNode.hidden = !data.category;
+          authorNode.textContent = data.author ? 'Autor: ' + data.author : '';
+          authorNode.hidden = !data.author;
+
+          if (data.cover_image_path_url) {
+            coverNode.src = data.cover_image_path_url;
+            coverNode.alt = data.title || 'Portada de la publicacion';
+            coverNode.hidden = false;
+          } else {
+            coverNode.hidden = true;
+            coverNode.removeAttribute('src');
+          }
+
+          if (data.attachment_path_url) {
+            attachmentNode.href = data.attachment_path_url;
+            attachmentNode.hidden = false;
+          } else {
+            attachmentNode.hidden = true;
+            attachmentNode.removeAttribute('href');
+          }
+
+          if (!viewDialog.open) {
+            viewDialog.showModal();
+          }
+        });
+      });
+
+      viewDialog.querySelectorAll('[data-blog-view-close]').forEach((button) => {
+        button.addEventListener('click', () => viewDialog.close());
+      });
+    })();
+
+    (() => {
       const dialog = document.querySelector('[data-blog-dialog]');
       if (!dialog) return;
 
+      const form = dialog.querySelector('[data-quill-form]');
+      const formTitle = dialog.querySelector('[data-blog-form-title]');
+      const formSubtitle = dialog.querySelector('[data-blog-form-subtitle]');
       const openButtons = document.querySelectorAll('[data-blog-dialog-open]');
       const closeButtons = dialog.querySelectorAll('[data-blog-dialog-close]');
+      const emptyStateNode = form.querySelector('[data-blog-empty-state]');
+      const emptyState = JSON.parse(emptyStateNode?.value || '{}');
+      const hiddenHtml = form.querySelector('[data-quill-hidden]');
+      const hiddenExcerpt = form.querySelector('[data-blog-excerpt-hidden]');
 
-      const openDialog = () => {
+      const resetFormState = () => {
+        form.reset();
+
+        form.querySelectorAll('[data-blog-field]').forEach((field) => {
+          const key = field.dataset.blogField;
+          const value = Object.prototype.hasOwnProperty.call(emptyState, key) ? emptyState[key] : '';
+          field.value = value ?? '';
+        });
+
+        const itemIdField = form.querySelector('[data-blog-item-id]');
+        const slugField = form.querySelector('[data-blog-slug]');
+        if (itemIdField) itemIdField.value = String(emptyState.item_id ?? 0);
+        if (slugField) slugField.value = emptyState.slug ?? '';
+        if (hiddenHtml) hiddenHtml.value = emptyState.description_html ?? '<p></p>';
+        if (hiddenExcerpt) hiddenExcerpt.value = emptyState.excerpt ?? '';
+        if (formTitle) formTitle.textContent = 'Nueva publicacion';
+        if (formSubtitle) formSubtitle.textContent = 'Completa los campos del blog y guarda la publicacion cuando el contenido este listo.';
+
+        if (form._quillInstance) {
+          form._quillInstance.setContents([]);
+          form._quillInstance.root.innerHTML = hiddenHtml?.value || '<p></p>';
+          form._quillInstance.focus();
+        }
+      };
+
+      const openDialog = (mode = 'edit') => {
+        if (mode === 'new') {
+          resetFormState();
+        } else {
+          if (formTitle) formTitle.textContent = 'Editar publicacion';
+          if (formSubtitle) formSubtitle.textContent = 'Actualiza los datos del blog y guarda los cambios.';
+        }
+
         if (typeof dialog.showModal === 'function' && !dialog.open) {
           dialog.showModal();
+        }
+
+        if (mode === 'new' && form._quillInstance) {
+          setTimeout(() => form._quillInstance.focus(), 50);
         }
       };
 
@@ -464,7 +668,7 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       };
 
       openButtons.forEach((button) => {
-        button.addEventListener('click', openDialog);
+        button.addEventListener('click', () => openDialog('new'));
       });
 
       closeButtons.forEach((button) => {
@@ -485,9 +689,55 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
       });
 
       if (dialog.dataset.autoOpen === 'true') {
-        openDialog();
+        openDialog('edit');
       }
     })();
 
+    (() => {
+      document.querySelectorAll('[data-quill-form]').forEach((form) => {
+        const editorNode = form.querySelector('[data-quill-editor]');
+        const htmlHidden = form.querySelector('[data-quill-hidden]');
+        const excerptHidden = form.querySelector('[data-blog-excerpt-hidden]');
+
+        if (!editorNode || !htmlHidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
+
+        const quill = new Quill(editorNode, {
+          theme: 'snow',
+          placeholder: editorNode.dataset.placeholder || '',
+          modules: {
+            toolbar: [
+              [{ header: [1, 2, 3, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ color: [] }, { background: [] }],
+              [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+              [{ align: [] }],
+              ['blockquote', 'code-block'],
+              ['link', 'image', 'video'],
+              ['clean']
+            ]
+          }
+        });
+
+        quill.root.innerHTML = htmlHidden.value || '<p></p>';
+        form._quillInstance = quill;
+
+        editorNode.addEventListener('click', () => quill.focus());
+
+        const syncFields = () => {
+          const html = quill.root.innerHTML;
+          const plainText = (quill.getText() || '').replace(/\s+/g, ' ').trim();
+          htmlHidden.value = html;
+
+          if (excerptHidden) {
+            excerptHidden.value = plainText.slice(0, 300);
+          }
+        };
+
+        quill.on('text-change', syncFields);
+        form.addEventListener('submit', syncFields);
+        form.dataset.quillInitialized = 'true';
+        syncFields();
+      });
+    })();
   </script>
 </section>
