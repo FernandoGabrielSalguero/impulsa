@@ -246,6 +246,56 @@ a {
   gap: 1rem;
 }
 
+.im-barra-superior__acciones > .im-boton-icono,
+.im-barra-superior__acciones > a.im-boton-icono {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: var(--im-radio);
+  line-height: 1;
+  vertical-align: middle;
+  box-shadow: none;
+}
+
+.im-barra-superior__acciones > .im-boton-icono.material-symbols-rounded,
+.im-barra-superior__acciones > a.im-boton-icono.material-symbols-rounded {
+  font-size: 1.45rem;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.im-barra-superior__acciones > [data-abrir-config-tema] {
+  background: transparent;
+  color: var(--im-color-principal);
+}
+
+.im-barra-superior__acciones > [data-abrir-config-tema]:hover,
+.im-barra-superior__acciones > [data-abrir-config-tema]:focus-visible {
+  background: color-mix(in srgb, var(--im-color-principal-suave) 60%, transparent);
+  box-shadow: none;
+}
+
+.im-barra-superior__acciones > [data-abrir-perfil] {
+  color: var(--im-color-secundario);
+}
+
+.im-barra-superior__acciones > [data-abrir-perfil]:hover,
+.im-barra-superior__acciones > [data-abrir-perfil]:focus-visible {
+  background: color-mix(in srgb, var(--im-color-secundario-suave) 60%, transparent);
+}
+
+.im-barra-superior__acciones > .im-accion-salir {
+  color: #ba1a1a;
+}
+
+.im-barra-superior__acciones > .im-accion-salir:hover,
+.im-barra-superior__acciones > .im-accion-salir:focus-visible {
+  background: color-mix(in srgb, #ba1a1a 12%, transparent);
+}
+
 .im-barra-superior__grupo {
   min-width: 0;
 }
@@ -523,6 +573,14 @@ a {
 .im-boton-icono--principal:hover {
   background: var(--im-color-principal);
   box-shadow: var(--im-sombra-2);
+}
+
+.im-barra-superior__acciones > .im-boton-icono--principal[data-abrir-config-tema],
+.im-barra-superior__acciones > .im-boton-icono--principal[data-abrir-config-tema]:hover,
+.im-barra-superior__acciones > .im-boton-icono--principal[data-abrir-config-tema]:focus-visible {
+  background: transparent;
+  color: var(--im-color-principal);
+  box-shadow: none;
 }
 
 [data-alternar-menu] > span,
