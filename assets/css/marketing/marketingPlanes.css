@@ -68,7 +68,8 @@
 .marketing-dashboard-grid,
 .marketing-plan-builder,
 .marketing-results-panel,
-.marketing-monitor-panel {
+.marketing-monitor-panel,
+.marketing-users-panel {
   display: grid;
   gap: 1rem;
 }

@@ -12,6 +12,7 @@ $marketingNavItems = [
     ['href' => '/impulsa_emprende/controller/marketing/marketingConstructorController.php', 'icon' => 'edit_note', 'label' => 'Constructor', 'active' => ($marketingActivePage ?? '') === 'constructor'],
     ['href' => '/impulsa_emprende/controller/marketing/marketingMonitorController.php', 'icon' => 'monitoring', 'label' => 'Monitor', 'active' => ($marketingActivePage ?? '') === 'monitor'],
     ['href' => '/impulsa_emprende/controller/marketing/marketingResultadosController.php', 'icon' => 'analytics', 'label' => 'Resultados', 'active' => ($marketingActivePage ?? '') === 'resultados'],
+    ['href' => '/impulsa_emprende/controller/marketing/marketingUsuariosController.php', 'icon' => 'groups', 'label' => 'Usuarios', 'active' => ($marketingActivePage ?? '') === 'usuarios'],
 ];
 ?>
 <!doctype html>

@@ -29,6 +29,66 @@ created_at	timestamp	NO		current_timestamp()
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 last_used_at	datetime	YES			
 
+📄 Tabla: chatbot_events
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+chatbot_id	bigint(20) unsigned	NO	MUL		
+api_integration_id	bigint(20) unsigned	NO	MUL		
+event_type	enum('widget_loaded','bubble_opened','question_viewed','option_clicked','whatsapp_clicked','chat_closed')	NO	MUL		
+node_id	bigint(20) unsigned	YES			
+option_id	bigint(20) unsigned	YES			
+page_url	varchar(500)	YES			
+metadata_json	text	YES			
+ip_hash	char(64)	YES			
+user_agent	varchar(255)	YES			
+created_at	timestamp	NO	MUL	current_timestamp()	
+
+🔗 Relaciones:
+Columna api_integration_id referencia a api_integrations.id
+Columna chatbot_id referencia a chatbots.id
+📄 Tabla: chatbot_node_options
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+node_id	bigint(20) unsigned	NO	MUL		
+label	varchar(180)	NO			
+action_type	enum('go_to_node','whatsapp','restart','close')	NO			
+target_node_id	bigint(20) unsigned	YES	MUL		
+sort_order	int(10) unsigned	NO		1	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna node_id referencia a chatbot_nodes.id
+Columna target_node_id referencia a chatbot_nodes.id
+📄 Tabla: chatbot_nodes
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+chatbot_id	bigint(20) unsigned	NO	MUL		
+title	varchar(180)	NO			
+body	text	NO			
+sort_order	int(10) unsigned	NO		1	
+is_start	tinyint(1)	NO		0	
+status	enum('active','inactive')	NO		active	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna chatbot_id referencia a chatbots.id
+📄 Tabla: chatbots
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+api_integration_id	bigint(20) unsigned	NO	UNI		
+name	varchar(180)	NO			
+avatar_url	varchar(255)	YES			
+whatsapp	varchar(80)	NO			
+initial_message	text	NO			
+status	enum('active','inactive')	NO	MUL	inactive	
+disabled_by_admin	tinyint(1)	NO	MUL	0	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna api_integration_id referencia a api_integrations.id
 📄 Tabla: contacto_landing
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment
@@ -617,6 +677,7 @@ verification_token	varchar(100)	YES
 email_verified_at	timestamp	YES			
 created_at	timestamp	NO		current_timestamp()	
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+usuario_tipo	enum('interno','externo')	NO		externo	
 
 📄 Tabla: user_contacto
 Columna	Tipo	Nulo	Clave	Default	Extra
