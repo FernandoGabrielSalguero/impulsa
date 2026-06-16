@@ -359,6 +359,74 @@
   color: var(--im-color-principal);
 }
 
+.marketing-user-detail-drawer {
+  width: min(760px, calc(100vw - 1rem));
+}
+
+.marketing-user-detail {
+  display: grid;
+  gap: 1rem;
+}
+
+.marketing-user-detail__hero {
+  display: grid;
+  gap: .75rem;
+  padding: 1rem;
+  border-radius: var(--im-radio);
+  background: color-mix(in srgb, var(--im-color-principal) 88%, white);
+  color: var(--im-color-principal-alto);
+}
+
+.marketing-user-detail__hero h2 {
+  margin: .35rem 0 0;
+  font-size: clamp(1.45rem, 3vw, 2.3rem);
+  line-height: 1.05;
+}
+
+.marketing-user-detail__hero p {
+  margin: 0;
+  color: inherit;
+  opacity: .92;
+}
+
+.marketing-user-detail__meta,
+.marketing-user-detail__checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .75rem;
+}
+
+.marketing-user-detail__meta span,
+.marketing-user-detail__checks span {
+  display: grid;
+  gap: .2rem;
+  padding: .85rem;
+  border: 1px solid var(--im-color-borde);
+  border-radius: var(--im-radio);
+  background: var(--im-color-superficie);
+}
+
+.marketing-user-detail__meta strong,
+.marketing-user-detail__checks strong,
+.marketing-user-detail__description strong {
+  color: var(--im-color-texto-suave);
+  font-size: .78rem;
+  text-transform: uppercase;
+}
+
+.marketing-user-detail__description {
+  display: grid;
+  gap: .35rem;
+  padding: .95rem 1rem;
+  border: 1px solid var(--im-color-borde);
+  border-radius: var(--im-radio);
+  background: var(--im-color-superficie);
+}
+
+.marketing-user-detail__description p {
+  margin: 0;
+}
+
 .marketing-plan-detail__features-table {
   overflow: hidden;
   border: 1px solid var(--im-color-borde);
@@ -436,7 +504,9 @@
 
   .marketing-plan-detail__hero,
   .marketing-plan-detail__meta,
-  .marketing-plan-detail__prices {
+  .marketing-plan-detail__prices,
+  .marketing-user-detail__meta,
+  .marketing-user-detail__checks {
     grid-template-columns: 1fr;
   }
 

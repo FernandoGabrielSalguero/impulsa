@@ -2,6 +2,7 @@
 $h = $h ?? static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
 $usuarios = $marketingUsuarios ?? [];
 $maskValue = static fn (?string $valor, bool $permitido): string => $permitido ? (trim((string) $valor) !== '' ? (string) $valor : '-') : '****';
+$toJson = static fn (mixed $valor): string => htmlspecialchars(json_encode($valor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
 $nombreVisible = static function (array $usuario): string {
     $nombreCompleto = trim((string) ($usuario['nombre'] ?? '') . ' ' . (string) ($usuario['apellido'] ?? ''));
     if ($nombreCompleto !== '') {
@@ -38,9 +39,11 @@ $nombreVisible = static function (array $usuario): string {
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Emprendimiento</th>
             <th>Proyecto</th>
             <th>Correo</th>
             <th>Telefono</th>
+            <th class="im-tabla-tareas__acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -51,16 +54,135 @@ $nombreVisible = static function (array $usuario): string {
             ?>
             <tr>
               <td class="im-tabla-tareas__nombre"><?= $h($nombreVisible($usuarioItem)) ?></td>
+              <td><?= $h($usuarioItem['nombre_emprendimiento'] ?? 'Sin definir') ?></td>
               <td><?= $h($usuarioItem['project_name'] ?? 'Sin proyecto') ?></td>
               <td><?= $h($maskValue((string) ($usuarioItem['correo_contacto'] ?? $usuarioItem['correo_login'] ?? ''), $permiteCorreo)) ?></td>
               <td><?= $h($maskValue((string) ($usuarioItem['whatsapp'] ?? ''), $permiteWhatsapp)) ?></td>
+              <td class="im-tabla-tareas__acciones">
+                <button class="im-boton-icono material-symbols-rounded im-tooltip" type="button" data-marketing-user-detail="<?= $toJson($usuarioItem) ?>" aria-label="Ver detalle del usuario" data-tooltip="Ver detalle">visibility</button>
+              </td>
             </tr>
           <?php endforeach; ?>
           <?php if (!$usuarios): ?>
-            <tr><td colspan="4">No hay usuarios externos para mostrar.</td></tr>
+            <tr><td colspan="6">No hay usuarios externos para mostrar.</td></tr>
           <?php endif; ?>
         </tbody>
       </table>
     </div>
   </article>
+
+  <div class="im-modal-cortina im-drawer-cortina" data-marketing-user-backdrop></div>
+  <aside class="im-drawer marketing-user-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="marketing-user-detail-title" aria-hidden="true" data-marketing-user-drawer>
+    <header class="im-drawer__cabecera">
+      <div>
+        <p class="im-sobrelinea">Usuario externo</p>
+        <h3 id="marketing-user-detail-title">Detalle del usuario</h3>
+      </div>
+      <button class="im-boton-icono material-symbols-rounded" type="button" data-marketing-close-user-detail aria-label="Cerrar dialog">close</button>
+    </header>
+    <div class="im-drawer__contenido" data-marketing-user-detail-content></div>
+    <footer class="im-drawer__acciones">
+      <button class="im-boton im-boton--tonal" type="button" data-marketing-close-user-detail>Cerrar</button>
+    </footer>
+  </aside>
 </section>
+
+<script>
+  (() => {
+    const drawer = document.querySelector('[data-marketing-user-drawer]');
+    const backdrop = document.querySelector('[data-marketing-user-backdrop]');
+    const content = document.querySelector('[data-marketing-user-detail-content]');
+    if (!drawer || !backdrop || !content) {
+      return;
+    }
+
+    const escapeHtml = (value) => String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+
+    const statusChip = (active, yes = 'Completo', no = 'Pendiente') => `<span class="im-chip ${active ? 'im-chip--exito' : 'im-chip--alerta'}">${active ? yes : no}</span>`;
+    const displayName = (data) => {
+      const nombre = `${data.nombre || ''} ${data.apellido || ''}`.trim();
+      if (nombre) {
+        return nombre;
+      }
+      if (data.apodo) {
+        return String(data.apodo);
+      }
+      return String(data.correo_login || 'Sin nombre');
+    };
+
+    const openDrawer = (data) => {
+      const projectName = data.project_name || 'Sin proyecto';
+      const emprendimiento = data.nombre_emprendimiento || 'Sin definir';
+      const contactEmail = Number(data.permison_correo || 1) === 1 ? (data.correo_contacto || data.correo_login || '-') : '****';
+      const contactWhatsapp = Number(data.permison_whatsapp || 1) === 1 ? (data.whatsapp || '-') : '****';
+      const role = String(data.rol || '').replaceAll('_', ' ');
+      content.innerHTML = `
+        <article class="marketing-user-detail">
+          <div class="marketing-user-detail__hero">
+            <div>
+              <span class="im-chip">${escapeHtml(role)}</span>
+              <h2>${escapeHtml(displayName(data))}</h2>
+              <p>${escapeHtml(emprendimiento)}</p>
+            </div>
+          </div>
+          <div class="marketing-user-detail__meta">
+            <span><strong>Proyecto</strong>${escapeHtml(projectName)}</span>
+            <span><strong>Correo</strong>${escapeHtml(contactEmail)}</span>
+            <span><strong>Telefono</strong>${escapeHtml(contactWhatsapp)}</span>
+            <span><strong>Email verificado</strong>${statusChip(Boolean(data.email_verified_at), 'Verificado', 'Pendiente')}</span>
+          </div>
+          <section class="marketing-plan-detail__section">
+            <h4>Perfil emprendedor</h4>
+            <div class="marketing-user-detail__checks">
+              <span><strong>Mision</strong>${statusChip(Number(data.has_mision || 0) === 1)}</span>
+              <span><strong>Vision</strong>${statusChip(Number(data.has_vision || 0) === 1)}</span>
+              <span><strong>Buyer persona</strong>${statusChip(Number(data.has_buyer_persona || 0) === 1)}</span>
+              <span><strong>Pagina web solicitada</strong>${statusChip(Boolean(data.nombre_emprendimiento), 'Solicitada', 'Sin solicitud')}</span>
+            </div>
+          </section>
+          <section class="marketing-plan-detail__section">
+            <h4>Solicitud web</h4>
+            <div class="marketing-user-detail__meta">
+              <span><strong>Estado</strong>${statusChip(Number(data.landing_completado || 0) === 1, 'Completa', 'En proceso')}</span>
+              <span><strong>Fecha estimada</strong>${escapeHtml(data.fecha_inicio || '-')}</span>
+              <span><strong>Vende productos</strong>${statusChip(Number(data.vende_productos || 0) === 1, 'Si', 'No')}</span>
+              <span><strong>Vende servicios</strong>${statusChip(Number(data.vende_servicios || 0) === 1, 'Si', 'No')}</span>
+              <span><strong>Ya factura</strong>${statusChip(Number(data.ya_factura || 0) === 1, 'Si', 'No')}</span>
+              <span><strong>Tipo de proyecto</strong>${escapeHtml(data.project_type || '-')}</span>
+              <span><strong>Estado del proyecto</strong>${escapeHtml(data.project_status || '-')}</span>
+            </div>
+            ${data.landing_descripcion ? `<div class="marketing-user-detail__description"><strong>Descripcion</strong><p>${escapeHtml(data.landing_descripcion)}</p></div>` : ''}
+          </section>
+        </article>
+      `;
+      backdrop.classList.add('abierto');
+      drawer.classList.add('abierto');
+      drawer.setAttribute('aria-hidden', 'false');
+    };
+
+    const closeDrawer = () => {
+      drawer.classList.remove('abierto');
+      drawer.setAttribute('aria-hidden', 'true');
+      backdrop.classList.remove('abierto');
+    };
+
+    document.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-marketing-user-detail]');
+      if (trigger) {
+        try {
+          openDrawer(JSON.parse(trigger.getAttribute('data-marketing-user-detail') || '{}'));
+        } catch (error) {
+          return;
+        }
+      }
+      if (event.target.closest('[data-marketing-close-user-detail], [data-marketing-user-backdrop]')) {
+        closeDrawer();
+      }
+    });
+  })();
+</script>
