@@ -25,6 +25,8 @@ $marketingNavItems = [
     ['href' => '/impulsa_emprende/controller/client/ClienteMetricasController.php', 'icon' => 'monitoring', 'label' => 'Metricas'],
     ['href' => '/impulsa_emprende/controller/client/ClienteMarketingController.php', 'icon' => 'campaign', 'label' => 'Marketing', 'active' => true],
     ['href' => '/impulsa_emprende/controller/client/ClienteChatbotController.php', 'icon' => 'forum', 'label' => 'Chatbot'],
+    ['href' => '/impulsa_emprende/controller/client/ClienteBlogController.php', 'icon' => 'article', 'label' => 'Blog'],
+    ['href' => '/impulsa_emprende/controller/client/ClienteProductController.php', 'icon' => 'inventory_2', 'label' => 'Productos'],
 ];
 
 require __DIR__ . '/../../view/client/ClienteMarketingView.php';
