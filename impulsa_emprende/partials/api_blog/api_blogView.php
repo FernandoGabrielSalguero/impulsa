@@ -84,6 +84,7 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
 
     .im-blog-dialog {
       width: min(960px, calc(100vw - 2rem));
+      height: min(92vh, 980px);
       max-height: calc(100vh - 2rem);
       border: none;
       border-radius: 28px;
@@ -100,6 +101,7 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
     .im-blog-dialog__shell {
       display: grid;
       grid-template-rows: auto 1fr;
+      height: 100%;
       background: #fff;
     }
 
@@ -119,8 +121,10 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
     }
 
     .im-blog-dialog__body {
+      min-height: 0;
       padding: 1.5rem;
-      overflow: auto;
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     .im-blog-form-layout {
@@ -129,16 +133,28 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
     }
 
     .im-blog-editor {
-      min-height: 260px;
+      min-height: 320px;
       border-radius: 20px;
       border: 1px solid rgba(15, 23, 42, .12);
       background: #fff;
-      padding: 1rem;
+      overflow: hidden;
+    }
+
+    .im-blog-editor .ql-toolbar {
+      border: none;
+      border-bottom: 1px solid rgba(15, 23, 42, .08);
+      background: rgba(248, 250, 252, .96);
+      padding: .8rem .9rem;
+    }
+
+    .im-blog-editor .ql-container {
+      border: none;
+      font-family: inherit;
     }
 
     .im-blog-editor .ql-editor {
-      min-height: 220px;
-      padding: 0;
+      min-height: 250px;
+      padding: 1rem;
     }
 
     .im-blog-editor .ql-editor.ql-blank::before {
@@ -157,6 +173,7 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
     @media (max-width: 720px) {
       .im-blog-dialog {
         width: calc(100vw - 1rem);
+        height: calc(100vh - .5rem);
         max-height: calc(100vh - .5rem);
         border-radius: 24px 24px 0 0;
         margin-top: auto;
@@ -455,8 +472,18 @@ $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) &&
         if (!editorNode || !htmlHidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
 
         const quill = new Quill(editorNode, {
-          theme: 'bubble',
-          placeholder: editorNode.dataset.placeholder || ''
+          theme: 'snow',
+          placeholder: editorNode.dataset.placeholder || '',
+          modules: {
+            toolbar: [
+              [{ header: [1, 2, 3, false] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              [{ align: [] }],
+              ['blockquote', 'link'],
+              ['clean']
+            ]
+          }
         });
 
         quill.root.innerHTML = htmlHidden.value || '<p></p>';

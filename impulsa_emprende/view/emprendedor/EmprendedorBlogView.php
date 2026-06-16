@@ -11,7 +11,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Blog emprendedor | Impulsa</title>
   <link rel="icon" href="<?= htmlspecialchars(obtenerFaviconHref(), ENT_QUOTES, 'UTF-8'); ?>" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.bubble.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css">
   <link rel="stylesheet" href="/assets/impulsa_material/css/material.css?v=icons-local-1">
   <style>
     .im-marca__isotipo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
