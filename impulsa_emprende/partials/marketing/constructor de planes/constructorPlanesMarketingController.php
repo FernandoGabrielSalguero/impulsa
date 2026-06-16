@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && marketingUsuarioPuedeGestionar($usu
                 $marketingResponderJson(['ok' => false, 'message' => $e->getMessage()], 400);
             }
         }
-        header('Location: ' . marketingRedireccionRol((string) ($usuario['rol'] ?? '')));
+        header('Location: ' . ($marketingRedirectUrl ?? marketingRedireccionRol((string) ($usuario['rol'] ?? ''))));
         exit;
     }
 }

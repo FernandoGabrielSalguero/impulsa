@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && marketingUsuarioPuedeGestionar($usu
         } catch (Throwable $e) {
             $_SESSION['marketing_estado'] = ['estado' => 'error', 'mensaje' => $e->getMessage()];
         }
-        header('Location: ' . marketingRedireccionRol((string) ($usuario['rol'] ?? '')));
+        header('Location: ' . ($marketingRedirectUrl ?? marketingRedireccionRol((string) ($usuario['rol'] ?? ''))));
         exit;
     }
 }
