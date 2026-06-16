@@ -303,7 +303,7 @@ $formatearFecha = static function (?string $fecha): string {
                       <th>Correo</th>
                       <th>WhatsApp</th>
                       <th>Pagina inicio</th>
-                      <th>Verificacion</th>
+                      <th>Tipo de usuario</th>
                       <th>Alta</th>
                       <th class="im-tabla-tareas__acciones">Acciones</th>
                     </tr>
@@ -317,6 +317,7 @@ $formatearFecha = static function (?string $fecha): string {
                       $correoLogin = (string) ($usuarioListado['correo_login'] ?? '');
                       $correoContacto = (string) ($usuarioListado['correo_contacto'] ?? '');
                       $rol = (string) ($usuarioListado['rol'] ?? '');
+                      $tipoUsuario = (string) ($usuarioListado['usuario_tipo'] ?? 'externo');
                       $emailVerificado = !empty($usuarioListado['email_verified_at']);
                       ?>
                       <tr>
@@ -333,14 +334,20 @@ $formatearFecha = static function (?string $fecha): string {
                           <?php if ($correoContacto !== '' && $correoContacto !== $correoLogin): ?>
                             <br><small><?= htmlspecialchars($correoContacto, ENT_QUOTES, 'UTF-8') ?></small>
                           <?php endif; ?>
-                        </td>
-                        <td><?= htmlspecialchars((string) ($usuarioListado['whatsapp'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= htmlspecialchars((string) ($usuarioListado['pagina_inicio'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td>
+                          <br>
                           <?php if ($emailVerificado): ?>
                             <span class="im-chip im-chip--exito">Verificado</span>
                           <?php else: ?>
                             <span class="im-chip im-chip--alerta">Pendiente</span>
+                          <?php endif; ?>
+                        </td>
+                        <td><?= htmlspecialchars((string) ($usuarioListado['whatsapp'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars((string) ($usuarioListado['pagina_inicio'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td>
+                          <?php if ($tipoUsuario === 'externo'): ?>
+                            <span class="im-chip im-chip--exito">Externo</span>
+                          <?php else: ?>
+                            <span class="im-chip">Interno</span>
                           <?php endif; ?>
                         </td>
                         <td><?= htmlspecialchars($formatearFecha($usuarioListado['created_at'] ?? null), ENT_QUOTES, 'UTF-8') ?></td>
@@ -630,6 +637,7 @@ $formatearFecha = static function (?string $fecha): string {
           const nombreVisible = nombreCompleto || apodo || 'Sin nombre';
           const correoLogin = String(usuario.correo_login ?? '');
           const correoContacto = String(usuario.correo_contacto ?? '');
+          const tipoUsuario = String(usuario.usuario_tipo ?? 'externo');
           const contactoHtml = correoContacto && correoContacto !== correoLogin
             ? `<br><small>${escapeHtml(correoContacto)}</small>`
             : '';
@@ -642,10 +650,10 @@ $formatearFecha = static function (?string $fecha): string {
             <td>${Number(usuario.id ?? 0)}</td>
             <td class="im-tabla-tareas__nombre">${escapeHtml(nombreVisible)}${apodoHtml}</td>
             <td><span class="im-chip">${escapeHtml(formatearRol(usuario.rol))}</span></td>
-            <td>${escapeHtml(correoLogin)}${contactoHtml}</td>
+            <td>${escapeHtml(correoLogin)}${contactoHtml}<br><span class="im-chip ${verificado ? 'im-chip--exito' : 'im-chip--alerta'}">${verificado ? 'Verificado' : 'Pendiente'}</span></td>
             <td>${escapeHtml(usuario.whatsapp || '-')}</td>
             <td>${escapeHtml(usuario.pagina_inicio || '-')}</td>
-            <td><span class="im-chip ${verificado ? 'im-chip--exito' : 'im-chip--alerta'}">${verificado ? 'Verificado' : 'Pendiente'}</span></td>
+            <td><span class="im-chip ${tipoUsuario === 'externo' ? 'im-chip--exito' : ''}">${escapeHtml(tipoUsuario === 'externo' ? 'Externo' : 'Interno')}</span></td>
             <td>${escapeHtml(formatearFecha(usuario.created_at))}</td>
             <td class="im-tabla-tareas__acciones">${renderAccionesUsuario(usuario, nombreVisible, correoLogin)}</td>
           </tr>`;
