@@ -100,13 +100,30 @@ $formatearFecha = static function (?string $fecha): string {
 
     .im-usuario-edicion-modal {
       width: min(760px, calc(100vw - 2rem));
+      max-height: min(760px, calc(100vh - 2rem));
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .im-usuario-edicion-modal form {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      min-height: 0;
+      overflow: hidden;
     }
 
     .im-usuario-edicion-modal .im-dialog__contenido {
       display: grid;
       gap: 1rem;
-      max-height: min(72vh, 760px);
+      min-height: 0;
       overflow: auto;
+      overscroll-behavior: contain;
+      padding-bottom: 1.25rem;
+    }
+
+    .im-usuario-edicion-modal .im-dialog__acciones {
+      position: relative;
+      z-index: 1;
+      background: var(--im-color-superficie);
     }
 
     .im-usuario-edicion-grid {
