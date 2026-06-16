@@ -288,6 +288,7 @@ $estadoTexto = static function (string $estado): string {
                               <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
                               <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
                                 <button type="button" role="menuitem" data-abrir-api-detalle='<?= $h(json_encode($payloadModal, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT)) ?>'><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver detalle</button>
+                                <button type="button" role="menuitem" data-abrir-api-detalle='<?= $h(json_encode($payloadModal, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT)) ?>' data-api-detalle-mode="domain"><span class="material-symbols-rounded" aria-hidden="true">link</span>Cambiar URL</button>
                               </div>
                             </div>
                           </td>
@@ -361,8 +362,9 @@ $estadoTexto = static function (string $estado): string {
           <span>Dominio autorizado</span>
           <input type="text" name="allowed_domain" data-api-detalle-input-dominio required>
         </label>
+        <p class="im-api-ayuda im-campo--full" data-api-detalle-ayuda-dominio>Al cambiar esta URL, la integracion dejara de aceptar requests desde el dominio anterior y pasara a validar el nuevo.</p>
         <div class="im-api-form-secundario__acciones">
-          <button class="im-boton im-boton--principal" type="submit">Guardar cambios</button>
+          <button class="im-boton im-boton--principal" type="submit" data-api-detalle-submit-text>Guardar cambios</button>
         </div>
       </form>
 
@@ -531,9 +533,58 @@ $estadoTexto = static function (string $estado): string {
         modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
       };
 
+      const poblarModal = (data, mode = 'detail') => {
+        const titulo = modal.querySelector('[data-api-detalle-titulo]');
+        const proyecto = modal.querySelector('[data-api-detalle-proyecto]');
+        const dominio = modal.querySelector('[data-api-detalle-dominio]');
+        const publicKey = modal.querySelector('[data-api-detalle-public-key]');
+        const copyPublic = modal.querySelector('[data-api-detalle-copy-public]');
+        const estado = modal.querySelector('[data-api-detalle-estado]');
+        const ultimoUso = modal.querySelector('[data-api-detalle-ultimo-uso]');
+        const visitas = modal.querySelector('[data-api-detalle-visitas]');
+        const contactos = modal.querySelector('[data-api-detalle-contactos]');
+        const actualizada = modal.querySelector('[data-api-detalle-actualizada]');
+        const inputId = modal.querySelector('[data-api-detalle-id]');
+        const toggleId = modal.querySelector('[data-api-detalle-toggle-id]');
+        const publicId = modal.querySelector('[data-api-detalle-public-id]');
+        const secretId = modal.querySelector('[data-api-detalle-secret-id]');
+        const inputProyecto = modal.querySelector('[data-api-detalle-input-proyecto]');
+        const inputDominio = modal.querySelector('[data-api-detalle-input-dominio]');
+        const toggleText = modal.querySelector('[data-api-detalle-toggle-text]');
+        const submitText = modal.querySelector('[data-api-detalle-submit-text]');
+
+        titulo.textContent = mode === 'domain' ? `Cambiar URL #${data.id}` : `Detalle #${data.id}`;
+        proyecto.textContent = data.project_name || '';
+        dominio.textContent = data.allowed_domain || '';
+        publicKey.textContent = data.public_key || '';
+        copyPublic.setAttribute('data-copy-text', data.public_key || '');
+        estado.textContent = data.status === 'active' ? 'Activa' : 'Inactiva';
+        ultimoUso.textContent = data.last_used_at || '-';
+        visitas.textContent = String(data.total_visits ?? 0);
+        contactos.textContent = String(data.total_contacts ?? 0);
+        actualizada.textContent = data.updated_at || '-';
+        inputId.value = String(data.id || '');
+        toggleId.value = String(data.id || '');
+        publicId.value = String(data.id || '');
+        secretId.value = String(data.id || '');
+        inputProyecto.value = data.project_name || '';
+        inputDominio.value = data.allowed_domain || '';
+        toggleText.textContent = data.status === 'active' ? 'Desactivar' : 'Activar';
+        submitText.textContent = mode === 'domain' ? 'Actualizar URL' : 'Guardar cambios';
+        modal.querySelector('[data-api-detalle-all-snippets]').textContent = data.all_snippets || '';
+        modal.querySelector('[data-api-detalle-visit-snippet]').textContent = data.visit_snippet || '';
+        modal.querySelector('[data-api-detalle-form-snippet]').textContent = data.form_snippet || '';
+        modal.querySelector('[data-api-detalle-chatbot-snippet]').textContent = data.chatbot_snippet || '';
+        modal.querySelector('[data-api-detalle-blog-list-snippet]').textContent = data.blog_list_snippet || '';
+        modal.querySelector('[data-api-detalle-blog-detail-snippet]').textContent = data.blog_detail_snippet || '';
+        modal.querySelector('[data-api-detalle-producto-list-snippet]').textContent = data.producto_list_snippet || '';
+        modal.querySelector('[data-api-detalle-producto-detail-snippet]').textContent = data.producto_detail_snippet || '';
+      };
+
       document.querySelectorAll('[data-abrir-api-detalle]').forEach((button) => {
         button.addEventListener('click', () => {
           const raw = button.getAttribute('data-abrir-api-detalle') || '';
+          const mode = button.getAttribute('data-api-detalle-mode') || 'detail';
 
           if (!raw) {
             return;
@@ -546,34 +597,15 @@ $estadoTexto = static function (string $estado): string {
           } catch (error) {
             return;
           }
-
-          modal.querySelector('[data-api-detalle-titulo]').textContent = `Detalle #${data.id}`;
-          modal.querySelector('[data-api-detalle-proyecto]').textContent = data.project_name || '';
-          modal.querySelector('[data-api-detalle-dominio]').textContent = data.allowed_domain || '';
-          modal.querySelector('[data-api-detalle-public-key]').textContent = data.public_key || '';
-          modal.querySelector('[data-api-detalle-copy-public]').setAttribute('data-copy-text', data.public_key || '');
-          modal.querySelector('[data-api-detalle-estado]').textContent = data.status === 'active' ? 'Activa' : 'Inactiva';
-          modal.querySelector('[data-api-detalle-ultimo-uso]').textContent = data.last_used_at || '-';
-          modal.querySelector('[data-api-detalle-visitas]').textContent = String(data.total_visits ?? 0);
-          modal.querySelector('[data-api-detalle-contactos]').textContent = String(data.total_contacts ?? 0);
-          modal.querySelector('[data-api-detalle-actualizada]').textContent = data.updated_at || '-';
-          modal.querySelector('[data-api-detalle-id]').value = String(data.id || '');
-          modal.querySelector('[data-api-detalle-toggle-id]').value = String(data.id || '');
-          modal.querySelector('[data-api-detalle-public-id]').value = String(data.id || '');
-          modal.querySelector('[data-api-detalle-secret-id]').value = String(data.id || '');
-          modal.querySelector('[data-api-detalle-input-proyecto]').value = data.project_name || '';
-          modal.querySelector('[data-api-detalle-input-dominio]').value = data.allowed_domain || '';
-          modal.querySelector('[data-api-detalle-toggle-text]').textContent = data.status === 'active' ? 'Desactivar' : 'Activar';
-          modal.querySelector('[data-api-detalle-all-snippets]').textContent = data.all_snippets || '';
-          modal.querySelector('[data-api-detalle-visit-snippet]').textContent = data.visit_snippet || '';
-          modal.querySelector('[data-api-detalle-form-snippet]').textContent = data.form_snippet || '';
-          modal.querySelector('[data-api-detalle-chatbot-snippet]').textContent = data.chatbot_snippet || '';
-          modal.querySelector('[data-api-detalle-blog-list-snippet]').textContent = data.blog_list_snippet || '';
-          modal.querySelector('[data-api-detalle-blog-detail-snippet]').textContent = data.blog_detail_snippet || '';
-          modal.querySelector('[data-api-detalle-producto-list-snippet]').textContent = data.producto_list_snippet || '';
-          modal.querySelector('[data-api-detalle-producto-detail-snippet]').textContent = data.producto_detail_snippet || '';
-
+          poblarModal(data, mode);
           alternar(true);
+
+          if (mode === 'domain') {
+            const inputDominio = modal.querySelector('[data-api-detalle-input-dominio]');
+            inputDominio?.focus();
+            inputDominio?.select();
+            modal.querySelector('[data-api-detalle-form]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         });
       });
 
