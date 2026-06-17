@@ -23,6 +23,54 @@ $apiBlogBuildMediaUrl = static function (int $itemId, string $type) use ($apiBlo
         'media_type' => $type,
     ]);
 };
+$apiBlogDebugArchivo = static function (?string $storedPath): array {
+    $storedPath = trim((string) $storedPath);
+    if ($storedPath === '') {
+        return [
+            'stored_path' => null,
+            'basename' => null,
+            'candidates' => [],
+            'resolved_path' => null,
+            'exists' => false,
+        ];
+    }
+
+    $normalizedStoredPath = str_replace('\\', '/', $storedPath);
+    $baseName = basename($normalizedStoredPath);
+    $repoRoot = dirname(__DIR__, 3);
+    $appRoot = dirname(__DIR__, 2);
+    $blogUploadDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'API_Blog';
+    $trimmedPath = ltrim(preg_replace('#^https?://[^/]+#i', '', $normalizedStoredPath) ?? $normalizedStoredPath, '/');
+
+    $candidates = [];
+    $pushCandidate = static function (string $candidate) use (&$candidates): void {
+        if ($candidate !== '' && !in_array($candidate, $candidates, true)) {
+            $candidates[] = $candidate;
+        }
+    };
+
+    $pushCandidate($blogUploadDir . DIRECTORY_SEPARATOR . $baseName);
+    if ($trimmedPath !== '') {
+        $pushCandidate($repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $trimmedPath));
+        $pushCandidate($appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $trimmedPath) ?? $trimmedPath));
+    }
+
+    $resolvedPath = null;
+    foreach ($candidates as $candidate) {
+        if (is_file($candidate)) {
+            $resolvedPath = $candidate;
+            break;
+        }
+    }
+
+    return [
+        'stored_path' => $storedPath,
+        'basename' => $baseName,
+        'candidates' => $candidates,
+        'resolved_path' => $resolvedPath,
+        'exists' => $resolvedPath !== null,
+    ];
+};
 $apiBlogResolverImagen = static function (?string $path, ?string $resolvedUrl = null): array {
     global $apiBlogAppBasePath;
 
@@ -721,7 +769,9 @@ $apiBlogEmptyState = [
       script: <?= json_encode($apiBlogMediaControllerUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
       integrationId: <?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>,
       editingItemId: <?= (int) ($apiBlogCurrent['id'] ?? 0) ?>,
-      items: <?= json_encode(array_map(static function (array $item): array {
+      items: <?= json_encode(array_map(static function (array $item) use ($apiBlogDebugArchivo): array {
+        $coverDebug = $apiBlogDebugArchivo($item['cover_image_path'] ?? null);
+        $attachmentDebug = $apiBlogDebugArchivo($item['attachment_path'] ?? null);
         return [
           'id' => (int) ($item['id'] ?? 0),
           'title' => (string) ($item['title'] ?? ''),
@@ -730,6 +780,8 @@ $apiBlogEmptyState = [
           'attachment_path' => $item['attachment_path'] ?? null,
           'attachment_path_url' => $item['attachment_path_url'] ?? null,
           'status' => $item['status'] ?? null,
+          'cover_debug' => $coverDebug,
+          'attachment_debug' => $attachmentDebug,
         ];
       }, $apiBlogItems), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
     });
