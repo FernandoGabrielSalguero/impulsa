@@ -16,11 +16,11 @@ $apiBlogScriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ??
 $apiBlogControllerPos = strpos($apiBlogScriptName, '/controller/');
 $apiBlogAppBasePath = $apiBlogControllerPos !== false ? rtrim(substr($apiBlogScriptName, 0, $apiBlogControllerPos), '/') : '';
 $apiBlogAppBasePath = $apiBlogAppBasePath === '/' ? '' : $apiBlogAppBasePath;
-$apiBlogMediaControllerUrl = ($apiBlogAppBasePath !== '' ? $apiBlogAppBasePath : '/impulsa_emprende') . '/controller/blog/BlogMediaController.php';
+$apiBlogMediaControllerUrl = (string) strtok((string) ($_SERVER['REQUEST_URI'] ?? $apiBlogScriptName), '?');
 $apiBlogBuildMediaUrl = static function (int $itemId, string $type) use ($apiBlogMediaControllerUrl): string {
     return $apiBlogMediaControllerUrl . '?' . http_build_query([
-        'item_id' => $itemId,
-        'type' => $type,
+        'media_item_id' => $itemId,
+        'media_type' => $type,
     ]);
 };
 $apiBlogResolverImagen = static function (?string $path, ?string $resolvedUrl = null): array {
@@ -717,6 +717,23 @@ $apiBlogEmptyState = [
   </dialog>
 
   <script>
+    console.log('Impulsa Blog Debug', {
+      script: <?= json_encode($apiBlogMediaControllerUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
+      integrationId: <?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>,
+      editingItemId: <?= (int) ($apiBlogCurrent['id'] ?? 0) ?>,
+      items: <?= json_encode(array_map(static function (array $item): array {
+        return [
+          'id' => (int) ($item['id'] ?? 0),
+          'title' => (string) ($item['title'] ?? ''),
+          'cover_image_path' => $item['cover_image_path'] ?? null,
+          'cover_image_path_url' => $item['cover_image_path_url'] ?? null,
+          'attachment_path' => $item['attachment_path'] ?? null,
+          'attachment_path_url' => $item['attachment_path_url'] ?? null,
+          'status' => $item['status'] ?? null,
+        ];
+      }, $apiBlogItems), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
+    });
+
     (() => {
       const bindFallbacks = (image, fallbackList) => {
         const fallbacks = Array.isArray(fallbackList)
