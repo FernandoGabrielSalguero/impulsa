@@ -356,6 +356,17 @@ $apiBlogEmptyState = [
       font-size: .92rem;
     }
 
+    .im-blog-file-state {
+      display: grid;
+      gap: .6rem;
+      margin-top: .65rem;
+    }
+
+    .im-blog-file-state small {
+      color: rgba(15, 23, 42, .62);
+      overflow-wrap: anywhere;
+    }
+
     .im-blog-view-content {
       display: grid;
       gap: 1rem;
@@ -515,15 +526,20 @@ $apiBlogEmptyState = [
                 ? 'im-chip--completado'
                 : ($itemStatus === 'draft' ? 'im-chip--pendiente' : 'im-chip--alerta');
             $itemExcerpt = trim((string) ($item['excerpt'] ?? ''));
+            $itemCoverDebug = $apiBlogDebugArchivo($item['cover_image_path'] ?? null);
             $itemId = (int) ($item['id'] ?? 0);
-            $itemCoverCandidates = !empty($item['cover_image_path']) && $itemId > 0
+            $itemCoverCandidates = !empty($item['cover_image_path']) && !empty($itemCoverDebug['exists']) && $itemId > 0
                 ? [$apiBlogBuildMediaUrl($itemId, 'cover')]
                 : $apiBlogResolverImagen($item['cover_image_path'] ?? null, $item['cover_image_path_url'] ?? null);
+            if (empty($itemCoverDebug['exists'])) {
+                $itemCoverCandidates = [];
+            }
             $itemAttachmentUrl = !empty($item['attachment_path']) && $itemId > 0
                 ? $apiBlogBuildMediaUrl($itemId, 'attachment')
                 : (string) ($item['attachment_path_url'] ?? '');
             $itemViewPayload = $item;
             $itemViewPayload['attachment_path_url'] = $itemAttachmentUrl !== '' ? $itemAttachmentUrl : null;
+            $itemViewPayload['cover_image_path_url'] = $itemCoverCandidates[0] ?? null;
             ?>
             <article class="im-blog-card">
               <div class="im-blog-card__media">
@@ -713,34 +729,62 @@ $apiBlogEmptyState = [
             <p class="im-blog-form-help">Haz click en cualquier parte del editor para escribir. El extracto se edita manualmente en su propio campo.</p>
           </div>
 
-          <label class="im-campo im-campo-material">
-            <span>Portada</span>
-            <input type="file" name="cover_image_file" accept=".jpg,.jpeg,.png,.webp">
-          </label>
-          <label class="im-campo im-campo-material">
-            <span>Adjunto</span>
-            <input type="file" name="attachment_file" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip">
-          </label>
-
           <?php
           $currentItemId = (int) ($apiBlogCurrent['id'] ?? 0);
-          $currentCoverCandidates = !empty($apiBlogCurrent['cover_image_path']) && $currentItemId > 0
+          $currentCoverDebug = $apiBlogDebugArchivo($apiBlogCurrent['cover_image_path'] ?? null);
+          $currentCoverCandidates = !empty($apiBlogCurrent['cover_image_path']) && !empty($currentCoverDebug['exists']) && $currentItemId > 0
               ? [$apiBlogBuildMediaUrl($currentItemId, 'cover')]
               : $apiBlogResolverImagen($apiBlogCurrent['cover_image_path'] ?? null, $apiBlogCurrent['cover_image_path_url'] ?? null);
+          if (empty($currentCoverDebug['exists'])) {
+              $currentCoverCandidates = [];
+          }
           $currentAttachmentUrl = !empty($apiBlogCurrent['attachment_path']) && $currentItemId > 0
               ? $apiBlogBuildMediaUrl($currentItemId, 'attachment')
               : (string) ($apiBlogCurrent['attachment_path_url'] ?? '');
           ?>
-          <?php if ($currentCoverCandidates !== [] || $currentAttachmentUrl !== ''): ?>
+
+          <label class="im-campo im-campo-material">
+            <span>Portada</span>
+            <input type="file" name="cover_image_file" accept=".jpg,.jpeg,.png,.webp">
+            <?php if (!empty($apiBlogCurrent['cover_image_path'])): ?>
+              <div class="im-blog-file-state">
+                <?php if ($currentCoverCandidates !== []): ?>
+                  <img
+                    class="im-blog-current-cover"
+                    src="<?= $h($currentCoverCandidates[0] ?? '') ?>"
+                    alt="Portada actual"
+                    data-image-fallbacks='<?= $h(json_encode($currentCoverCandidates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') ?>'
+                  >
+                <?php endif; ?>
+                <small>Actual: <?= $h((string) ($apiBlogCurrent['cover_image_path'] ?? '')) ?></small>
+                <?php if (empty($currentCoverDebug['exists'])): ?>
+                  <small>La ruta esta guardada en base, pero el archivo ya no existe en el servidor.</small>
+                <?php endif; ?>
+                <label class="im-check">
+                  <input type="checkbox" name="cover_image_remove" value="1">
+                  <span>Eliminar portada actual</span>
+                </label>
+              </div>
+            <?php endif; ?>
+          </label>
+          <label class="im-campo im-campo-material">
+            <span>Adjunto</span>
+            <input type="file" name="attachment_file" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip">
+            <?php if (!empty($apiBlogCurrent['attachment_path'])): ?>
+              <div class="im-blog-file-state">
+                <small>Actual: <?= $h((string) ($apiBlogCurrent['attachment_path'] ?? '')) ?></small>
+                <?php if ($currentAttachmentUrl !== ''): ?>
+                  <a class="im-chip" href="<?= $h($currentAttachmentUrl) ?>" target="_blank" rel="noreferrer">Ver adjunto actual</a>
+                <?php endif; ?>
+                <label class="im-check">
+                  <input type="checkbox" name="attachment_remove" value="1">
+                  <span>Eliminar adjunto actual</span>
+                </label>
+              </div>
+            <?php endif; ?>
+          </label>
+          <?php if (($currentCoverCandidates !== [] || !empty($apiBlogCurrent['cover_image_path'])) || ($currentAttachmentUrl !== '' || !empty($apiBlogCurrent['attachment_path']))): ?>
             <div class="im-chip-lista im-campo--ancho">
-              <?php if ($currentCoverCandidates !== []): ?>
-                <img
-                  class="im-blog-current-cover"
-                  src="<?= $h($currentCoverCandidates[0] ?? '') ?>"
-                  alt="Portada actual"
-                  data-image-fallbacks='<?= $h(json_encode($currentCoverCandidates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') ?>'
-                >
-              <?php endif; ?>
               <?php if ($currentCoverCandidates !== []): ?>
                 <a class="im-chip" href="<?= $h($currentCoverCandidates[0] ?? '') ?>" target="_blank" rel="noreferrer">Ver portada actual</a>
               <?php endif; ?>

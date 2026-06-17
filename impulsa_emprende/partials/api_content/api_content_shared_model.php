@@ -207,7 +207,7 @@ abstract class ApiContentSharedModel
         }
 
         $normalizado = $this->normalizarPayload($payload, $integrationId, $existente);
-        $archivos = $this->resolverArchivos($files, $existente);
+        $archivos = $this->resolverArchivos($files, $existente, $payload);
         $config = $this->obtenerConfiguracionModulo();
 
         $columnas = array_merge(
@@ -265,7 +265,7 @@ abstract class ApiContentSharedModel
         }
 
         $normalizado = $this->normalizarPayload($payload, $integrationId, $existente);
-        $archivos = $this->resolverArchivos($files, $existente);
+        $archivos = $this->resolverArchivos($files, $existente, $payload);
         $config = $this->obtenerConfiguracionModulo();
 
         $columnas = array_merge(
@@ -507,26 +507,34 @@ abstract class ApiContentSharedModel
         ]);
     }
 
-    private function resolverArchivos(array $files, ?array $existente): array
+    private function resolverArchivos(array $files, ?array $existente, array $payload = []): array
     {
         $config = $this->obtenerConfiguracionModulo();
         $archivos = [];
 
         foreach ($config['file_fields'] as $fieldName => $fieldConfig) {
             $current = (string) ($existente[$fieldConfig['column']] ?? '');
+            $removeField = (string) ($fieldConfig['remove_field'] ?? '');
+            $shouldRemove = $removeField !== '' && $this->normalizarBooleano($payload[$removeField] ?? false);
             $archivos[$fieldConfig['column']] = $this->guardarArchivoSubido(
                 $files[$fieldName] ?? null,
                 $fieldConfig,
-                $current
+                $current,
+                $shouldRemove
             );
         }
 
         return $archivos;
     }
 
-    private function guardarArchivoSubido(?array $file, array $fieldConfig, string $currentPath): ?string
+    private function guardarArchivoSubido(?array $file, array $fieldConfig, string $currentPath, bool $shouldRemove = false): ?string
     {
         $currentPath = trim($currentPath);
+
+        if ($shouldRemove) {
+            $this->eliminarArchivoLocalSiExiste($currentPath, (string) ($fieldConfig['upload_dir'] ?? ''));
+            $currentPath = '';
+        }
 
         if ($file === null || !isset($file['error'])) {
             return $currentPath !== '' ? $currentPath : null;
@@ -587,6 +595,10 @@ abstract class ApiContentSharedModel
 
         if (!$this->moverArchivoSubido($tmpName, $destination)) {
             throw new RuntimeException('No se pudo guardar el archivo ' . $fieldConfig['label'] . ' en ' . $uploadDir . '.');
+        }
+
+        if ($currentPath !== '') {
+            $this->eliminarArchivoLocalSiExiste($currentPath, (string) ($fieldConfig['upload_dir'] ?? ''));
         }
 
         return rtrim($fieldConfig['public_path'], '/') . '/' . $fileName;
@@ -814,6 +826,16 @@ abstract class ApiContentSharedModel
             'zip' => 'application/zip',
             default => 'application/octet-stream',
         };
+    }
+
+    private function eliminarArchivoLocalSiExiste(string $storedPath, string $uploadDir): void
+    {
+        $absolutePath = $this->resolverRutaArchivoLocal($storedPath, $uploadDir);
+        if ($absolutePath === null || !is_file($absolutePath)) {
+            return;
+        }
+
+        @unlink($absolutePath);
     }
 
     private function sanitizarHtmlBasico(?string $html): string
@@ -1053,6 +1075,7 @@ abstract class ApiContentSharedModel
         return [
             'cover_image_file' => [
                 'column' => 'cover_image_path',
+                'remove_field' => 'cover_image_remove',
                 'label' => 'portada',
                 'upload_dir' => $blogUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Blog',
@@ -1063,6 +1086,7 @@ abstract class ApiContentSharedModel
             ],
             'attachment_file' => [
                 'column' => 'attachment_path',
+                'remove_field' => 'attachment_remove',
                 'label' => 'adjunto',
                 'upload_dir' => $blogUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Blog',
