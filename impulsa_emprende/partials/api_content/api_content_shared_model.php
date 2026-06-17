@@ -647,41 +647,34 @@ abstract class ApiContentSharedModel
             return $path;
         }
 
-        if (!$this->existeArchivoPublicoLocal($path)) {
-            return null;
-        }
-
+        $normalizedPath = $this->normalizarRutaPublica($path);
         $baseUrl = $this->obtenerBasePublica();
 
-        return $baseUrl !== '' ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $path;
+        return $baseUrl !== '' ? rtrim($baseUrl, '/') . $normalizedPath : $normalizedPath;
     }
 
-    private function existeArchivoPublicoLocal(string $path): bool
+    private function normalizarRutaPublica(string $path): string
     {
         $path = trim($path);
         if ($path === '') {
-            return false;
+            return '';
         }
 
         $path = preg_replace('#^https?://[^/]+#i', '', $path) ?? $path;
         $path = explode('?', $path, 2)[0];
         $path = str_replace('\\', '/', $path);
-        $path = ltrim($path, '/');
+        $path = '/' . ltrim($path, '/');
 
-        $repoRoot = dirname(__DIR__, 3);
-        $appRoot = dirname(__DIR__, 2);
-        $candidatos = [
-            $repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path),
-            $appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $path) ?? $path),
-        ];
-
-        foreach ($candidatos as $candidato) {
-            if (is_file($candidato)) {
-                return true;
-            }
+        $appBasePath = $this->obtenerBaseRutaAplicacion();
+        if ($appBasePath !== '' && str_starts_with($path, '/uploads/')) {
+            return $appBasePath . $path;
         }
 
-        return false;
+        if ($appBasePath === '' && str_starts_with($path, '/impulsa_emprende/')) {
+            return '/' . ltrim(substr($path, strlen('/impulsa_emprende/')), '/');
+        }
+
+        return $path;
     }
 
     private function obtenerBasePublica(): string
@@ -703,6 +696,24 @@ abstract class ApiContentSharedModel
         return $scheme . '://' . $host;
     }
 
+    private function obtenerBaseRutaAplicacion(): string
+    {
+        $scriptName = trim((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+        if ($scriptName === '') {
+            return '';
+        }
+
+        $scriptName = str_replace('\\', '/', $scriptName);
+        $controllerPos = strpos($scriptName, '/controller/');
+        if ($controllerPos === false) {
+            return '';
+        }
+
+        $basePath = rtrim(substr($scriptName, 0, $controllerPos), '/');
+
+        return $basePath === '/' ? '' : $basePath;
+    }
+
     private function sanitizarHtmlBasico(?string $html): string
     {
         $html = trim((string) $html);
@@ -716,7 +727,7 @@ abstract class ApiContentSharedModel
         $html = preg_replace('/\sstyle="[^"]*expression[^"]*"/i', '', $html) ?? '';
         $html = preg_replace("/\sstyle='[^']*expression[^']*'/i", '', $html) ?? '';
 
-        $allowed = '<p><br><strong><b><em><i><u><s><blockquote><ul><ol><li><a><h1><h2><h3><h4><h5><h6><code><pre><span>';
+        $allowed = '<p><br><strong><b><em><i><u><s><blockquote><ul><ol><li><a><h1><h2><h3><h4><h5><h6><code><pre><span><table><thead><tbody><tfoot><tr><th><td><colgroup><col>';
         $html = strip_tags($html, $allowed);
 
         return trim($html);

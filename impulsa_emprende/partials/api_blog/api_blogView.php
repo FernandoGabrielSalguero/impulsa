@@ -12,7 +12,13 @@ $apiBlogCurrent = is_array($apiBlogEditingItem) ? $apiBlogEditingItem : [];
 $apiBlogDescriptionValue = (string) ($apiBlogCurrent['description_html'] ?? '<p></p>');
 $apiBlogBaseQuery = '?integration_id=' . (int) ($apiBlogSelectedIntegration['id'] ?? 0);
 $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) && ($apiBlogFlash['estado'] ?? '') === 'error');
+$apiBlogScriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+$apiBlogControllerPos = strpos($apiBlogScriptName, '/controller/');
+$apiBlogAppBasePath = $apiBlogControllerPos !== false ? rtrim(substr($apiBlogScriptName, 0, $apiBlogControllerPos), '/') : '';
+$apiBlogAppBasePath = $apiBlogAppBasePath === '/' ? '' : $apiBlogAppBasePath;
 $apiBlogResolverImagen = static function (?string $path, ?string $resolvedUrl = null): array {
+    global $apiBlogAppBasePath;
+
     $candidatos = [];
     $agregar = static function (?string $valor) use (&$candidatos): void {
         $valor = trim((string) $valor);
@@ -33,12 +39,29 @@ $apiBlogResolverImagen = static function (?string $path, ?string $resolvedUrl = 
     }
 
     $normalizado = '/' . ltrim(str_replace('\\', '/', $path), '/');
-    $agregar($normalizado);
+    $alternativos = [];
 
-    if (str_starts_with($normalizado, '/impulsa_emprende/')) {
-        $agregar('/' . ltrim(substr($normalizado, strlen('/impulsa_emprende/')), '/'));
+    if (!str_contains(trim($path, '/'), '/')) {
+        $alternativos[] = '/uploads/API_Blog/' . ltrim($path, '/');
+        $alternativos[] = '/impulsa_emprende/uploads/API_Blog/' . ltrim($path, '/');
     } else {
-        $agregar('/impulsa_emprende' . $normalizado);
+        $alternativos[] = $normalizado;
+        if (str_starts_with($normalizado, '/impulsa_emprende/')) {
+            $alternativos[] = '/' . ltrim(substr($normalizado, strlen('/impulsa_emprende/')), '/');
+        } else {
+            $alternativos[] = '/impulsa_emprende' . $normalizado;
+        }
+    }
+
+    foreach ($alternativos as $alternativo) {
+        $alternativo = '/' . ltrim((string) $alternativo, '/');
+        if ($apiBlogAppBasePath !== '' && str_starts_with($alternativo, '/uploads/')) {
+            $agregar($apiBlogAppBasePath . $alternativo);
+        }
+        if ($apiBlogAppBasePath === '' && str_starts_with($alternativo, '/impulsa_emprende/')) {
+            $agregar('/' . ltrim(substr($alternativo, strlen('/impulsa_emprende/')), '/'));
+        }
+        $agregar($alternativo);
     }
 
     return $candidatos;
@@ -297,6 +320,29 @@ $apiBlogEmptyState = [
       border-top: 1px solid rgba(15, 23, 42, .08);
       padding-top: 1rem;
       overflow-wrap: anywhere;
+    }
+
+    .im-blog-view-richtext table,
+    .im-blog-editor .ql-editor table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    .im-blog-view-richtext th,
+    .im-blog-view-richtext td,
+    .im-blog-editor .ql-editor th,
+    .im-blog-editor .ql-editor td {
+      border: 1px solid rgba(15, 23, 42, .16);
+      padding: .65rem .75rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .im-blog-view-richtext th,
+    .im-blog-editor .ql-editor th {
+      background: rgba(241, 245, 249, .92);
+      font-weight: 700;
     }
 
     .im-blog-view-richtext img {
@@ -843,20 +889,35 @@ $apiBlogEmptyState = [
 
         if (!editorNode || !htmlHidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
 
+        let hasTableSupport = false;
+        try {
+          hasTableSupport = Boolean(Quill.import('formats/table'));
+        } catch (error) {
+          hasTableSupport = false;
+        }
+
+        const toolbarOptions = [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ color: [] }, { background: [] }],
+          [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+          [{ align: [] }],
+          ['blockquote', 'code-block'],
+          ['link', 'image', 'video']
+        ];
+
+        if (hasTableSupport) {
+          toolbarOptions.push(['table']);
+        }
+
+        toolbarOptions.push(['clean']);
+
         const quill = new Quill(editorNode, {
           theme: 'snow',
           placeholder: editorNode.dataset.placeholder || '',
           modules: {
-            toolbar: [
-              [{ header: [1, 2, 3, false] }],
-              ['bold', 'italic', 'underline', 'strike'],
-              [{ color: [] }, { background: [] }],
-              [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-              [{ align: [] }],
-              ['blockquote', 'code-block'],
-              ['link', 'image', 'video'],
-              ['clean']
-            ]
+            toolbar: toolbarOptions,
+            ...(hasTableSupport ? { table: true } : {})
           }
         });
 

@@ -63,35 +63,58 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
       const editorNode = form.querySelector('[data-quill-editor]');
       const htmlHidden = form.querySelector('[data-quill-hidden]');
       const excerptHidden = form.querySelector('[data-blog-excerpt-hidden]');
+      const excerptEditor = form.querySelector('[data-blog-excerpt-editor]');
       if (!editorNode || !htmlHidden || typeof Quill === 'undefined' || form.dataset.quillInitialized === 'true') return;
+
+      let hasTableSupport = false;
+      try {
+        hasTableSupport = Boolean(Quill.import('formats/table'));
+      } catch (error) {
+        hasTableSupport = false;
+      }
+
+      const toolbarOptions = [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ color: [] }, { background: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+        [{ align: [] }],
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video']
+      ];
+
+      if (hasTableSupport) {
+        toolbarOptions.push(['table']);
+      }
+
+      toolbarOptions.push(['clean']);
 
       const quill = new Quill(editorNode, {
         theme: 'snow',
         placeholder: editorNode.dataset.placeholder || '',
         modules: {
-          toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ color: [] }, { background: [] }],
-            [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-            [{ align: [] }],
-            ['blockquote', 'code-block'],
-            ['link', 'image', 'video'],
-            ['clean']
-          ]
+          toolbar: toolbarOptions,
+          ...(hasTableSupport ? { table: true } : {})
         }
       });
 
       quill.root.innerHTML = htmlHidden.value || '<p></p>';
+      form._quillInstance = quill;
+
+      editorNode.addEventListener('click', () => quill.focus());
 
       const syncFields = () => {
-        const html = quill.root.innerHTML;
-        const plainText = (quill.getText() || '').replace(/\s+/g, ' ').trim();
-        htmlHidden.value = html;
-        if (excerptHidden) {
-          excerptHidden.value = plainText.slice(0, 300);
-        }
+        htmlHidden.value = quill.root.innerHTML;
       };
+
+      if (excerptEditor && excerptHidden) {
+        const syncExcerpt = () => {
+          excerptHidden.value = excerptEditor.value.slice(0, 300);
+        };
+
+        excerptEditor.addEventListener('input', syncExcerpt);
+        syncExcerpt();
+      }
 
       form.dataset.quillInitialized = 'true';
       quill.on('text-change', syncFields);
