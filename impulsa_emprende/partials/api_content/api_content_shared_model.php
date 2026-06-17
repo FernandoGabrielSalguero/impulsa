@@ -155,6 +155,44 @@ abstract class ApiContentSharedModel
         return is_array($item) ? $this->mapearRegistroParaVista($item) : null;
     }
 
+    public function obtenerArchivoEditable(int $userId, int $itemId, string $column): ?array
+    {
+        $column = trim($column);
+        if ($column === '') {
+            return null;
+        }
+
+        $item = $this->obtenerItemEditable($userId, $itemId);
+        if ($item === null) {
+            return null;
+        }
+
+        $config = $this->obtenerConfiguracionModulo();
+        foreach (($config['file_fields'] ?? []) as $fieldConfig) {
+            if (($fieldConfig['column'] ?? '') !== $column) {
+                continue;
+            }
+
+            $storedPath = trim((string) ($item[$column] ?? ''));
+            if ($storedPath === '') {
+                return null;
+            }
+
+            $absolutePath = $this->resolverRutaArchivoLocal($storedPath, (string) ($fieldConfig['upload_dir'] ?? ''));
+            if ($absolutePath === null) {
+                return null;
+            }
+
+            return [
+                'absolute_path' => $absolutePath,
+                'mime_type' => $this->resolverMimeTypeArchivo($absolutePath),
+                'download_name' => basename($absolutePath),
+            ];
+        }
+
+        return null;
+    }
+
     public function guardarItem(int $userId, ?int $itemId, int $integrationId, array $payload, array $files): int
     {
         $integracion = $this->obtenerIntegracionAccesible($userId, $integrationId);
@@ -677,6 +715,40 @@ abstract class ApiContentSharedModel
         return $path;
     }
 
+    private function resolverRutaArchivoLocal(string $storedPath, string $uploadDir): ?string
+    {
+        $storedPath = trim($storedPath);
+        if ($storedPath === '') {
+            return null;
+        }
+
+        $normalizedStoredPath = str_replace('\\', '/', $storedPath);
+        $baseName = basename($normalizedStoredPath);
+        $uploadDir = $this->normalizarRutaDirectorio($uploadDir);
+
+        $candidates = [];
+        if ($uploadDir !== '') {
+            $candidates[] = $uploadDir . DIRECTORY_SEPARATOR . $baseName;
+        }
+
+        $repoRoot = dirname(__DIR__, 3);
+        $appRoot = dirname(__DIR__, 2);
+        $trimmedPath = ltrim(preg_replace('#^https?://[^/]+#i', '', $normalizedStoredPath) ?? $normalizedStoredPath, '/');
+
+        if ($trimmedPath !== '') {
+            $candidates[] = $repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $trimmedPath);
+            $candidates[] = $appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $trimmedPath) ?? $trimmedPath);
+        }
+
+        foreach ($candidates as $candidate) {
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
     private function obtenerBasePublica(): string
     {
         $envUrl = trim((string) getenv('APP_URL'));
@@ -712,6 +784,36 @@ abstract class ApiContentSharedModel
         $basePath = rtrim(substr($scriptName, 0, $controllerPos), '/');
 
         return $basePath === '/' ? '' : $basePath;
+    }
+
+    private function resolverMimeTypeArchivo(string $absolutePath): string
+    {
+        $finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : false;
+        $mimeType = $finfo ? (string) finfo_file($finfo, $absolutePath) : '';
+        if ($finfo) {
+            finfo_close($finfo);
+        }
+
+        if ($mimeType !== '') {
+            return $mimeType;
+        }
+
+        $extension = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
+
+        return match ($extension) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'csv' => 'text/csv',
+            'txt' => 'text/plain',
+            'zip' => 'application/zip',
+            default => 'application/octet-stream',
+        };
     }
 
     private function sanitizarHtmlBasico(?string $html): string

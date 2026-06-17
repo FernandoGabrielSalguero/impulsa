@@ -16,6 +16,13 @@ $apiBlogScriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ??
 $apiBlogControllerPos = strpos($apiBlogScriptName, '/controller/');
 $apiBlogAppBasePath = $apiBlogControllerPos !== false ? rtrim(substr($apiBlogScriptName, 0, $apiBlogControllerPos), '/') : '';
 $apiBlogAppBasePath = $apiBlogAppBasePath === '/' ? '' : $apiBlogAppBasePath;
+$apiBlogMediaControllerUrl = ($apiBlogAppBasePath !== '' ? $apiBlogAppBasePath : '/impulsa_emprende') . '/controller/blog/BlogMediaController.php';
+$apiBlogBuildMediaUrl = static function (int $itemId, string $type) use ($apiBlogMediaControllerUrl): string {
+    return $apiBlogMediaControllerUrl . '?' . http_build_query([
+        'item_id' => $itemId,
+        'type' => $type,
+    ]);
+};
 $apiBlogResolverImagen = static function (?string $path, ?string $resolvedUrl = null): array {
     global $apiBlogAppBasePath;
 
@@ -460,7 +467,15 @@ $apiBlogEmptyState = [
                 ? 'im-chip--completado'
                 : ($itemStatus === 'draft' ? 'im-chip--pendiente' : 'im-chip--alerta');
             $itemExcerpt = trim((string) ($item['excerpt'] ?? ''));
-            $itemCoverCandidates = $apiBlogResolverImagen($item['cover_image_path'] ?? null, $item['cover_image_path_url'] ?? null);
+            $itemId = (int) ($item['id'] ?? 0);
+            $itemCoverCandidates = !empty($item['cover_image_path']) && $itemId > 0
+                ? [$apiBlogBuildMediaUrl($itemId, 'cover')]
+                : $apiBlogResolverImagen($item['cover_image_path'] ?? null, $item['cover_image_path_url'] ?? null);
+            $itemAttachmentUrl = !empty($item['attachment_path']) && $itemId > 0
+                ? $apiBlogBuildMediaUrl($itemId, 'attachment')
+                : (string) ($item['attachment_path_url'] ?? '');
+            $itemViewPayload = $item;
+            $itemViewPayload['attachment_path_url'] = $itemAttachmentUrl !== '' ? $itemAttachmentUrl : null;
             ?>
             <article class="im-blog-card">
               <div class="im-blog-card__media">
@@ -507,7 +522,7 @@ $apiBlogEmptyState = [
                       class="im-boton im-boton--texto"
                       type="button"
                       data-blog-view-open
-                      data-blog-view='<?= $h(json_encode($item, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') ?>'
+                      data-blog-view='<?= $h(json_encode($itemViewPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') ?>'
                       data-blog-cover-fallbacks='<?= $h(json_encode($itemCoverCandidates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') ?>'
                     >
                       Ver
@@ -659,9 +674,17 @@ $apiBlogEmptyState = [
             <input type="file" name="attachment_file" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip">
           </label>
 
-          <?php if (!empty($apiBlogCurrent['cover_image_path_url']) || !empty($apiBlogCurrent['attachment_path_url'])): ?>
+          <?php
+          $currentItemId = (int) ($apiBlogCurrent['id'] ?? 0);
+          $currentCoverCandidates = !empty($apiBlogCurrent['cover_image_path']) && $currentItemId > 0
+              ? [$apiBlogBuildMediaUrl($currentItemId, 'cover')]
+              : $apiBlogResolverImagen($apiBlogCurrent['cover_image_path'] ?? null, $apiBlogCurrent['cover_image_path_url'] ?? null);
+          $currentAttachmentUrl = !empty($apiBlogCurrent['attachment_path']) && $currentItemId > 0
+              ? $apiBlogBuildMediaUrl($currentItemId, 'attachment')
+              : (string) ($apiBlogCurrent['attachment_path_url'] ?? '');
+          ?>
+          <?php if ($currentCoverCandidates !== [] || $currentAttachmentUrl !== ''): ?>
             <div class="im-chip-lista im-campo--ancho">
-              <?php $currentCoverCandidates = $apiBlogResolverImagen($apiBlogCurrent['cover_image_path'] ?? null, $apiBlogCurrent['cover_image_path_url'] ?? null); ?>
               <?php if ($currentCoverCandidates !== []): ?>
                 <img
                   class="im-blog-current-cover"
@@ -670,11 +693,11 @@ $apiBlogEmptyState = [
                   data-image-fallbacks='<?= $h(json_encode($currentCoverCandidates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') ?>'
                 >
               <?php endif; ?>
-              <?php if (!empty($apiBlogCurrent['cover_image_path_url'])): ?>
-                <a class="im-chip" href="<?= $h($apiBlogCurrent['cover_image_path_url']) ?>" target="_blank" rel="noreferrer">Ver portada actual</a>
+              <?php if ($currentCoverCandidates !== []): ?>
+                <a class="im-chip" href="<?= $h($currentCoverCandidates[0] ?? '') ?>" target="_blank" rel="noreferrer">Ver portada actual</a>
               <?php endif; ?>
-              <?php if (!empty($apiBlogCurrent['attachment_path_url'])): ?>
-                <a class="im-chip" href="<?= $h($apiBlogCurrent['attachment_path_url']) ?>" target="_blank" rel="noreferrer">Ver adjunto actual</a>
+              <?php if ($currentAttachmentUrl !== ''): ?>
+                <a class="im-chip" href="<?= $h($currentAttachmentUrl) ?>" target="_blank" rel="noreferrer">Ver adjunto actual</a>
               <?php endif; ?>
             </div>
           <?php endif; ?>
