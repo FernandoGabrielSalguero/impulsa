@@ -172,6 +172,86 @@ $nombreUsuario = static function (array $usuario): string {
             grid-column: 1 / -1;
         }
 
+        .im-tarea-detalle-sheet {
+            max-width: 920px;
+        }
+
+        .im-tarea-detalle {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .im-tarea-detalle__hero {
+            display: grid;
+            gap: .75rem;
+            padding: 1rem;
+            border: 1px solid var(--im-color-borde);
+            border-radius: var(--im-radio);
+            background: color-mix(in srgb, var(--im-color-superficie-2) 55%, var(--im-color-superficie));
+        }
+
+        .im-tarea-detalle__hero h4,
+        .im-tarea-detalle__hero p {
+            margin: 0;
+        }
+
+        .im-tarea-detalle__hero p {
+            color: var(--im-color-texto-suave);
+            white-space: pre-wrap;
+        }
+
+        .im-tarea-detalle__chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .im-tarea-detalle__grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .9rem;
+        }
+
+        .im-tarea-detalle__bloque {
+            display: grid;
+            gap: .35rem;
+            padding: 1rem;
+            border: 1px solid var(--im-color-borde);
+            border-radius: var(--im-radio);
+            background: var(--im-color-superficie);
+        }
+
+        .im-tarea-detalle__bloque span {
+            color: var(--im-color-texto-suave);
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .im-tarea-detalle__bloque strong,
+        .im-tarea-detalle__bloque p {
+            margin: 0;
+        }
+
+        .im-tarea-detalle__bloque p {
+            white-space: pre-wrap;
+        }
+
+        .im-tarea-sheet--editar .im-config-tema__grupo {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .im-tarea-sheet--editar .im-config-tema__grupo h4,
+        .im-tarea-sheet--editar .im-config-tema__grupo p {
+            margin: 0;
+        }
+
+        .im-tarea-sheet--editar .im-config-tema__grupo p {
+            color: var(--im-color-texto-suave);
+        }
+
         .im-tabla-tareas__acciones {
             overflow: visible;
             position: relative;
@@ -188,7 +268,8 @@ $nombreUsuario = static function (array $usuario): string {
         @media (max-width: 760px) {
 
             .im-tarea-sheet__form,
-            .im-tarea-sheet__meta {
+            .im-tarea-sheet__meta,
+            .im-tarea-detalle__grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -301,12 +382,9 @@ $nombreUsuario = static function (array $usuario): string {
                                         <tr>
                                             <th>ID</th>
                                             <th>Tarea</th>
-                                            <th>Responsable</th>
                                             <th>Entrega</th>
                                             <th>Prioridad</th>
                                             <th>Estado</th>
-                                            <th>Reporta a</th>
-                                            <th>Creada por</th>
                                             <th>Completada</th>
                                             <th class="im-tabla-tareas__acciones">Acciones</th>
                                         </tr>
@@ -331,25 +409,19 @@ $nombreUsuario = static function (array $usuario): string {
                                                 <td><?= (int) ($tarea['id'] ?? 0) ?></td>
                                                 <td class="im-tabla-tareas__nombre">
                                                     <?= $h($tarea['nombre_tarea'] ?? '') ?>
-                                                    <br><small><?= $h($tarea['descripcion'] ?? '') ?></small>
-                                                </td>
-                                                <td>
-                                                    <?= $h($responsableNombre) ?>
-                                                    <br><small><?= $h($tarea['responsable_correo'] ?? '') ?></small>
                                                 </td>
                                                 <td><?= $h($formatearFecha($tarea['fecha_entrega'] ?? null)) ?></td>
                                                 <td><span class="im-chip <?= $h($prioridadChip((int) ($tarea['prioridad_defcon'] ?? 0))) ?>">DEFCON <?= (int) ($tarea['prioridad_defcon'] ?? 0) ?></span></td>
                                                 <td><span class="im-chip <?= $h($estadoChip((string) ($tarea['estado'] ?? ''))) ?>"><?= $h($formatearEstado((string) ($tarea['estado'] ?? ''))) ?></span></td>
-                                                <td><?= $h($tarea['reporta_a'] ?? '') ?></td>
-                                                <td>
-                                                    <?= $h($creadorNombre) ?>
-                                                    <br><small><?= $h($tarea['creador_correo'] ?? '') ?></small>
-                                                </td>
                                                 <td><?= $h($formatearFecha($tarea['completed_at'] ?? null, true)) ?></td>
                                                 <td class="im-tabla-tareas__acciones">
                                                     <div class="im-menu-tabla" data-im-menu>
                                                         <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
                                                         <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
+                                                            <button type="button" role="menuitem" data-ver-tarea="<?= $toJson($tarea) ?>">
+                                                                <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+                                                                Ver tarea
+                                                            </button>
                                                             <button type="button" role="menuitem" data-editar-tarea="<?= $toJson($tarea) ?>">
                                                                 <span class="material-symbols-rounded" aria-hidden="true">edit</span>
                                                                 Editar tarea
@@ -401,8 +473,71 @@ $nombreUsuario = static function (array $usuario): string {
         </form>
     </section>
 
+    <div class="im-bottom-sheet-cortina" data-cerrar-detalle-tarea></div>
+    <section class="im-bottom-sheet im-bottom-sheet--config im-tarea-detalle-sheet" role="dialog" aria-modal="true" aria-labelledby="detalle-tarea-titulo" aria-hidden="true" data-detalle-tarea-sheet>
+        <header class="im-bottom-sheet__cabecera">
+            <div>
+                <h3 id="detalle-tarea-titulo">Detalle de tarea</h3>
+                <p>Vista completa con informacion operativa y de seguimiento.</p>
+            </div>
+            <button class="im-boton-icono" type="button" data-cerrar-detalle-tarea aria-label="Cerrar dialog"></button>
+        </header>
+        <div class="im-tarea-detalle">
+            <section class="im-tarea-detalle__hero">
+                <div>
+                    <p class="im-sobrelinea">Tarea</p>
+                    <h4 data-detalle-tarea-nombre>Tarea seleccionada</h4>
+                </div>
+                <div class="im-tarea-detalle__chips">
+                    <span class="im-chip" data-detalle-tarea-prioridad>DEFCON 5</span>
+                    <span class="im-chip" data-detalle-tarea-estado>Pendiente</span>
+                </div>
+                <p data-detalle-tarea-descripcion>Sin descripcion.</p>
+            </section>
+            <section class="im-tarea-detalle__grid">
+                <article class="im-tarea-detalle__bloque">
+                    <span>ID</span>
+                    <strong data-detalle-tarea-id>-</strong>
+                </article>
+                <article class="im-tarea-detalle__bloque">
+                    <span>Fecha de entrega</span>
+                    <strong data-detalle-tarea-fecha-entrega>-</strong>
+                </article>
+                <article class="im-tarea-detalle__bloque">
+                    <span>Responsable</span>
+                    <strong data-detalle-tarea-responsable>-</strong>
+                    <p data-detalle-tarea-responsable-correo></p>
+                </article>
+                <article class="im-tarea-detalle__bloque">
+                    <span>Reporta a</span>
+                    <strong data-detalle-tarea-reporta>-</strong>
+                </article>
+                <article class="im-tarea-detalle__bloque">
+                    <span>Creada por</span>
+                    <strong data-detalle-tarea-creador>-</strong>
+                    <p data-detalle-tarea-creador-correo></p>
+                </article>
+                <article class="im-tarea-detalle__bloque">
+                    <span>Completada</span>
+                    <strong data-detalle-tarea-completada>-</strong>
+                </article>
+                <article class="im-tarea-detalle__bloque">
+                    <span>Creada</span>
+                    <strong data-detalle-tarea-creada>-</strong>
+                </article>
+                <article class="im-tarea-detalle__bloque">
+                    <span>Actualizada</span>
+                    <strong data-detalle-tarea-actualizada>-</strong>
+                </article>
+            </section>
+        </div>
+        <div class="im-config-tema__acciones">
+            <button class="im-boton im-boton--texto" type="button" data-cerrar-detalle-tarea>Cerrar</button>
+        </div>
+    </section>
+
     <div class="im-bottom-sheet-cortina" data-cerrar-tarea-sheet></div>
-    <section class="im-bottom-sheet im-bottom-sheet--config" role="dialog" aria-modal="true" aria-labelledby="tarea-sheet-titulo" aria-hidden="true" data-tarea-sheet>
+    <section class="im-bottom-sheet im-bottom-sheet--config im-tarea-sheet--editar" role="dialog" aria-modal="true" aria-labelledby="tarea-sheet-titulo" aria-hidden="true" data-tarea-sheet>
         <header class="im-bottom-sheet__cabecera">
             <div>
                 <h3 id="tarea-sheet-titulo" data-tarea-sheet-titulo>Anadir tarea</h3>
@@ -413,77 +548,69 @@ $nombreUsuario = static function (array $usuario): string {
         <form class="im-config-tema" method="post" action="/impulsa_emprende/controller/admin/adminTareasController.php" data-form-tarea>
             <input type="hidden" name="accion" value="crear_tarea" data-tarea-accion>
             <input type="hidden" name="tarea_id" value="" data-tarea-id>
-            <div class="im-tarea-sheet__meta" data-tarea-meta hidden>
-                <article>
-                    <span>Creada</span>
-                    <strong data-tarea-meta-creada>-</strong>
-                </article>
-                <article>
-                    <span>Actualizada</span>
-                    <strong data-tarea-meta-actualizada>-</strong>
-                </article>
-                <article>
-                    <span>Completada</span>
-                    <strong data-tarea-meta-completada>-</strong>
-                </article>
-            </div>
-            <div class="im-tarea-sheet__form">
-                <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
-                    <span>Nombre de la tarea</span>
-                    <input type="text" name="nombre_tarea" maxlength="180" required data-tarea-nombre placeholder="Seguimiento de contrato">
-                    <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">task</i>
-                    <small data-im-error>Nombre requerido.</small>
-                </label>
-                <label class="im-campo im-campo-material" data-im-campo="generico">
-                    <span>Responsable</span>
-                    <select name="responsable_user_id" required data-tarea-responsable>
-                        <option value="">Seleccionar</option>
-                        <?php foreach ($usuariosTareas as $usuarioTarea): ?>
-                            <option value="<?= (int) ($usuarioTarea['id'] ?? 0) ?>"><?= $h($nombreUsuario($usuarioTarea)) ?> - <?= $h($usuarioTarea['correo'] ?? '') ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">person</i>
-                    <small data-im-error>Responsable requerido.</small>
-                </label>
-                <label class="im-campo im-campo-material" data-im-campo="generico">
-                    <span>Fecha de entrega</span>
-                    <input type="date" name="fecha_entrega" required data-tarea-fecha>
-                    <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">event</i>
-                    <small data-im-error>Fecha requerida.</small>
-                </label>
-                <label class="im-campo im-campo-material" data-im-campo="generico">
-                    <span>Prioridad DEFCON</span>
-                    <select name="prioridad_defcon" required data-tarea-prioridad>
-                        <option value="5">DEFCON 5</option>
-                        <option value="4">DEFCON 4</option>
-                        <option value="3">DEFCON 3</option>
-                        <option value="2">DEFCON 2</option>
-                        <option value="1">DEFCON 1</option>
-                    </select>
-                    <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">priority_high</i>
-                    <small data-im-error>Prioridad requerida.</small>
-                </label>
-                <label class="im-campo im-campo-material" data-im-campo="generico">
-                    <span>Estado</span>
-                    <select name="estado" required data-tarea-estado>
-                        <?php foreach ($opcionesEstado as $valorEstado => $labelEstado): ?>
-                            <option value="<?= $h($valorEstado) ?>"><?= $h($labelEstado) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">flag</i>
-                    <small data-im-error>Estado requerido.</small>
-                </label>
-                <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
-                    <span>Reporta a</span>
-                    <input type="text" name="reporta_a" maxlength="180" required data-tarea-reporta placeholder="Direccion general">
-                    <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">north</i>
-                    <small data-im-error>Campo requerido.</small>
-                </label>
-                <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
-                    <span>Descripcion</span>
-                    <textarea name="descripcion" rows="5" required data-tarea-descripcion placeholder="Detalle operativo de la tarea"></textarea>
-                    <small data-im-error>Descripcion requerida.</small>
-                </label>
+            <div class="im-config-tema__grupo">
+                <div>
+                    <h4>Datos principales</h4>
+                    <p>Formulario limpio para alta o edicion de la tarea.</p>
+                </div>
+                <div class="im-tarea-sheet__form">
+                    <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
+                        <span>Nombre de la tarea</span>
+                        <input type="text" name="nombre_tarea" maxlength="180" required data-tarea-nombre placeholder="Seguimiento de contrato">
+                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">task</i>
+                        <small data-im-error>Nombre requerido.</small>
+                    </label>
+                    <label class="im-campo im-campo-material" data-im-campo="generico">
+                        <span>Responsable</span>
+                        <select name="responsable_user_id" required data-tarea-responsable>
+                            <option value="">Seleccionar</option>
+                            <?php foreach ($usuariosTareas as $usuarioTarea): ?>
+                                <option value="<?= (int) ($usuarioTarea['id'] ?? 0) ?>"><?= $h($nombreUsuario($usuarioTarea)) ?> - <?= $h($usuarioTarea['correo'] ?? '') ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">person</i>
+                        <small data-im-error>Responsable requerido.</small>
+                    </label>
+                    <label class="im-campo im-campo-material" data-im-campo="generico">
+                        <span>Fecha de entrega</span>
+                        <input type="date" name="fecha_entrega" required data-tarea-fecha>
+                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">event</i>
+                        <small data-im-error>Fecha requerida.</small>
+                    </label>
+                    <label class="im-campo im-campo-material" data-im-campo="generico">
+                        <span>Prioridad DEFCON</span>
+                        <select name="prioridad_defcon" required data-tarea-prioridad>
+                            <option value="5">DEFCON 5</option>
+                            <option value="4">DEFCON 4</option>
+                            <option value="3">DEFCON 3</option>
+                            <option value="2">DEFCON 2</option>
+                            <option value="1">DEFCON 1</option>
+                        </select>
+                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">priority_high</i>
+                        <small data-im-error>Prioridad requerida.</small>
+                    </label>
+                    <label class="im-campo im-campo-material" data-im-campo="generico">
+                        <span>Estado</span>
+                        <select name="estado" required data-tarea-estado>
+                            <?php foreach ($opcionesEstado as $valorEstado => $labelEstado): ?>
+                                <option value="<?= $h($valorEstado) ?>"><?= $h($labelEstado) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">flag</i>
+                        <small data-im-error>Estado requerido.</small>
+                    </label>
+                    <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
+                        <span>Reporta a</span>
+                        <input type="text" name="reporta_a" maxlength="180" required data-tarea-reporta placeholder="Direccion general">
+                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">north</i>
+                        <small data-im-error>Campo requerido.</small>
+                    </label>
+                    <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
+                        <span>Descripcion</span>
+                        <textarea name="descripcion" rows="6" required data-tarea-descripcion placeholder="Detalle operativo de la tarea"></textarea>
+                        <small data-im-error>Descripcion requerida.</small>
+                    </label>
+                </div>
             </div>
             <div class="im-config-tema__acciones">
                 <button class="im-boton im-boton--texto" type="button" data-cerrar-tarea-sheet>Cancelar</button>
@@ -503,6 +630,8 @@ $nombreUsuario = static function (array $usuario): string {
                 return;
             }
 
+            const detalleSheet = document.querySelector('[data-detalle-tarea-sheet]');
+            const detalleCortina = document.querySelector('[data-cerrar-detalle-tarea].im-bottom-sheet-cortina');
             const campos = {
                 accion: form.querySelector('[data-tarea-accion]'),
                 id: form.querySelector('[data-tarea-id]'),
@@ -516,16 +645,21 @@ $nombreUsuario = static function (array $usuario): string {
                 estado: form.querySelector('[data-tarea-estado]'),
                 reporta: form.querySelector('[data-tarea-reporta]'),
                 descripcion: form.querySelector('[data-tarea-descripcion]'),
-                meta: form.querySelector('[data-tarea-meta]'),
-                metaCreada: form.querySelector('[data-tarea-meta-creada]'),
-                metaActualizada: form.querySelector('[data-tarea-meta-actualizada]'),
-                metaCompletada: form.querySelector('[data-tarea-meta-completada]'),
             };
 
             const alternar = (abrir) => {
                 sheet.classList.toggle('abierto', abrir);
                 cortina.classList.toggle('abierto', abrir);
                 sheet.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+            };
+
+            const alternarDetalle = (abrir) => {
+                if (!detalleSheet || !detalleCortina) {
+                    return;
+                }
+                detalleSheet.classList.toggle('abierto', abrir);
+                detalleCortina.classList.toggle('abierto', abrir);
+                detalleSheet.setAttribute('aria-hidden', abrir ? 'false' : 'true');
             };
 
             const resetear = () => {
@@ -537,10 +671,6 @@ $nombreUsuario = static function (array $usuario): string {
                 campos.submit.textContent = 'Guardar tarea';
                 campos.prioridad.value = '5';
                 campos.estado.value = 'pendiente';
-                campos.meta.hidden = true;
-                campos.metaCreada.textContent = '-';
-                campos.metaActualizada.textContent = '-';
-                campos.metaCompletada.textContent = '-';
             };
 
             const formatearFecha = (valor) => {
@@ -565,10 +695,45 @@ $nombreUsuario = static function (array $usuario): string {
                 campos.estado.value = data.estado || 'pendiente';
                 campos.reporta.value = data.reporta_a || '';
                 campos.descripcion.value = data.descripcion || '';
-                campos.meta.hidden = false;
-                campos.metaCreada.textContent = formatearFecha(data.created_at || '');
-                campos.metaActualizada.textContent = formatearFecha(data.updated_at || '');
-                campos.metaCompletada.textContent = formatearFecha(data.completed_at || '');
+            };
+
+            const obtenerNombreVisible = (data, prefijo) => {
+                const nombre = [data[`${prefijo}_nombre`], data[`${prefijo}_apellido`]].filter(Boolean).join(' ').trim();
+                if (nombre) {
+                    return nombre;
+                }
+                return data[`${prefijo}_apodo`] || data[`${prefijo}_correo`] || '-';
+            };
+
+            const cargarDetalle = (data) => {
+                const prioridadNode = detalleSheet?.querySelector('[data-detalle-tarea-prioridad]');
+                const estadoNode = detalleSheet?.querySelector('[data-detalle-tarea-estado]');
+                if (!detalleSheet || !prioridadNode || !estadoNode) {
+                    return;
+                }
+
+                detalleSheet.querySelector('[data-detalle-tarea-id]').textContent = data.id || '-';
+                detalleSheet.querySelector('[data-detalle-tarea-nombre]').textContent = data.nombre_tarea || 'Tarea seleccionada';
+                detalleSheet.querySelector('[data-detalle-tarea-descripcion]').textContent = data.descripcion || 'Sin descripcion.';
+                detalleSheet.querySelector('[data-detalle-tarea-fecha-entrega]').textContent = formatearFecha(data.fecha_entrega || '');
+                detalleSheet.querySelector('[data-detalle-tarea-reporta]').textContent = data.reporta_a || '-';
+                detalleSheet.querySelector('[data-detalle-tarea-completada]').textContent = formatearFecha(data.completed_at || '');
+                detalleSheet.querySelector('[data-detalle-tarea-creada]').textContent = formatearFecha(data.created_at || '');
+                detalleSheet.querySelector('[data-detalle-tarea-actualizada]').textContent = formatearFecha(data.updated_at || '');
+                detalleSheet.querySelector('[data-detalle-tarea-responsable]').textContent = obtenerNombreVisible(data, 'responsable');
+                detalleSheet.querySelector('[data-detalle-tarea-responsable-correo]').textContent = data.responsable_correo || '';
+                detalleSheet.querySelector('[data-detalle-tarea-creador]').textContent = obtenerNombreVisible(data, 'creador');
+                detalleSheet.querySelector('[data-detalle-tarea-creador-correo]').textContent = data.creador_correo || '';
+
+                prioridadNode.textContent = `DEFCON ${data.prioridad_defcon || '-'}`;
+                estadoNode.textContent = data.estado ? ({
+                    pendiente: 'Pendiente',
+                    en_progreso: 'En progreso',
+                    completada: 'Completada',
+                    cancelada: 'Cancelada'
+                }[data.estado] || data.estado) : '-';
+                prioridadNode.className = `im-chip ${data.prioridad_defcon >= 5 ? 'im-chip--exito' : (data.prioridad_defcon <= 2 ? 'im-chip--alerta' : '')}`.trim();
+                estadoNode.className = `im-chip ${data.estado === 'completada' ? 'im-chip--exito' : (data.estado === 'cancelada' || data.estado === 'pendiente' ? 'im-chip--alerta' : '')}`.trim();
             };
 
             resetear();
@@ -576,7 +741,24 @@ $nombreUsuario = static function (array $usuario): string {
             document.addEventListener('click', (evento) => {
                 if (evento.target.closest('[data-abrir-tarea-sheet]')) {
                     resetear();
+                    alternarDetalle(false);
                     alternar(true);
+                }
+
+                if (evento.target.closest('[data-cerrar-detalle-tarea]')) {
+                    alternarDetalle(false);
+                }
+
+                const botonVer = evento.target.closest('[data-ver-tarea]');
+                if (botonVer) {
+                    try {
+                        const data = JSON.parse(botonVer.dataset.verTarea || '{}');
+                        alternar(false);
+                        cargarDetalle(data);
+                        alternarDetalle(true);
+                    } catch (error) {
+                        console.error(error);
+                    }
                 }
 
                 if (evento.target.closest('[data-cerrar-tarea-sheet]')) {
@@ -589,6 +771,7 @@ $nombreUsuario = static function (array $usuario): string {
                         const data = JSON.parse(botonEditar.dataset.editarTarea || '{}');
                         resetear();
                         cargarEdicion(data);
+                        alternarDetalle(false);
                         alternar(true);
                     } catch (error) {
                         console.error(error);
