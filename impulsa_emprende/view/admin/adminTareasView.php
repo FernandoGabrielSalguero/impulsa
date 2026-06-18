@@ -174,6 +174,14 @@ $nombreUsuario = static function (array $usuario): string {
 
         .im-tarea-detalle-sheet {
             max-width: 920px;
+            max-height: min(860px, calc(100vh - 2rem));
+            grid-template-rows: auto minmax(0, 1fr) auto;
+        }
+
+        .im-tarea-detalle-contenido {
+            min-height: 0;
+            overflow: auto;
+            padding-right: .25rem;
         }
 
         .im-tarea-detalle {
@@ -240,7 +248,36 @@ $nombreUsuario = static function (array $usuario): string {
         .im-tarea-sheet--editar .im-config-tema__grupo {
             display: grid;
             gap: 1rem;
-            margin-bottom: 1rem;
+        }
+
+        .im-tarea-sheet--editar {
+            max-width: 960px;
+            max-height: min(860px, calc(100vh - 2rem));
+            grid-template-rows: auto minmax(0, 1fr);
+        }
+
+        .im-tarea-sheet--editar form {
+            display: grid;
+            grid-template-rows: minmax(0, 1fr) auto;
+            min-height: 0;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .im-tarea-sheet__contenido {
+            min-height: 0;
+            overflow: auto;
+            padding-right: .25rem;
+            padding-bottom: 1rem;
+        }
+
+        .im-tarea-sheet--editar .im-config-tema__acciones {
+            position: relative;
+            z-index: 1;
+            background: var(--im-color-superficie);
+            border-top: 1px solid var(--im-color-borde);
+            margin-top: 0;
+            padding-top: 1rem;
         }
 
         .im-tarea-sheet--editar .im-config-tema__grupo h4,
@@ -482,54 +519,56 @@ $nombreUsuario = static function (array $usuario): string {
             </div>
             <button class="im-boton-icono" type="button" data-cerrar-detalle-tarea aria-label="Cerrar dialog"></button>
         </header>
-        <div class="im-tarea-detalle">
-            <section class="im-tarea-detalle__hero">
-                <div>
-                    <p class="im-sobrelinea">Tarea</p>
-                    <h4 data-detalle-tarea-nombre>Tarea seleccionada</h4>
-                </div>
-                <div class="im-tarea-detalle__chips">
-                    <span class="im-chip" data-detalle-tarea-prioridad>DEFCON 5</span>
-                    <span class="im-chip" data-detalle-tarea-estado>Pendiente</span>
-                </div>
-                <p data-detalle-tarea-descripcion>Sin descripcion.</p>
-            </section>
-            <section class="im-tarea-detalle__grid">
-                <article class="im-tarea-detalle__bloque">
-                    <span>ID</span>
-                    <strong data-detalle-tarea-id>-</strong>
-                </article>
-                <article class="im-tarea-detalle__bloque">
-                    <span>Fecha de entrega</span>
-                    <strong data-detalle-tarea-fecha-entrega>-</strong>
-                </article>
-                <article class="im-tarea-detalle__bloque">
-                    <span>Responsable</span>
-                    <strong data-detalle-tarea-responsable>-</strong>
-                    <p data-detalle-tarea-responsable-correo></p>
-                </article>
-                <article class="im-tarea-detalle__bloque">
-                    <span>Reporta a</span>
-                    <strong data-detalle-tarea-reporta>-</strong>
-                </article>
-                <article class="im-tarea-detalle__bloque">
-                    <span>Creada por</span>
-                    <strong data-detalle-tarea-creador>-</strong>
-                    <p data-detalle-tarea-creador-correo></p>
-                </article>
-                <article class="im-tarea-detalle__bloque">
-                    <span>Completada</span>
-                    <strong data-detalle-tarea-completada>-</strong>
-                </article>
-                <article class="im-tarea-detalle__bloque">
-                    <span>Creada</span>
-                    <strong data-detalle-tarea-creada>-</strong>
-                </article>
-                <article class="im-tarea-detalle__bloque">
-                    <span>Actualizada</span>
-                    <strong data-detalle-tarea-actualizada>-</strong>
-                </article>
-            </section>
+        <div class="im-tarea-detalle-contenido">
+            <div class="im-tarea-detalle">
+                <section class="im-tarea-detalle__hero">
+                    <div>
+                        <p class="im-sobrelinea">Tarea</p>
+                        <h4 data-detalle-tarea-nombre>Tarea seleccionada</h4>
+                    </div>
+                    <div class="im-tarea-detalle__chips">
+                        <span class="im-chip" data-detalle-tarea-prioridad>DEFCON 5</span>
+                        <span class="im-chip" data-detalle-tarea-estado>Pendiente</span>
+                    </div>
+                    <p data-detalle-tarea-descripcion>Sin descripcion.</p>
+                </section>
+                <section class="im-tarea-detalle__grid">
+                    <article class="im-tarea-detalle__bloque">
+                        <span>ID</span>
+                        <strong data-detalle-tarea-id>-</strong>
+                    </article>
+                    <article class="im-tarea-detalle__bloque">
+                        <span>Fecha de entrega</span>
+                        <strong data-detalle-tarea-fecha-entrega>-</strong>
+                    </article>
+                    <article class="im-tarea-detalle__bloque">
+                        <span>Responsable</span>
+                        <strong data-detalle-tarea-responsable>-</strong>
+                        <p data-detalle-tarea-responsable-correo></p>
+                    </article>
+                    <article class="im-tarea-detalle__bloque">
+                        <span>Reporta a</span>
+                        <strong data-detalle-tarea-reporta>-</strong>
+                    </article>
+                    <article class="im-tarea-detalle__bloque">
+                        <span>Creada por</span>
+                        <strong data-detalle-tarea-creador>-</strong>
+                        <p data-detalle-tarea-creador-correo></p>
+                    </article>
+                    <article class="im-tarea-detalle__bloque">
+                        <span>Completada</span>
+                        <strong data-detalle-tarea-completada>-</strong>
+                    </article>
+                    <article class="im-tarea-detalle__bloque">
+                        <span>Creada</span>
+                        <strong data-detalle-tarea-creada>-</strong>
+                    </article>
+                    <article class="im-tarea-detalle__bloque">
+                        <span>Actualizada</span>
+                        <strong data-detalle-tarea-actualizada>-</strong>
+                    </article>
+                </section>
+            </div>
         </div>
         <div class="im-config-tema__acciones">
             <button class="im-boton im-boton--texto" type="button" data-cerrar-detalle-tarea>Cerrar</button>
@@ -548,68 +587,70 @@ $nombreUsuario = static function (array $usuario): string {
         <form class="im-config-tema" method="post" action="/impulsa_emprende/controller/admin/adminTareasController.php" data-form-tarea>
             <input type="hidden" name="accion" value="crear_tarea" data-tarea-accion>
             <input type="hidden" name="tarea_id" value="" data-tarea-id>
-            <div class="im-config-tema__grupo">
-                <div>
-                    <h4>Datos principales</h4>
-                    <p>Formulario limpio para alta o edicion de la tarea.</p>
-                </div>
-                <div class="im-tarea-sheet__form">
-                    <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
-                        <span>Nombre de la tarea</span>
-                        <input type="text" name="nombre_tarea" maxlength="180" required data-tarea-nombre placeholder="Seguimiento de contrato">
-                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">task</i>
-                        <small data-im-error>Nombre requerido.</small>
-                    </label>
-                    <label class="im-campo im-campo-material" data-im-campo="generico">
-                        <span>Responsable</span>
-                        <select name="responsable_user_id" required data-tarea-responsable>
-                            <option value="">Seleccionar</option>
-                            <?php foreach ($usuariosTareas as $usuarioTarea): ?>
-                                <option value="<?= (int) ($usuarioTarea['id'] ?? 0) ?>"><?= $h($nombreUsuario($usuarioTarea)) ?> - <?= $h($usuarioTarea['correo'] ?? '') ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">person</i>
-                        <small data-im-error>Responsable requerido.</small>
-                    </label>
-                    <label class="im-campo im-campo-material" data-im-campo="generico">
-                        <span>Fecha de entrega</span>
-                        <input type="date" name="fecha_entrega" required data-tarea-fecha>
-                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">event</i>
-                        <small data-im-error>Fecha requerida.</small>
-                    </label>
-                    <label class="im-campo im-campo-material" data-im-campo="generico">
-                        <span>Prioridad DEFCON</span>
-                        <select name="prioridad_defcon" required data-tarea-prioridad>
-                            <option value="5">DEFCON 5</option>
-                            <option value="4">DEFCON 4</option>
-                            <option value="3">DEFCON 3</option>
-                            <option value="2">DEFCON 2</option>
-                            <option value="1">DEFCON 1</option>
-                        </select>
-                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">priority_high</i>
-                        <small data-im-error>Prioridad requerida.</small>
-                    </label>
-                    <label class="im-campo im-campo-material" data-im-campo="generico">
-                        <span>Estado</span>
-                        <select name="estado" required data-tarea-estado>
-                            <?php foreach ($opcionesEstado as $valorEstado => $labelEstado): ?>
-                                <option value="<?= $h($valorEstado) ?>"><?= $h($labelEstado) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">flag</i>
-                        <small data-im-error>Estado requerido.</small>
-                    </label>
-                    <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
-                        <span>Reporta a</span>
-                        <input type="text" name="reporta_a" maxlength="180" required data-tarea-reporta placeholder="Direccion general">
-                        <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">north</i>
-                        <small data-im-error>Campo requerido.</small>
-                    </label>
-                    <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
-                        <span>Descripcion</span>
-                        <textarea name="descripcion" rows="6" required data-tarea-descripcion placeholder="Detalle operativo de la tarea"></textarea>
-                        <small data-im-error>Descripcion requerida.</small>
-                    </label>
+            <div class="im-tarea-sheet__contenido">
+                <div class="im-config-tema__grupo">
+                    <div>
+                        <h4>Datos principales</h4>
+                        <p>Formulario limpio para alta o edicion de la tarea.</p>
+                    </div>
+                    <div class="im-tarea-sheet__form">
+                        <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
+                            <span>Nombre de la tarea</span>
+                            <input type="text" name="nombre_tarea" maxlength="180" required data-tarea-nombre placeholder="Seguimiento de contrato">
+                            <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">task</i>
+                            <small data-im-error>Nombre requerido.</small>
+                        </label>
+                        <label class="im-campo im-campo-material" data-im-campo="generico">
+                            <span>Responsable</span>
+                            <select name="responsable_user_id" required data-tarea-responsable>
+                                <option value="">Seleccionar</option>
+                                <?php foreach ($usuariosTareas as $usuarioTarea): ?>
+                                    <option value="<?= (int) ($usuarioTarea['id'] ?? 0) ?>"><?= $h($nombreUsuario($usuarioTarea)) ?> - <?= $h($usuarioTarea['correo'] ?? '') ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">person</i>
+                            <small data-im-error>Responsable requerido.</small>
+                        </label>
+                        <label class="im-campo im-campo-material" data-im-campo="generico">
+                            <span>Fecha de entrega</span>
+                            <input type="date" name="fecha_entrega" required data-tarea-fecha>
+                            <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">event</i>
+                            <small data-im-error>Fecha requerida.</small>
+                        </label>
+                        <label class="im-campo im-campo-material" data-im-campo="generico">
+                            <span>Prioridad DEFCON</span>
+                            <select name="prioridad_defcon" required data-tarea-prioridad>
+                                <option value="5">DEFCON 5</option>
+                                <option value="4">DEFCON 4</option>
+                                <option value="3">DEFCON 3</option>
+                                <option value="2">DEFCON 2</option>
+                                <option value="1">DEFCON 1</option>
+                            </select>
+                            <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">priority_high</i>
+                            <small data-im-error>Prioridad requerida.</small>
+                        </label>
+                        <label class="im-campo im-campo-material" data-im-campo="generico">
+                            <span>Estado</span>
+                            <select name="estado" required data-tarea-estado>
+                                <?php foreach ($opcionesEstado as $valorEstado => $labelEstado): ?>
+                                    <option value="<?= $h($valorEstado) ?>"><?= $h($labelEstado) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">flag</i>
+                            <small data-im-error>Estado requerido.</small>
+                        </label>
+                        <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
+                            <span>Reporta a</span>
+                            <input type="text" name="reporta_a" maxlength="180" required data-tarea-reporta placeholder="Direccion general">
+                            <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">north</i>
+                            <small data-im-error>Campo requerido.</small>
+                        </label>
+                        <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="generico">
+                            <span>Descripcion</span>
+                            <textarea name="descripcion" rows="6" required data-tarea-descripcion placeholder="Detalle operativo de la tarea"></textarea>
+                            <small data-im-error>Descripcion requerida.</small>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="im-config-tema__acciones">
