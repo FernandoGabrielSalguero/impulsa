@@ -28,6 +28,7 @@ $marketingNavItems = [
     ['href' => '/impulsa_emprende/controller/admin/adminListUserController.php', 'icon' => 'groups', 'label' => 'Usuarios'],
     ['href' => '/impulsa_emprende/controller/admin/adminSolicitudesPaginaWebSolicitudesController.php', 'icon' => 'language', 'label' => 'Solicitudes web'],
     ['href' => '/impulsa_emprende/controller/admin/adminProyectosController.php', 'icon' => 'work', 'label' => 'Proyectos'],
+    ['href' => '/impulsa_emprende/controller/admin/adminTareasController.php', 'icon' => 'task_alt', 'label' => 'Tareas'],
     ['href' => '/impulsa_emprende/controller/admin/adminMarketingController.php', 'icon' => 'campaign', 'label' => 'Marketing', 'active' => true],
     ['href' => '/impulsa_emprende/controller/admin/adminAPIconfigurationController.php', 'icon' => 'key', 'label' => 'Integraciones API'],
     ['href' => '/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php', 'icon' => 'mail', 'label' => 'Correos enviados'],

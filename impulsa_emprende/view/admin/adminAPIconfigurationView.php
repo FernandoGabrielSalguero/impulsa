@@ -113,6 +113,10 @@ $estadoTexto = static function (string $estado): string {
           <span class="im-nav-item__icono" data-icon="work" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Proyectos</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminTareasController.php">
+          <span class="im-nav-item__icono" data-icon="task_alt" aria-hidden="true"></span>
+          <span class="im-nav-item__texto">Tareas</span>
+        </a>
         <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminMarketingController.php">
           <span class="im-nav-item__icono" data-icon="campaign" aria-hidden="true"></span>
           <span class="im-nav-item__texto">Marketing</span>
