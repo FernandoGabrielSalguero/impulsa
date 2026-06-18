@@ -125,6 +125,45 @@ $nombreUsuario = static function (array $usuario): string {
             color: #ba1a1a;
         }
 
+        .im-tareas-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .im-tareas-toolbar__acciones {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .im-tareas-filtro {
+            min-width: 220px;
+            max-width: 260px;
+        }
+
+        .im-tareas-resumen {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem 1rem;
+            margin-top: .75rem;
+            color: var(--im-color-texto-suave);
+            font-size: .88rem;
+        }
+
+        .im-tareas-resumen strong {
+            color: var(--im-color-texto);
+            font-weight: 600;
+        }
+
+        .im-tareas-vacio-filtro {
+            margin-top: .9rem;
+            color: var(--im-color-texto-suave);
+        }
+
         .im-tarea-modal {
             width: min(560px, calc(100vw - 2rem));
         }
@@ -433,9 +472,31 @@ $nombreUsuario = static function (array $usuario): string {
                     <?php if ($tareas): ?>
                         <article class="im-tabla-tareas__tarjeta">
                             <div class="im-tabla-tareas__cabecera">
-                                <div>
-                                    <h3>Tareas registradas</h3>
-                                    <p>Listado general con responsable, prioridad, seguimiento y estado.</p>
+                                <div class="im-tareas-toolbar">
+                                    <div>
+                                        <h3>Tareas registradas</h3>
+                                        <p>Listado general con responsable, prioridad, seguimiento y estado.</p>
+                                    </div>
+                                    <div class="im-tareas-toolbar__acciones">
+                                        <label class="im-campo im-campo-material im-tareas-filtro" data-im-campo="generico">
+                                            <span>Filtrar por estado</span>
+                                            <select data-filtrar-estado-tareas>
+                                                <option value="pendiente" selected>Pendiente</option>
+                                                <option value="en_progreso">En progreso</option>
+                                                <option value="completada">Completada</option>
+                                                <option value="cancelada">Cancelada</option>
+                                                <option value="__all__">Todos los estados</option>
+                                            </select>
+                                            <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">filter_alt</i>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="im-tareas-resumen" data-tareas-resumen>
+                                    <span>Total: <strong><?= number_format(count($tareas), 0, ',', '.') ?></strong></span>
+                                    <span>Pendiente: <strong><?= number_format(count(array_filter($tareas, static fn(array $t): bool => (string) ($t['estado'] ?? '') === 'pendiente')), 0, ',', '.') ?></strong></span>
+                                    <span>En progreso: <strong><?= number_format(count(array_filter($tareas, static fn(array $t): bool => (string) ($t['estado'] ?? '') === 'en_progreso')), 0, ',', '.') ?></strong></span>
+                                    <span>Completada: <strong><?= number_format(count(array_filter($tareas, static fn(array $t): bool => (string) ($t['estado'] ?? '') === 'completada')), 0, ',', '.') ?></strong></span>
+                                    <span>Cancelada: <strong><?= number_format(count(array_filter($tareas, static fn(array $t): bool => (string) ($t['estado'] ?? '') === 'cancelada')), 0, ',', '.') ?></strong></span>
                                 </div>
                             </div>
                             <div class="im-tabla-tareas__scroll">
@@ -467,7 +528,7 @@ $nombreUsuario = static function (array $usuario): string {
                                                 'correo' => $tarea['creador_correo'] ?? '',
                                             ]);
                                             ?>
-                                            <tr>
+                                            <tr data-estado-tarea="<?= $h((string) ($tarea['estado'] ?? '')) ?>">
                                                 <td><?= (int) ($tarea['id'] ?? 0) ?></td>
                                                 <td class="im-tabla-tareas__nombre">
                                                     <?= $h($tarea['nombre_tarea'] ?? '') ?>
@@ -500,6 +561,7 @@ $nombreUsuario = static function (array $usuario): string {
                                     </tbody>
                                 </table>
                             </div>
+                            <p class="im-tareas-vacio-filtro" data-tareas-vacio-filtro hidden>No hay tareas para el estado seleccionado.</p>
                         </article>
                     <?php else: ?>
                         <article class="im-tarjeta">
@@ -688,6 +750,34 @@ $nombreUsuario = static function (array $usuario): string {
     <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
     <script src="../../../assets/impulsa_material/js/material.js"></script>
     <script>
+        (() => {
+            const selectEstado = document.querySelector('[data-filtrar-estado-tareas]');
+            const filas = Array.from(document.querySelectorAll('tr[data-estado-tarea]'));
+            const mensajeVacio = document.querySelector('[data-tareas-vacio-filtro]');
+
+            if (selectEstado && filas.length > 0) {
+                const aplicarFiltro = () => {
+                    const valor = selectEstado.value;
+                    let visibles = 0;
+
+                    filas.forEach((fila) => {
+                        const coincide = valor === '__all__' || fila.dataset.estadoTarea === valor;
+                        fila.hidden = !coincide;
+                        if (coincide) {
+                            visibles += 1;
+                        }
+                    });
+
+                    if (mensajeVacio) {
+                        mensajeVacio.hidden = visibles > 0;
+                    }
+                };
+
+                selectEstado.addEventListener('change', aplicarFiltro);
+                aplicarFiltro();
+            }
+        })();
+
         (() => {
             const sheet = document.querySelector('[data-tarea-sheet]');
             const cortina = document.querySelector('[data-cerrar-tarea-sheet].im-bottom-sheet-cortina');
