@@ -256,6 +256,16 @@ $nombreUsuario = static function (array $usuario): string {
             grid-template-rows: auto minmax(0, 1fr);
         }
 
+        .im-tarea-sheet--editar .im-config-tema {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0;
+            min-height: 0;
+            overflow: hidden;
+            width: 100%;
+            padding-right: 0;
+        }
+
         .im-tarea-sheet--editar form {
             display: grid;
             grid-template-rows: minmax(0, 1fr) auto;
@@ -265,6 +275,7 @@ $nombreUsuario = static function (array $usuario): string {
         }
 
         .im-tarea-sheet__contenido {
+            width: 100%;
             min-height: 0;
             overflow: auto;
             padding-right: .25rem;
@@ -274,6 +285,7 @@ $nombreUsuario = static function (array $usuario): string {
         .im-tarea-sheet--editar .im-config-tema__acciones {
             position: relative;
             z-index: 1;
+            justify-content: flex-end;
             background: var(--im-color-superficie);
             border-top: 1px solid var(--im-color-borde);
             margin-top: 0;
@@ -287,6 +299,19 @@ $nombreUsuario = static function (array $usuario): string {
 
         .im-tarea-sheet--editar .im-config-tema__grupo p {
             color: var(--im-color-texto-suave);
+        }
+
+        .im-tarea-sheet--editar .im-config-tema__grupo,
+        .im-tarea-sheet--editar .im-tarea-sheet__form,
+        .im-tarea-sheet--editar .im-campo {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .im-tarea-sheet--editar textarea {
+            min-height: 180px;
+            resize: vertical;
         }
 
         .im-tabla-tareas__acciones {
