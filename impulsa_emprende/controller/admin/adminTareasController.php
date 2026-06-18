@@ -26,11 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $estado = (string) ($resultado['estado'] ?? 'tarea_error_eliminar');
     }
 
-    header('Location: /impulsa_emprende/controller/admin/adminTareasController.php?estado=' . urlencode($estado));
+    $_SESSION['admin_tareas_flash'] = [
+        'estado' => $estado,
+    ];
+
+    header('Location: /impulsa_emprende/controller/admin/adminTareasController.php');
     exit;
 }
 
-$estado = (string) ($_GET['estado'] ?? '');
+$flashTareas = $_SESSION['admin_tareas_flash'] ?? null;
+unset($_SESSION['admin_tareas_flash']);
+
 $tareas = $adminsTareasModel->obtenerTareas();
 $usuariosTareas = $adminsTareasModel->obtenerOpcionesUsuarios();
 

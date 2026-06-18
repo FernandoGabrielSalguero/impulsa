@@ -4,7 +4,7 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
 $tareas = $tareas ?? [];
 $usuariosTareas = $usuariosTareas ?? [];
-$estado = $estado ?? '';
+$flashTareas = $flashTareas ?? null;
 $h = static fn(mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
 $toJson = static fn(mixed $valor): string => htmlspecialchars((string) json_encode($valor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
 $mensajesEstado = [
@@ -28,7 +28,8 @@ $mensajesEstado = [
     'tarea_error_eliminar' => ['tipo' => 'error', 'texto' => 'No se pudo eliminar la tarea.'],
     'tarea_accion_invalida' => ['tipo' => 'error', 'texto' => 'La accion solicitada no es valida.'],
 ];
-$mensajeEstado = $mensajesEstado[$estado] ?? null;
+$estadoFlash = is_array($flashTareas) ? (string) ($flashTareas['estado'] ?? '') : '';
+$mensajeEstado = $mensajesEstado[$estadoFlash] ?? null;
 $opcionesEstado = [
     'pendiente' => 'Pendiente',
     'en_progreso' => 'En progreso',
