@@ -125,6 +125,15 @@ $nombreUsuario = static function (array $usuario): string {
             color: #ba1a1a;
         }
 
+        .im-snackbar[data-estado="error"] {
+            background: #ba1a1a;
+            color: #fff;
+        }
+
+        .im-snackbar[data-estado="error"] button {
+            color: #fff;
+        }
+
         .im-tareas-toolbar {
             display: flex;
             justify-content: space-between;
@@ -463,12 +472,6 @@ $nombreUsuario = static function (array $usuario): string {
                         </div>
                     </div>
 
-                    <?php if ($mensajeEstado): ?>
-                        <div class="im-alerta im-alerta--<?= $h($mensajeEstado['tipo']) ?>" role="status">
-                            <?= $h($mensajeEstado['texto']) ?>
-                        </div>
-                    <?php endif; ?>
-
                     <?php if ($tareas): ?>
                         <article class="im-tabla-tareas__tarjeta">
                             <div class="im-tabla-tareas__cabecera">
@@ -749,6 +752,25 @@ $nombreUsuario = static function (array $usuario): string {
 
     <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
     <script src="../../../assets/impulsa_material/js/material.js"></script>
+    <?php if ($mensajeEstado): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const snackbar = document.querySelector('.im-snackbar');
+                const mensaje = <?= json_encode((string) ($mensajeEstado['texto'] ?? ''), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+                const estado = <?= json_encode((string) ($mensajeEstado['tipo'] ?? 'exito'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+                if (!snackbar || !mensaje) {
+                    return;
+                }
+
+                snackbar.dataset.estado = estado === 'error' ? 'error' : 'ok';
+                snackbar.querySelector('span').textContent = mensaje;
+                snackbar.classList.add('abierto');
+                window.clearTimeout(window.imTareasSnackbarTimer);
+                window.imTareasSnackbarTimer = window.setTimeout(() => snackbar.classList.remove('abierto'), 4200);
+            });
+        </script>
+    <?php endif; ?>
     <script>
         (() => {
             const selectEstado = document.querySelector('[data-filtrar-estado-tareas]');
