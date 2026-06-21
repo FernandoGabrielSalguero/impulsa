@@ -1154,18 +1154,15 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
             <h3>Solicitar contacto</h3>
             <p class="form-note">Dejanos tus datos y una breve descripción del desafío que querés resolver.</p>
             <div id="form-status" class="form-status" hidden aria-live="polite"></div>
-            <form id="contact-form" action="mailer.php" method="post" accept-charset="UTF-8">
-              <input type="hidden" name="form_source" value="landing-impulsa">
-              <input type="hidden" id="form_rendered_at" name="form_rendered_at" value="">
-              <input type="text" name="website" tabindex="-1" autocomplete="off" hidden>
+            <form id="contact-form" accept-charset="UTF-8">
               <div class="field-row">
-                <label for="nombre">Nombre<input id="nombre" name="nombre" type="text" placeholder="Tu nombre"
-                    required></label>
-                <label for="empresa">Empresa<input id="empresa" name="empresa" type="text"
-                    placeholder="Nombre de la empresa" required></label>
+                <label for="contact_nombre">Nombre<input id="contact_nombre" name="contact_nombre" type="text"
+                    placeholder="Tu nombre" required></label>
+                <label for="contact_email">Correo<input id="contact_email" name="contact_email" type="email"
+                    placeholder="nombre@empresa.com" required></label>
               </div>
               <div class="field-row">
-                <label for="email">Email<input id="email" name="email" type="email" placeholder="nombre@empresa.com"
+                <label for="contact_whatsapp">Whatsapp<input id="contact_whatsapp" name="contact_whatsapp" type="tel" placeholder="+54 9 ..."
                     required></label>
                 <label for="telefono">Teléfono<input id="telefono" name="telefono" type="tel" placeholder="+54 9 ..."
                     required></label>
@@ -1251,6 +1248,94 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
   </section>
   <script>
     (() => {
+      const IMPULSA_CONFIG = {
+        publicKey: "pk_bb468e60958b1d1ab22f3c92403726d6",
+        apiBaseUrl: "https://impulsagroup.com/api",
+        visitTrackerSrc: "https://impulsagroup.com/assets/impulsa_material/js/visit-tracker.js",
+        chatbotScriptUrl: "https://impulsagroup.com/api/chatbot_widget/widget.js?public_key=pk_bb468e60958b1d1ab22f3c92403726d6"
+      };
+
+      window.IMPULSA_API_CONFIG = {
+        publicKey: IMPULSA_CONFIG.publicKey,
+        apiBaseUrl: IMPULSA_CONFIG.apiBaseUrl
+      };
+
+      const postJson = (endpoint, payload) => fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const ensureVisitTracker = () => {
+        if (document.querySelector('script[data-impulsa-visit-tracker]')) {
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = IMPULSA_CONFIG.visitTrackerSrc;
+        script.async = true;
+        script.dataset.impulsaVisitTracker = "true";
+        document.body.appendChild(script);
+      };
+
+      const mountChatbot = () => {
+        if (document.querySelector('script[data-impulsa-chatbot]')) {
+          return;
+        }
+
+        const script = document.createElement("script");
+        script.src = IMPULSA_CONFIG.chatbotScriptUrl;
+        script.async = true;
+        script.dataset.impulsaChatbot = "true";
+        document.body.appendChild(script);
+      };
+
+      window.ImpulsaAPI = {
+        config: IMPULSA_CONFIG,
+        trackVisits: ensureVisitTracker,
+        sendContact: ({
+          page = window.location.pathname,
+          contact_nombre,
+          contact_email = "",
+          contact_whatsapp = "",
+          contact_description = "",
+          contact_consultation = ""
+        }) => postJson(IMPULSA_CONFIG.apiBaseUrl + "/contact_form_landing_page/index.php", {
+          public_key: IMPULSA_CONFIG.publicKey,
+          page,
+          contact_nombre,
+          contact_email,
+          contact_whatsapp,
+          contact_description,
+          contact_consultation
+        }),
+        getBlogList: () => postJson(IMPULSA_CONFIG.apiBaseUrl + "/blog_api/index.php", {
+          action: "list",
+          public_key: IMPULSA_CONFIG.publicKey
+        }),
+        getBlogDetail: ({ slug }) => postJson(IMPULSA_CONFIG.apiBaseUrl + "/blog_api/index.php", {
+          action: "detail",
+          public_key: IMPULSA_CONFIG.publicKey,
+          slug: slug || "mi-post"
+        }),
+        getProductList: () => postJson(IMPULSA_CONFIG.apiBaseUrl + "/producto_api/index.php", {
+          action: "list",
+          public_key: IMPULSA_CONFIG.publicKey
+        }),
+        getProductDetail: ({ slug }) => postJson(IMPULSA_CONFIG.apiBaseUrl + "/producto_api/index.php", {
+          action: "detail",
+          public_key: IMPULSA_CONFIG.publicKey,
+          slug: slug || "mi-producto"
+        }),
+        mountChatbot
+      };
+
+      window.ImpulsaAPI.trackVisits();
+    })();
+
+    (() => {
       const sheet = document.getElementById('impulsa-emprende');
       const backdrop = document.querySelector('[data-cerrar-emprende].im-bottom-sheet-cortina');
       const openButtons = document.querySelectorAll('[data-abrir-emprende]');
@@ -1296,30 +1381,73 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
     (() => {
       const box = document.getElementById('form-status');
       const form = document.getElementById('contact-form');
-      const renderedAt = document.getElementById('form_rendered_at');
       const submitButton = form ? form.querySelector('button[type="submit"]') : null;
 
-      if (!box || !form) {
+      if (!box || !form || !window.ImpulsaAPI?.sendContact) {
         return;
       }
 
-      if (renderedAt) {
-        renderedAt.value = Date.now().toString();
-        window.__impulsaRenderedAt = renderedAt.value;
-      }
+      const renameLabel = (field, labelText) => {
+        const label = field?.closest('label');
+        if (!label) {
+          return;
+        }
 
-      const messages = {
-        success: 'Gracias. Tu mensaje fue enviado y te responderemos a la brevedad.',
-        invalid: 'Revisa los datos ingresados e intenta nuevamente.',
-        invalid_captcha: 'No pudimos validar el captcha. Resuelve la cuenta e intenta nuevamente.',
-        error: 'No se pudo enviar el mensaje en este momento. Intenta nuevamente en unos minutos.'
+        label.childNodes[0].textContent = labelText;
       };
 
-      const showStatus = (status, fallbackMessage) => {
-        const message = messages[status] || fallbackMessage || messages.error;
+      const removeField = (selector) => {
+        const label = form.querySelector(selector)?.closest('label');
+        label?.remove();
+      };
+
+      const contactEmail = form.querySelector('#contact_email');
+      const whatsappField = form.querySelector('#contact_whatsapp');
+      const objetivoField = form.querySelector('#objetivo');
+      const mensajeField = form.querySelector('#mensaje');
+      const captchaRow = form.querySelector('.captcha-row');
+      const rows = form.querySelectorAll('.field-row');
+      const secondRow = whatsappField?.closest('.field-row');
+      const thirdRow = rows[2];
+
+      contactEmail?.setAttribute('required', 'required');
+
+      if (whatsappField) {
+        whatsappField.type = 'tel';
+        whatsappField.placeholder = '+54 9 ...';
+        whatsappField.setAttribute('required', 'required');
+        renameLabel(whatsappField, 'Whatsapp');
+      }
+
+      if (objetivoField) {
+        const objetivoLabel = objetivoField.closest('label');
+        objetivoField.id = 'contact_description';
+        objetivoField.name = 'contact_description';
+        renameLabel(objetivoField, 'Principal necesidad');
+
+        if (secondRow && objetivoLabel && !secondRow.contains(objetivoLabel)) {
+          secondRow.appendChild(objetivoLabel);
+        }
+      }
+
+      if (mensajeField) {
+        mensajeField.id = 'contact_consultation';
+        mensajeField.name = 'contact_consultation';
+        renameLabel(mensajeField, 'Detalle');
+      }
+
+      removeField('#telefono');
+      removeField('#equipo');
+      captchaRow?.remove();
+
+      if (thirdRow && !thirdRow.children.length) {
+        thirdRow.remove();
+      }
+
+      const showStatus = (message, isSuccess = false) => {
         box.textContent = message;
         box.hidden = false;
-        box.className = `form-status ${status === 'success' ? 'form-status-success' : 'form-status-error'}`;
+        box.className = `form-status ${isSuccess ? 'form-status-success' : 'form-status-error'}`;
         box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       };
 
@@ -1340,48 +1468,40 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
         box.textContent = '';
         box.className = 'form-status';
 
-        if (renderedAt && window.__impulsaRenderedAt) {
-          renderedAt.value = window.__impulsaRenderedAt;
+        const formData = new FormData(form);
+        const payload = {
+          page: window.location.pathname,
+          contact_nombre: String(formData.get('contact_nombre') || '').trim(),
+          contact_email: String(formData.get('contact_email') || '').trim(),
+          contact_whatsapp: String(formData.get('contact_whatsapp') || '').trim(),
+          contact_description: String(formData.get('contact_description') || '').trim(),
+          contact_consultation: String(formData.get('contact_consultation') || '').trim()
+        };
+
+        if (!payload.contact_nombre || !payload.contact_email || !payload.contact_whatsapp) {
+          showStatus('Completa nombre, correo y WhatsApp para enviar la consulta.');
+          return;
         }
 
-        const formData = new FormData(form);
         setSubmitting(true);
 
         try {
-          const response = await fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-Requested-With': 'fetch'
-            }
-          });
+          const response = await window.ImpulsaAPI.sendContact(payload);
+          const result = await response.json();
 
-          let payload = null;
-          try {
-            payload = await response.json();
-          } catch (error) {
-            payload = null;
+          if (!response.ok || !result?.success) {
+            throw new Error(result?.message || 'No se pudo enviar el mensaje en este momento.');
           }
 
-          const status = payload && payload.status ? payload.status : 'error';
-          const message = payload && payload.message ? payload.message : '';
-          showStatus(status, message);
-
-          if (response.ok && status === 'success') {
-            form.reset();
-            if (renderedAt) {
-              window.__impulsaRenderedAt = Date.now().toString();
-              renderedAt.value = window.__impulsaRenderedAt;
-            }
-          }
+          form.reset();
+          showStatus(result.message || 'Gracias. Tu mensaje fue enviado y te responderemos a la brevedad.', true);
         } catch (error) {
-          showStatus('error');
+          showStatus(error.message || 'No se pudo enviar el mensaje en este momento. Intenta nuevamente en unos minutos.');
           console.error('[contact-form]', error);
         } finally {
           setSubmitting(false);
         }
       });
-
     })();
   </script>
 </body>
