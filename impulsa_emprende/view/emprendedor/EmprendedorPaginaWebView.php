@@ -144,7 +144,7 @@ if (!function_exists('paginaWebFecha')) {
             </article>
           <?php elseif ($paginaWebSolicitud): ?>
             <div class="im-acordeon">
-              <details class="im-expansion" open>
+              <details class="im-expansion">
                 <summary>
                   Solicitud enviada
                   <span class="im-chip <?= (int) ($paginaWebSolicitud['completado'] ?? 0) === 1 ? 'im-chip--completado' : 'im-chip--pendiente' ?>">
