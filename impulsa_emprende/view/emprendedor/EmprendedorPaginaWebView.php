@@ -10,6 +10,7 @@ $paginaWebProyectoData = $paginaWebProyectoData ?? [];
 $paginaWebProyectos = $paginaWebProyectoData['proyectos'] ?? [];
 $paginaWebFasesPorProyecto = $paginaWebProyectoData['fases'] ?? [];
 $paginaWebObjetivosPorProyecto = $paginaWebProyectoData['objetivos'] ?? [];
+$paginaWebDominioAutorizado = isset($paginaWebDominioAutorizado) ? trim((string) $paginaWebDominioAutorizado) : '';
 
 if (!function_exists('paginaWebH')) {
     function paginaWebH(mixed $value): string
@@ -36,6 +37,14 @@ if (!function_exists('paginaWebFecha')) {
   <link rel="icon" href="<?= htmlspecialchars(obtenerFaviconHref(), ENT_QUOTES, 'UTF-8'); ?>" type="image/x-icon">
   <link rel="stylesheet" href="/assets/impulsa_material/css/material.css?v=icons-local-1">
   <?php require __DIR__ . '/../../partials/components/project progress/styles.php'; ?>
+  <style>
+    .im-encabezado-seccion__acciones {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
 <body>
   <div class="im-aplicacion" data-menu-colapsado="false">
@@ -102,7 +111,15 @@ if (!function_exists('paginaWebFecha')) {
           <div class="im-encabezado-seccion">
             <div>
               <p class="im-sobrelinea">Solicitud</p>
-              <h2>Solicitud de pagina web</h2>
+              <div class="im-encabezado-seccion__acciones">
+                <h2>Solicitud de pagina web</h2>
+                <button
+                  class="im-boton im-boton--tonal"
+                  type="button"
+                  data-visitar-pagina-web
+                  data-url="<?= paginaWebH($paginaWebDominioAutorizado) ?>"
+                >Visitar pagina web</button>
+              </div>
               <p>Este formulario queda disponible cuando tu mision, vision y buyer persona estan completos.</p>
             </div>
           </div>
@@ -197,6 +214,38 @@ if (!function_exists('paginaWebFecha')) {
           clearTimeout(window.__impulsaPaginaWebSnackbarTimer);
           window.__impulsaPaginaWebSnackbarTimer = setTimeout(() => snackbar.classList.remove('abierto'), 3600);
         }, 0);
+      });
+    })();
+
+    (() => {
+      const boton = document.querySelector('[data-visitar-pagina-web]');
+
+      if (!boton) {
+        return;
+      }
+
+      const mostrarSnackbar = (mensaje) => {
+        const snackbar = document.querySelector('.im-snackbar');
+        const texto = snackbar ? snackbar.querySelector('span') : null;
+        if (!snackbar || !texto) {
+          return;
+        }
+
+        texto.textContent = mensaje;
+        snackbar.classList.add('abierto');
+        clearTimeout(window.__impulsaPaginaWebSnackbarTimer);
+        window.__impulsaPaginaWebSnackbarTimer = setTimeout(() => snackbar.classList.remove('abierto'), 3600);
+      };
+
+      boton.addEventListener('click', () => {
+        const url = String(boton.dataset.url || '').trim();
+
+        if (!url) {
+          mostrarSnackbar('Aun no esta disponible. Debes aguardar a que se implemente la URL a tu web.');
+          return;
+        }
+
+        window.open(url, '_blank', 'noopener,noreferrer');
       });
     })();
   </script>

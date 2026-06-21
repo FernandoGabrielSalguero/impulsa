@@ -13,6 +13,7 @@ $clienteDashboardModel = new ClienteDashboardModel($pdo);
 $paginaWebUsuario = $paginaWebModel->obtenerUsuario((int) $usuario['id']);
 $paginaWebEstadoDefinicion = $paginaWebModel->obtenerEstadoDefinicion((int) $usuario['id']);
 $paginaWebDefinicionCompleta = $paginaWebModel->tieneDefinicionCompleta((int) $usuario['id']);
+$paginaWebDominioAutorizado = $paginaWebModel->obtenerDominioAutorizado((int) $usuario['id']);
 $paginaWebProyectoData = $clienteDashboardModel->obtenerDashboard((int) $usuario['id']);
 
 require __DIR__ . '/../../partials/pagina_web/pagina_web_controller.php';

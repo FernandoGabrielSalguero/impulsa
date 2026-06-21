@@ -37,6 +37,32 @@ class EmprendedorPaginaWebModel
         return $estado['mision'] && $estado['vision'] && $estado['buyer'];
     }
 
+    public function obtenerDominioAutorizado(int $userId): ?string
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT ai.allowed_domain
+             FROM projects p
+             INNER JOIN api_integrations ai ON ai.project_name = p.project_name
+             WHERE p.client_user_id = :user_id
+               AND p.client_visible = 1
+               AND p.project_type IN ('website', 'landing_page')
+               AND ai.status = 'active'
+               AND ai.allowed_domain <> ''
+             ORDER BY p.updated_at DESC, ai.id DESC
+             LIMIT 1"
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        $dominio = $stmt->fetchColumn();
+        if (!is_string($dominio)) {
+            return null;
+        }
+
+        $dominio = trim($dominio);
+
+        return $dominio !== '' ? $dominio : null;
+    }
+
     private function estaCompleto(string $tabla, int $userId): bool
     {
         $stmt = $this->pdo->prepare(
