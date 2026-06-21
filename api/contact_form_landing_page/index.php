@@ -63,7 +63,7 @@ function validarPayload(array $payload): array
     $contactWhatsapp = obtenerTexto($payload, 'contact_whatsapp', false, 50);
     $contactEmail = obtenerTexto($payload, 'contact_email', false, 150);
     $contactDescription = obtenerTexto($payload, 'contact_description', false, null);
-    $contactConsultation = obtenerTexto($payload, 'contact_consultation', false, 255);
+    $contactConsultation = obtenerTexto($payload, 'contact_consultation', false, 1000);
 
     if ($contactEmail !== null && !filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
         throw new InvalidArgumentException('El campo contact_email debe ser un email valido.');

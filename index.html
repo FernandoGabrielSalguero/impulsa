@@ -705,6 +705,15 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
       color: #8a2331;
     }
 
+    .form-counter {
+      display: block;
+      margin-top: -.1rem;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-align: right;
+    }
+
     .emprende-sheet {
       width: min(920px, calc(100vw - 1.5rem));
       max-width: 920px;
@@ -1189,7 +1198,9 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
               </div>
               <label for="mensaje">Contanos brevemente qué está pasando hoy
                 <textarea id="mensaje" name="mensaje"
-                  placeholder="Ejemplo: hoy tenemos información repartida en varias planillas y nos cuesta hacer seguimiento del trabajo."></textarea>
+                  placeholder="Ejemplo: hoy tenemos información repartida en varias planillas y nos cuesta hacer seguimiento del trabajo."
+                  maxlength="1000"></textarea>
+                <small class="form-counter" id="contact-consultation-counter">0 / 1000</small>
               </label>
               <div class="captcha-row">
                 <label for="captcha">Captcha
@@ -1405,10 +1416,19 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
       const whatsappField = form.querySelector('#contact_whatsapp');
       const objetivoField = form.querySelector('#objetivo');
       const mensajeField = form.querySelector('#mensaje');
+      const consultationCounter = document.getElementById('contact-consultation-counter');
       const captchaRow = form.querySelector('.captcha-row');
       const rows = form.querySelectorAll('.field-row');
       const secondRow = whatsappField?.closest('.field-row');
       const thirdRow = rows[2];
+
+      const updateConsultationCounter = () => {
+        if (!mensajeField || !consultationCounter) {
+          return;
+        }
+
+        consultationCounter.textContent = `${mensajeField.value.length} / 1000`;
+      };
 
       contactEmail?.setAttribute('required', 'required');
 
@@ -1433,7 +1453,10 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
       if (mensajeField) {
         mensajeField.id = 'contact_consultation';
         mensajeField.name = 'contact_consultation';
+        mensajeField.maxLength = 1000;
         renameLabel(mensajeField, 'Detalle');
+        mensajeField.addEventListener('input', updateConsultationCounter);
+        updateConsultationCounter();
       }
 
       removeField('#telefono');
@@ -1483,6 +1506,11 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
           return;
         }
 
+        if (payload.contact_consultation.length > 1000) {
+          showStatus('El detalle no puede superar los 1000 caracteres.');
+          return;
+        }
+
         setSubmitting(true);
 
         try {
@@ -1494,6 +1522,7 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
           }
 
           form.reset();
+          updateConsultationCounter();
           showStatus(result.message || 'Gracias. Tu mensaje fue enviado y te responderemos a la brevedad.', true);
         } catch (error) {
           showStatus(error.message || 'No se pudo enviar el mensaje en este momento. Intenta nuevamente en unos minutos.');
