@@ -91,7 +91,7 @@ if (!function_exists('userDashEstado')) {
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
+        <a class="im-nav-item activo" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php" data-seccion="dashboard">
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>

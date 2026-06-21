@@ -34,11 +34,11 @@ if (!function_exists('definicionH')) {
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php" data-seccion="dashboard">
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php">
+        <a class="im-nav-item activo" href="/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php">
           <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
           <span class="im-nav-item__texto">Definicion</span>
         </a>

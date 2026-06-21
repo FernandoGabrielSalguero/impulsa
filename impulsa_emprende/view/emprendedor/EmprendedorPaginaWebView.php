@@ -48,7 +48,7 @@ if (!function_exists('paginaWebFecha')) {
         </div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php" data-seccion="dashboard">
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
@@ -56,7 +56,7 @@ if (!function_exists('paginaWebFecha')) {
           <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
           <span class="im-nav-item__texto">Definicion</span>
         </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php">
+        <a class="im-nav-item activo" href="/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php">
           <span class="material-symbols-rounded" aria-hidden="true">web</span>
           <span class="im-nav-item__texto">Pagina web</span>
         </a>
