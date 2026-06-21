@@ -28,13 +28,34 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
         <div class="im-marca__texto"><strong><?= $h($usuarioMarcaNombre) ?></strong><span>Emprendedor</span></div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php"><span class="material-symbols-rounded" aria-hidden="true">dashboard</span><span class="im-nav-item__texto">Dashboard</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php"><span class="material-symbols-rounded" aria-hidden="true">psychology</span><span class="im-nav-item__texto">Definicion</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php"><span class="material-symbols-rounded" aria-hidden="true">web</span><span class="im-nav-item__texto">Pagina web</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorMarketingController.php"><span class="material-symbols-rounded" aria-hidden="true">campaign</span><span class="im-nav-item__texto">Marketing</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorChatbotController.php"><span class="material-symbols-rounded" aria-hidden="true">forum</span><span class="im-nav-item__texto">Chatbot</span></a>
-        <a class="im-nav-item activo" href="#api-blog-builder" data-seccion="api-blog-builder"><span class="material-symbols-rounded" aria-hidden="true">article</span><span class="im-nav-item__texto">Blog</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorProductController.php"><span class="material-symbols-rounded" aria-hidden="true">inventory_2</span><span class="im-nav-item__texto">Productos</span></a>
+        <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard">
+          <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
+          <span class="im-nav-item__texto">Dashboard</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
+          <span class="im-nav-item__texto">Definicion</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">web</span>
+          <span class="im-nav-item__texto">Pagina web</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorMarketingController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
+          <span class="im-nav-item__texto">Marketing</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorChatbotController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">forum</span>
+          <span class="im-nav-item__texto">Chatbot</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorBlogController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">article</span>
+          <span class="im-nav-item__texto">Blog</span>
+        </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorProductController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+          <span class="im-nav-item__texto">Productos</span>
+        </a>
       </nav>
     </aside>
     <div class="im-cortina" data-cerrar-menu></div>
