@@ -94,7 +94,7 @@ if (!function_exists('definicionH')) {
           </div>
 
           <div class="im-acordeon">
-            <details class="im-expansion" id="mision" open>
+            <details class="im-expansion" id="mision">
               <summary>Mision <span class="im-chip <?= $misionCompleta ? 'im-chip--completado' : 'im-chip--pendiente' ?>"><?= $misionCompleta ? 'Completado' : 'Incompleto' ?></span></summary>
               <?php require __DIR__ . '/../../partials/mision/misionView.php'; ?>
             </details>
