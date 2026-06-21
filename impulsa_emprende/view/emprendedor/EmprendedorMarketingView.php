@@ -31,7 +31,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
         <div class="im-marca__texto"><strong><?= $h($usuarioMarcaNombre) ?></strong><span>Emprendedor</span></div>
       </div>
       <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php" data-seccion="dashboard">
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php">
           <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
           <span class="im-nav-item__texto">Dashboard</span>
         </a>
