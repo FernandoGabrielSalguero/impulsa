@@ -64,6 +64,13 @@ $estadoTexto = static function (string $estado): string {
     .im-api-metrica strong { display: block; margin-top: .25rem; font-size: 1.2rem; }
     .im-api-snippets { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: .85rem; }
     .im-api-snippet { display: grid; gap: .5rem; }
+    .im-api-helper { display: grid; gap: .75rem; padding: .85rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-chico); background: color-mix(in srgb, var(--im-color-superficie) 92%, var(--im-color-primario) 8%); }
+    .im-api-helper__intro,
+    .im-api-helper__uso { margin: 0; color: var(--im-color-texto-suave); font-size: .85rem; line-height: 1.5; }
+    .im-api-helper__lista { display: grid; gap: .55rem; }
+    .im-api-helper__item { display: grid; gap: .2rem; }
+    .im-api-helper__item strong { font-size: .92rem; }
+    .im-api-helper__item span { color: var(--im-color-texto-suave); font-size: .82rem; line-height: 1.45; }
     .im-api-snippet pre { margin: 0; padding: 1rem; overflow: auto; border-radius: var(--im-radio-chico); background: #111827; color: #f9fafb; font-size: .85rem; }
     .im-api-secret { word-break: break-all; }
     .im-api-secret--protegida { color: var(--im-color-texto-suave); font-size: .9rem; }
@@ -399,6 +406,24 @@ $estadoTexto = static function (string $estado): string {
             </div>
             <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-all-snippets">Copiar todo</button>
           </div>
+          <div class="im-api-helper">
+            <p class="im-api-helper__intro">Orden sugerido: configura visitas, conecta el formulario si vas a capturar leads y suma blog, productos o chatbot solo donde los necesites.</p>
+            <div class="im-api-helper__lista">
+              <div class="im-api-helper__item">
+                <strong>`public_key`</strong>
+                <span>Obligatorio. String. Identifica la integracion y debe coincidir con el dominio autorizado.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`apiBaseUrl`</strong>
+                <span>Obligatorio para visitas. URL absoluta terminada en `/api`.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`action`, `slug`, `page`, `contact_*`</strong>
+                <span>Campos opcionales segun el endpoint. Respetan formato string simple o ruta relativa.</span>
+              </div>
+            </div>
+            <p class="im-api-helper__uso">Integra cada bloque dentro del HTML o del JavaScript de tu web, reemplazando variables de ejemplo como `formName`, `formEmail`, `formPhone`, `formMessage` y `mi-post` por datos reales de tu implementación.</p>
+          </div>
           <pre id="api-detalle-all-snippets"><code data-api-detalle-all-snippets></code></pre>
         </div>
         <div class="im-api-snippet">
@@ -408,6 +433,20 @@ $estadoTexto = static function (string $estado): string {
               <p>Usa `visit-tracker.js` y solo expone la clave publica.</p>
             </div>
             <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-visit-snippet">Copiar</button>
+          </div>
+          <div class="im-api-helper">
+            <p class="im-api-helper__intro">Este snippet registra visitas de la pagina actual en segundo plano.</p>
+            <div class="im-api-helper__lista">
+              <div class="im-api-helper__item">
+                <strong>`publicKey`</strong>
+                <span>Obligatorio. String. Debe ser la clave publica de la integracion.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`apiBaseUrl`</strong>
+                <span>Obligatorio. URL absoluta del backend con sufijo `/api`.</span>
+              </div>
+            </div>
+            <p class="im-api-helper__uso">Pegalo antes de cerrar `&lt;/body&gt;` para que `window.IMPULSA_API_CONFIG` quede definido antes de cargar `visit-tracker.js`.</p>
           </div>
           <pre id="api-detalle-visit-snippet"><code data-api-detalle-visit-snippet></code></pre>
         </div>
@@ -419,6 +458,28 @@ $estadoTexto = static function (string $estado): string {
             </div>
             <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-form-snippet">Copiar</button>
           </div>
+          <div class="im-api-helper">
+            <p class="im-api-helper__intro">Este endpoint recibe leads desde formularios externos en formato JSON.</p>
+            <div class="im-api-helper__lista">
+              <div class="im-api-helper__item">
+                <strong>`public_key`</strong>
+                <span>Obligatorio. String. Vincula el contacto con la integracion correcta.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`page`</strong>
+                <span>Obligatorio. String. Ruta o URL de la pagina donde se envio el formulario.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`contact_nombre`, `contact_email`</strong>
+                <span>Obligatorios. String. Conviene enviar nombre completo y email valido.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`contact_whatsapp`, `contact_description`</strong>
+                <span>Opcionales. String. Telefono y mensaje libre del usuario.</span>
+              </div>
+            </div>
+            <p class="im-api-helper__uso">Llamalo en el `submit` del formulario, valida los datos antes de hacer `fetch` y mantené `Content-Type: application/json`.</p>
+          </div>
           <pre id="api-detalle-form-snippet"><code data-api-detalle-form-snippet></code></pre>
         </div>
         <div class="im-api-snippet">
@@ -428,6 +489,16 @@ $estadoTexto = static function (string $estado): string {
               <p>Inserta el widget del chatbot usando la misma public key de la integracion.</p>
             </div>
             <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-chatbot-snippet">Copiar</button>
+          </div>
+          <div class="im-api-helper">
+            <p class="im-api-helper__intro">Carga el widget del chatbot desde un script remoto asociado a la integracion.</p>
+            <div class="im-api-helper__lista">
+              <div class="im-api-helper__item">
+                <strong>`public_key`</strong>
+                <span>Obligatorio. Query param en la URL del script. Formato string.</span>
+              </div>
+            </div>
+            <p class="im-api-helper__uso">Pegalo una sola vez por pagina, preferentemente al final del HTML, y verificá que no exista otro widget cargando la misma integracion.</p>
           </div>
           <pre id="api-detalle-chatbot-snippet"><code data-api-detalle-chatbot-snippet></code></pre>
         </div>
@@ -439,6 +510,20 @@ $estadoTexto = static function (string $estado): string {
             </div>
             <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-blog-list-snippet">Copiar</button>
           </div>
+          <div class="im-api-helper">
+            <p class="im-api-helper__intro">Devuelve el listado de posts disponibles para renderizar grillas, cards o sliders.</p>
+            <div class="im-api-helper__lista">
+              <div class="im-api-helper__item">
+                <strong>`action`</strong>
+                <span>Obligatorio. String fijo con valor `list`.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`public_key`</strong>
+                <span>Obligatorio. String. Define qué publicaciones puede consultar el sitio.</span>
+              </div>
+            </div>
+            <p class="im-api-helper__uso">Ejecutalo al cargar la seccion del blog y usá la respuesta para pintar el listado en tu frontend.</p>
+          </div>
           <pre id="api-detalle-blog-list-snippet"><code data-api-detalle-blog-list-snippet></code></pre>
         </div>
         <div class="im-api-snippet">
@@ -448,6 +533,24 @@ $estadoTexto = static function (string $estado): string {
               <p>Obtiene una publicacion por slug o id.</p>
             </div>
             <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-blog-detail-snippet">Copiar</button>
+          </div>
+          <div class="im-api-helper">
+            <p class="im-api-helper__intro">Consulta el detalle de un post puntual para una pagina individual.</p>
+            <div class="im-api-helper__lista">
+              <div class="im-api-helper__item">
+                <strong>`action`</strong>
+                <span>Obligatorio. String fijo con valor `detail`.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`public_key`</strong>
+                <span>Obligatorio. String. Identifica la integracion.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`slug`</strong>
+                <span>Obligatorio en este ejemplo. String tipo slug URL-friendly, por ejemplo `mi-post`.</span>
+              </div>
+            </div>
+            <p class="im-api-helper__uso">Reemplazá `mi-post` por el slug real del contenido y hacé la consulta al entrar a la vista de detalle.</p>
           </div>
           <pre id="api-detalle-blog-detail-snippet"><code data-api-detalle-blog-detail-snippet></code></pre>
         </div>
@@ -459,6 +562,20 @@ $estadoTexto = static function (string $estado): string {
             </div>
             <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-producto-list-snippet">Copiar</button>
           </div>
+          <div class="im-api-helper">
+            <p class="im-api-helper__intro">Devuelve el catalogo de productos disponibles para la integracion actual.</p>
+            <div class="im-api-helper__lista">
+              <div class="im-api-helper__item">
+                <strong>`action`</strong>
+                <span>Obligatorio. String fijo con valor `list`.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`public_key`</strong>
+                <span>Obligatorio. String. Habilita la consulta del catalogo correcto.</span>
+              </div>
+            </div>
+            <p class="im-api-helper__uso">Usalo para poblar listados o vitrinas y procesá la respuesta antes de renderizar precios, imagenes o enlaces.</p>
+          </div>
           <pre id="api-detalle-producto-list-snippet"><code data-api-detalle-producto-list-snippet></code></pre>
         </div>
         <div class="im-api-snippet">
@@ -468,6 +585,24 @@ $estadoTexto = static function (string $estado): string {
               <p>Obtiene un producto por slug o id.</p>
             </div>
             <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-producto-detail-snippet">Copiar</button>
+          </div>
+          <div class="im-api-helper">
+            <p class="im-api-helper__intro">Trae el detalle de un producto especifico para fichas individuales.</p>
+            <div class="im-api-helper__lista">
+              <div class="im-api-helper__item">
+                <strong>`action`</strong>
+                <span>Obligatorio. String fijo con valor `detail`.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`public_key`</strong>
+                <span>Obligatorio. String. Identifica la integracion que consulta el producto.</span>
+              </div>
+              <div class="im-api-helper__item">
+                <strong>`slug`</strong>
+                <span>Obligatorio en este ejemplo. String tipo slug URL-friendly, por ejemplo `mi-producto`.</span>
+              </div>
+            </div>
+            <p class="im-api-helper__uso">Reemplazá `mi-producto` por el slug real del item y ejecutá la consulta al resolver la ruta o el selector del producto.</p>
           </div>
           <pre id="api-detalle-producto-detail-snippet"><code data-api-detalle-producto-detail-snippet></code></pre>
         </div>
