@@ -62,16 +62,21 @@ $estadoTexto = static function (string $estado): string {
     .im-api-metrica { padding: .85rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-chico); background: var(--im-color-superficie); }
     .im-api-metrica span { display: block; color: var(--im-color-texto-suave); font-size: .82rem; }
     .im-api-metrica strong { display: block; margin-top: .25rem; font-size: 1.2rem; }
-    .im-api-snippets { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: .85rem; }
-    .im-api-snippet { display: grid; gap: .5rem; }
-    .im-api-helper { display: grid; gap: .75rem; padding: .85rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-chico); background: color-mix(in srgb, var(--im-color-superficie) 92%, var(--im-color-primario) 8%); }
-    .im-api-helper__intro,
-    .im-api-helper__uso { margin: 0; color: var(--im-color-texto-suave); font-size: .85rem; line-height: 1.5; }
-    .im-api-helper__lista { display: grid; gap: .55rem; }
-    .im-api-helper__item { display: grid; gap: .2rem; }
-    .im-api-helper__item strong { font-size: .92rem; }
-    .im-api-helper__item span { color: var(--im-color-texto-suave); font-size: .82rem; line-height: 1.45; }
-    .im-api-snippet pre { margin: 0; padding: 1rem; overflow: auto; border-radius: var(--im-radio-chico); background: #111827; color: #f9fafb; font-size: .85rem; }
+    .im-api-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 1rem; align-items: start; }
+    .im-api-panel { display: grid; gap: .85rem; padding: 1rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-mediano); background: var(--im-color-superficie); }
+    .im-api-panel__cabecera { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: flex-start; }
+    .im-api-panel__cabecera p,
+    .im-api-panel__intro,
+    .im-api-doc__texto,
+    .im-api-doc__uso,
+    .im-api-doc__consideracion { margin: 0; color: var(--im-color-texto-suave); font-size: .85rem; line-height: 1.5; }
+    .im-api-panel pre { margin: 0; padding: 1rem; overflow: auto; border-radius: var(--im-radio-chico); background: #111827; color: #f9fafb; font-size: .85rem; min-height: 420px; }
+    .im-api-docs { display: grid; gap: .85rem; max-height: 100%; overflow: auto; }
+    .im-api-doc { display: grid; gap: .75rem; padding: .9rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-chico); background: color-mix(in srgb, var(--im-color-superficie) 94%, var(--im-color-primario) 6%); }
+    .im-api-doc__lista { display: grid; gap: .5rem; }
+    .im-api-doc__item { display: grid; gap: .15rem; }
+    .im-api-doc__item strong { font-size: .92rem; }
+    .im-api-doc__item span { color: var(--im-color-texto-suave); font-size: .82rem; line-height: 1.45; }
     .im-api-secret { word-break: break-all; }
     .im-api-secret--protegida { color: var(--im-color-texto-suave); font-size: .9rem; }
     .im-api-copy-linea { display: flex; align-items: center; gap: .5rem; min-width: 0; }
@@ -82,8 +87,10 @@ $estadoTexto = static function (string $estado): string {
     @media (max-width: 900px) {
       .im-api-form,
       .im-api-card__metricas,
-      .im-api-snippets,
+      .im-api-layout,
       .im-api-tabla-modal__grid { grid-template-columns: 1fr; }
+      .im-api-panel pre { min-height: 320px; }
+      .im-api-docs { max-height: none; overflow: visible; }
     }
   </style>
 </head>
@@ -246,14 +253,93 @@ $estadoTexto = static function (string $estado): string {
                       <?php foreach ($integraciones as $integracion): ?>
                         <?php
                           $integrationId = (int) ($integracion['id'] ?? 0);
-                          $visitSnippet = "<script>\nwindow.IMPULSA_API_CONFIG = {\n  publicKey: \"" . ($integracion['public_key'] ?? '') . "\",\n  apiBaseUrl: \"" . rtrim($appBaseUrl, '/') . "/api\"\n};\n</script>\n<script src=\"" . rtrim($appBaseUrl, '/') . "/assets/impulsa_material/js/visit-tracker.js\"></script>";
+                          $apiBase = rtrim($appBaseUrl, '/') . "/api";
+                          $visitTrackerSrc = rtrim($appBaseUrl, '/') . "/assets/impulsa_material/js/visit-tracker.js";
+                          $chatbotUrl = $apiBase . "/chatbot_widget/widget.js?public_key=" . ($integracion['public_key'] ?? '');
+                          $visitSnippet = "<script>\nwindow.IMPULSA_API_CONFIG = {\n  publicKey: \"" . ($integracion['public_key'] ?? '') . "\",\n  apiBaseUrl: \"" . $apiBase . "\"\n};\n</script>\n<script src=\"" . $visitTrackerSrc . "\"></script>";
                           $formSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/contact_form_landing_page/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    page: window.location.pathname,\n    contact_nombre: formName,\n    contact_email: formEmail,\n    contact_whatsapp: formPhone,\n    contact_description: formMessage\n  })\n});";
-                          $chatbotSnippet = "<script src=\"" . rtrim($appBaseUrl, '/') . "/api/chatbot_widget/widget.js?public_key=" . ($integracion['public_key'] ?? '') . "\"></script>";
+                          $chatbotSnippet = "<script src=\"" . $chatbotUrl . "\"></script>";
                           $blogListSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/blog_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"list\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\"\n  })\n});";
                           $blogDetailSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/blog_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"detail\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    slug: \"mi-post\"\n  })\n});";
                           $productoListSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/producto_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"list\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\"\n  })\n});";
                           $productoDetailSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/producto_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"detail\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    slug: \"mi-producto\"\n  })\n});";
-                          $allSnippets = "<!-- Visitas -->\n" . $visitSnippet . "\n\n<!-- Formulario -->\n<script>\n" . $formSnippet . "\n</script>\n\n<!-- Chatbot -->\n" . $chatbotSnippet . "\n\n<!-- Blog list -->\n<script>\n" . $blogListSnippet . "\n</script>\n\n<!-- Blog detail -->\n<script>\n" . $blogDetailSnippet . "\n</script>\n\n<!-- Producto list -->\n<script>\n" . $productoListSnippet . "\n</script>\n\n<!-- Producto detail -->\n<script>\n" . $productoDetailSnippet . "\n</script>";
+                          $allSnippets = "(function () {\n"
+                              . "  const IMPULSA_CONFIG = {\n"
+                              . "    publicKey: \"" . ($integracion['public_key'] ?? '') . "\",\n"
+                              . "    apiBaseUrl: \"" . $apiBase . "\",\n"
+                              . "    visitTrackerSrc: \"" . $visitTrackerSrc . "\",\n"
+                              . "    chatbotScriptUrl: \"" . $chatbotUrl . "\"\n"
+                              . "  };\n\n"
+                              . "  window.IMPULSA_API_CONFIG = {\n"
+                              . "    publicKey: IMPULSA_CONFIG.publicKey,\n"
+                              . "    apiBaseUrl: IMPULSA_CONFIG.apiBaseUrl\n"
+                              . "  };\n\n"
+                              . "  const postJson = (endpoint, payload) => fetch(endpoint, {\n"
+                              . "    method: \"POST\",\n"
+                              . "    headers: {\n"
+                              . "      \"Content-Type\": \"application/json\"\n"
+                              . "    },\n"
+                              . "    body: JSON.stringify(payload)\n"
+                              . "  });\n\n"
+                              . "  const ensureVisitTracker = () => {\n"
+                              . "    if (document.querySelector('script[data-impulsa-visit-tracker]')) {\n"
+                              . "      return;\n"
+                              . "    }\n\n"
+                              . "    const script = document.createElement(\"script\");\n"
+                              . "    script.src = IMPULSA_CONFIG.visitTrackerSrc;\n"
+                              . "    script.async = true;\n"
+                              . "    script.dataset.impulsaVisitTracker = \"true\";\n"
+                              . "    document.body.appendChild(script);\n"
+                              . "  };\n\n"
+                              . "  const mountChatbot = () => {\n"
+                              . "    if (document.querySelector('script[data-impulsa-chatbot]')) {\n"
+                              . "      return;\n"
+                              . "    }\n\n"
+                              . "    const script = document.createElement(\"script\");\n"
+                              . "    script.src = IMPULSA_CONFIG.chatbotScriptUrl;\n"
+                              . "    script.async = true;\n"
+                              . "    script.dataset.impulsaChatbot = \"true\";\n"
+                              . "    document.body.appendChild(script);\n"
+                              . "  };\n\n"
+                              . "  window.ImpulsaAPI = {\n"
+                              . "    config: IMPULSA_CONFIG,\n"
+                              . "    trackVisits: ensureVisitTracker,\n"
+                              . "    sendContact: ({\n"
+                              . "      page = window.location.pathname,\n"
+                              . "      contact_nombre,\n"
+                              . "      contact_email,\n"
+                              . "      contact_whatsapp = \"\",\n"
+                              . "      contact_description = \"\"\n"
+                              . "    }) => postJson(IMPULSA_CONFIG.apiBaseUrl + \"/contact_form_landing_page/index.php\", {\n"
+                              . "      public_key: IMPULSA_CONFIG.publicKey,\n"
+                              . "      page,\n"
+                              . "      contact_nombre,\n"
+                              . "      contact_email,\n"
+                              . "      contact_whatsapp,\n"
+                              . "      contact_description\n"
+                              . "    }),\n"
+                              . "    getBlogList: () => postJson(IMPULSA_CONFIG.apiBaseUrl + \"/blog_api/index.php\", {\n"
+                              . "      action: \"list\",\n"
+                              . "      public_key: IMPULSA_CONFIG.publicKey\n"
+                              . "    }),\n"
+                              . "    getBlogDetail: ({ slug }) => postJson(IMPULSA_CONFIG.apiBaseUrl + \"/blog_api/index.php\", {\n"
+                              . "      action: \"detail\",\n"
+                              . "      public_key: IMPULSA_CONFIG.publicKey,\n"
+                              . "      slug: slug || \"mi-post\"\n"
+                              . "    }),\n"
+                              . "    getProductList: () => postJson(IMPULSA_CONFIG.apiBaseUrl + \"/producto_api/index.php\", {\n"
+                              . "      action: \"list\",\n"
+                              . "      public_key: IMPULSA_CONFIG.publicKey\n"
+                              . "    }),\n"
+                              . "    getProductDetail: ({ slug }) => postJson(IMPULSA_CONFIG.apiBaseUrl + \"/producto_api/index.php\", {\n"
+                              . "      action: \"detail\",\n"
+                              . "      public_key: IMPULSA_CONFIG.publicKey,\n"
+                              . "      slug: slug || \"mi-producto\"\n"
+                              . "    }),\n"
+                              . "    mountChatbot\n"
+                              . "  };\n\n"
+                              . "  window.ImpulsaAPI.trackVisits();\n"
+                              . "})();";
                           $payloadModal = [
                               'id' => $integrationId,
                               'project_name' => (string) ($integracion['project_name'] ?? ''),
@@ -264,13 +350,6 @@ $estadoTexto = static function (string $estado): string {
                               'total_contacts' => (int) ($integracion['total_contacts'] ?? 0),
                               'last_used_at' => $formatearFecha($integracion['last_used_at'] ?? null),
                               'updated_at' => $formatearFecha($integracion['updated_at'] ?? null),
-                              'visit_snippet' => $visitSnippet,
-                              'form_snippet' => $formSnippet,
-                              'chatbot_snippet' => $chatbotSnippet,
-                              'blog_list_snippet' => $blogListSnippet,
-                              'blog_detail_snippet' => $blogDetailSnippet,
-                              'producto_list_snippet' => $productoListSnippet,
-                              'producto_detail_snippet' => $productoDetailSnippet,
                               'all_snippets' => $allSnippets,
                           ];
                         ?>
@@ -397,215 +476,165 @@ $estadoTexto = static function (string $estado): string {
         </form>
       </div>
 
-      <div class="im-api-snippets">
-        <div class="im-api-snippet">
-          <div class="im-tarjeta__cabecera">
+      <div class="im-api-layout">
+        <section class="im-api-panel" aria-labelledby="api-detalle-integracion-total">
+          <div class="im-api-panel__cabecera">
             <div>
-              <h4>Todos los snippets</h4>
-              <p>Copia todo el bloque listo para pegarlo donde corresponda.</p>
+              <h4 id="api-detalle-integracion-total">Integracion completa</h4>
+              <p>Un solo bloque con toda la configuracion y helpers para visitas, formulario, blog, productos y chatbot.</p>
             </div>
-            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-all-snippets">Copiar todo</button>
+            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-all-snippets">Copiar todo el JS</button>
           </div>
-          <div class="im-api-helper">
-            <p class="im-api-helper__intro">Orden sugerido: configura visitas, conecta el formulario si vas a capturar leads y suma blog, productos o chatbot solo donde los necesites.</p>
-            <div class="im-api-helper__lista">
-              <div class="im-api-helper__item">
-                <strong>`public_key`</strong>
-                <span>Obligatorio. String. Identifica la integracion y debe coincidir con el dominio autorizado.</span>
-              </div>
-              <div class="im-api-helper__item">
-                <strong>`apiBaseUrl`</strong>
-                <span>Obligatorio para visitas. URL absoluta terminada en `/api`.</span>
-              </div>
-              <div class="im-api-helper__item">
-                <strong>`action`, `slug`, `page`, `contact_*`</strong>
-                <span>Campos opcionales segun el endpoint. Respetan formato string simple o ruta relativa.</span>
-              </div>
-            </div>
-            <p class="im-api-helper__uso">Integra cada bloque dentro del HTML o del JavaScript de tu web, reemplazando variables de ejemplo como `formName`, `formEmail`, `formPhone`, `formMessage` y `mi-post` por datos reales de tu implementación.</p>
-          </div>
+          <p class="im-api-panel__intro">Pegalo una vez en tu web, idealmente despues de cargar el DOM. El bloque crea `window.ImpulsaAPI`, autoactiva el tracker de visitas y deja disponibles los helpers para el resto de endpoints.</p>
           <pre id="api-detalle-all-snippets"><code data-api-detalle-all-snippets></code></pre>
-        </div>
-        <div class="im-api-snippet">
-          <div class="im-tarjeta__cabecera">
+        </section>
+
+        <aside class="im-api-docs" aria-label="Documentacion de APIs">
+          <article class="im-api-doc">
             <div>
-              <h4>Snippet visitas</h4>
-              <p>Usa `visit-tracker.js` y solo expone la clave publica.</p>
+              <h4>API de visitas</h4>
+              <p class="im-api-doc__texto">Registra visitas de la pagina usando la clave publica de la integracion.</p>
             </div>
-            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-visit-snippet">Copiar</button>
-          </div>
-          <div class="im-api-helper">
-            <p class="im-api-helper__intro">Este snippet registra visitas de la pagina actual en segundo plano.</p>
-            <div class="im-api-helper__lista">
-              <div class="im-api-helper__item">
-                <strong>`publicKey`</strong>
-                <span>Obligatorio. String. Debe ser la clave publica de la integracion.</span>
+            <div class="im-api-doc__lista">
+              <div class="im-api-doc__item">
+                <strong>Campos esperados</strong>
+                <span>`publicKey` y `apiBaseUrl` dentro de `window.IMPULSA_API_CONFIG`.</span>
               </div>
-              <div class="im-api-helper__item">
-                <strong>`apiBaseUrl`</strong>
-                <span>Obligatorio. URL absoluta del backend con sufijo `/api`.</span>
+              <div class="im-api-doc__item">
+                <strong>Obligatorios</strong>
+                <span>`publicKey`: string. `apiBaseUrl`: URL absoluta terminada en `/api`.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Opcionales</strong>
+                <span>No requiere payload adicional en el uso base.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Uso</strong>
+                <span>El bloque unificado ejecuta `trackVisits()` automaticamente y carga `visit-tracker.js` una sola vez.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Consideracion</strong>
+                <span>La pagina debe correr dentro del dominio autorizado para que la integracion sea valida.</span>
               </div>
             </div>
-            <p class="im-api-helper__uso">Pegalo antes de cerrar `&lt;/body&gt;` para que `window.IMPULSA_API_CONFIG` quede definido antes de cargar `visit-tracker.js`.</p>
-          </div>
-          <pre id="api-detalle-visit-snippet"><code data-api-detalle-visit-snippet></code></pre>
-        </div>
-        <div class="im-api-snippet">
-          <div class="im-tarjeta__cabecera">
+          </article>
+
+          <article class="im-api-doc">
             <div>
-              <h4>Snippet formulario</h4>
-              <p>Envia el contacto asociado a esta integracion.</p>
+              <h4>API de formulario</h4>
+              <p class="im-api-doc__texto">Envia leads externos al endpoint de contactos de la landing.</p>
             </div>
-            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-form-snippet">Copiar</button>
-          </div>
-          <div class="im-api-helper">
-            <p class="im-api-helper__intro">Este endpoint recibe leads desde formularios externos en formato JSON.</p>
-            <div class="im-api-helper__lista">
-              <div class="im-api-helper__item">
-                <strong>`public_key`</strong>
-                <span>Obligatorio. String. Vincula el contacto con la integracion correcta.</span>
+            <div class="im-api-doc__lista">
+              <div class="im-api-doc__item">
+                <strong>Campos esperados</strong>
+                <span>`page`, `contact_nombre`, `contact_email`, `contact_whatsapp`, `contact_description`.</span>
               </div>
-              <div class="im-api-helper__item">
-                <strong>`page`</strong>
-                <span>Obligatorio. String. Ruta o URL de la pagina donde se envio el formulario.</span>
+              <div class="im-api-doc__item">
+                <strong>Obligatorios</strong>
+                <span>`page`, `contact_nombre`, `contact_email`. Todos como string; `contact_email` debe tener formato email.</span>
               </div>
-              <div class="im-api-helper__item">
-                <strong>`contact_nombre`, `contact_email`</strong>
-                <span>Obligatorios. String. Conviene enviar nombre completo y email valido.</span>
+              <div class="im-api-doc__item">
+                <strong>Opcionales</strong>
+                <span>`contact_whatsapp` y `contact_description`, ambos string.</span>
               </div>
-              <div class="im-api-helper__item">
-                <strong>`contact_whatsapp`, `contact_description`</strong>
-                <span>Opcionales. String. Telefono y mensaje libre del usuario.</span>
+              <div class="im-api-doc__item">
+                <strong>Uso</strong>
+                <span>Llama `window.ImpulsaAPI.sendContact({...})` en el `submit` del formulario y envia JSON.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Consideracion</strong>
+                <span>Valida antes de enviar y reemplaza los valores de ejemplo por datos reales del formulario.</span>
               </div>
             </div>
-            <p class="im-api-helper__uso">Llamalo en el `submit` del formulario, valida los datos antes de hacer `fetch` y mantené `Content-Type: application/json`.</p>
-          </div>
-          <pre id="api-detalle-form-snippet"><code data-api-detalle-form-snippet></code></pre>
-        </div>
-        <div class="im-api-snippet">
-          <div class="im-tarjeta__cabecera">
+          </article>
+
+          <article class="im-api-doc">
             <div>
-              <h4>Snippet chatbot</h4>
-              <p>Inserta el widget del chatbot usando la misma public key de la integracion.</p>
+              <h4>API de chatbot</h4>
+              <p class="im-api-doc__texto">Inserta el widget remoto del chatbot asociado a la clave publica.</p>
             </div>
-            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-chatbot-snippet">Copiar</button>
-          </div>
-          <div class="im-api-helper">
-            <p class="im-api-helper__intro">Carga el widget del chatbot desde un script remoto asociado a la integracion.</p>
-            <div class="im-api-helper__lista">
-              <div class="im-api-helper__item">
-                <strong>`public_key`</strong>
-                <span>Obligatorio. Query param en la URL del script. Formato string.</span>
+            <div class="im-api-doc__lista">
+              <div class="im-api-doc__item">
+                <strong>Campos esperados</strong>
+                <span>Usa `public_key` en la URL del script remoto.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Obligatorios</strong>
+                <span>`public_key`: string, embebido en `chatbotScriptUrl`.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Opcionales</strong>
+                <span>No requiere payload adicional.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Uso</strong>
+                <span>Ejecuta `window.ImpulsaAPI.mountChatbot()` solo en las paginas donde quieras mostrar el widget.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Consideracion</strong>
+                <span>El helper evita duplicados; no cargues otro script del mismo widget manualmente.</span>
               </div>
             </div>
-            <p class="im-api-helper__uso">Pegalo una sola vez por pagina, preferentemente al final del HTML, y verificá que no exista otro widget cargando la misma integracion.</p>
-          </div>
-          <pre id="api-detalle-chatbot-snippet"><code data-api-detalle-chatbot-snippet></code></pre>
-        </div>
-        <div class="im-api-snippet">
-          <div class="im-tarjeta__cabecera">
+          </article>
+
+          <article class="im-api-doc">
             <div>
-              <h4>Snippet blog list</h4>
-              <p>Consulta publicaciones activas para esta integracion.</p>
+              <h4>API de blog</h4>
+              <p class="im-api-doc__texto">Permite listar publicaciones activas y pedir el detalle de una nota puntual.</p>
             </div>
-            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-blog-list-snippet">Copiar</button>
-          </div>
-          <div class="im-api-helper">
-            <p class="im-api-helper__intro">Devuelve el listado de posts disponibles para renderizar grillas, cards o sliders.</p>
-            <div class="im-api-helper__lista">
-              <div class="im-api-helper__item">
-                <strong>`action`</strong>
-                <span>Obligatorio. String fijo con valor `list`.</span>
+            <div class="im-api-doc__lista">
+              <div class="im-api-doc__item">
+                <strong>Campos esperados</strong>
+                <span>`action`, `public_key` y, para detalle, `slug`.</span>
               </div>
-              <div class="im-api-helper__item">
-                <strong>`public_key`</strong>
-                <span>Obligatorio. String. Define qué publicaciones puede consultar el sitio.</span>
+              <div class="im-api-doc__item">
+                <strong>Obligatorios</strong>
+                <span>`action`: string con `list` o `detail`; `public_key`: string; `slug`: string URL-friendly para detalle.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Opcionales</strong>
+                <span>No hay extras en los snippets actuales.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Uso</strong>
+                <span>Usa `getBlogList()` para grillas y `getBlogDetail({ slug })` para la pagina individual.</span>
+              </div>
+              <div class="im-api-doc__item">
+                <strong>Consideracion</strong>
+                <span>Reemplaza `mi-post` por el slug real y procesa la respuesta antes de renderizar HTML.</span>
               </div>
             </div>
-            <p class="im-api-helper__uso">Ejecutalo al cargar la seccion del blog y usá la respuesta para pintar el listado en tu frontend.</p>
-          </div>
-          <pre id="api-detalle-blog-list-snippet"><code data-api-detalle-blog-list-snippet></code></pre>
-        </div>
-        <div class="im-api-snippet">
-          <div class="im-tarjeta__cabecera">
+          </article>
+
+          <article class="im-api-doc">
             <div>
-              <h4>Snippet blog detail</h4>
-              <p>Obtiene una publicacion por slug o id.</p>
+              <h4>API de productos</h4>
+              <p class="im-api-doc__texto">Expone el catalogo activo y el detalle de un producto concreto.</p>
             </div>
-            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-blog-detail-snippet">Copiar</button>
-          </div>
-          <div class="im-api-helper">
-            <p class="im-api-helper__intro">Consulta el detalle de un post puntual para una pagina individual.</p>
-            <div class="im-api-helper__lista">
-              <div class="im-api-helper__item">
-                <strong>`action`</strong>
-                <span>Obligatorio. String fijo con valor `detail`.</span>
+            <div class="im-api-doc__lista">
+              <div class="im-api-doc__item">
+                <strong>Campos esperados</strong>
+                <span>`action`, `public_key` y, para detalle, `slug`.</span>
               </div>
-              <div class="im-api-helper__item">
-                <strong>`public_key`</strong>
-                <span>Obligatorio. String. Identifica la integracion.</span>
+              <div class="im-api-doc__item">
+                <strong>Obligatorios</strong>
+                <span>`action`: string con `list` o `detail`; `public_key`: string; `slug`: string URL-friendly para detalle.</span>
               </div>
-              <div class="im-api-helper__item">
-                <strong>`slug`</strong>
-                <span>Obligatorio en este ejemplo. String tipo slug URL-friendly, por ejemplo `mi-post`.</span>
+              <div class="im-api-doc__item">
+                <strong>Opcionales</strong>
+                <span>No hay campos adicionales en la integracion actual.</span>
               </div>
-            </div>
-            <p class="im-api-helper__uso">Reemplazá `mi-post` por el slug real del contenido y hacé la consulta al entrar a la vista de detalle.</p>
-          </div>
-          <pre id="api-detalle-blog-detail-snippet"><code data-api-detalle-blog-detail-snippet></code></pre>
-        </div>
-        <div class="im-api-snippet">
-          <div class="im-tarjeta__cabecera">
-            <div>
-              <h4>Snippet producto list</h4>
-              <p>Consulta productos activos para esta integracion.</p>
-            </div>
-            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-producto-list-snippet">Copiar</button>
-          </div>
-          <div class="im-api-helper">
-            <p class="im-api-helper__intro">Devuelve el catalogo de productos disponibles para la integracion actual.</p>
-            <div class="im-api-helper__lista">
-              <div class="im-api-helper__item">
-                <strong>`action`</strong>
-                <span>Obligatorio. String fijo con valor `list`.</span>
+              <div class="im-api-doc__item">
+                <strong>Uso</strong>
+                <span>Usa `getProductList()` para vitrinas y `getProductDetail({ slug })` para fichas individuales.</span>
               </div>
-              <div class="im-api-helper__item">
-                <strong>`public_key`</strong>
-                <span>Obligatorio. String. Habilita la consulta del catalogo correcto.</span>
+              <div class="im-api-doc__item">
+                <strong>Consideracion</strong>
+                <span>Reemplaza `mi-producto` por el slug real y renderiza la respuesta con manejo de errores en frontend.</span>
               </div>
             </div>
-            <p class="im-api-helper__uso">Usalo para poblar listados o vitrinas y procesá la respuesta antes de renderizar precios, imagenes o enlaces.</p>
-          </div>
-          <pre id="api-detalle-producto-list-snippet"><code data-api-detalle-producto-list-snippet></code></pre>
-        </div>
-        <div class="im-api-snippet">
-          <div class="im-tarjeta__cabecera">
-            <div>
-              <h4>Snippet producto detail</h4>
-              <p>Obtiene un producto por slug o id.</p>
-            </div>
-            <button class="im-boton im-boton--texto" type="button" data-copy-target="api-detalle-producto-detail-snippet">Copiar</button>
-          </div>
-          <div class="im-api-helper">
-            <p class="im-api-helper__intro">Trae el detalle de un producto especifico para fichas individuales.</p>
-            <div class="im-api-helper__lista">
-              <div class="im-api-helper__item">
-                <strong>`action`</strong>
-                <span>Obligatorio. String fijo con valor `detail`.</span>
-              </div>
-              <div class="im-api-helper__item">
-                <strong>`public_key`</strong>
-                <span>Obligatorio. String. Identifica la integracion que consulta el producto.</span>
-              </div>
-              <div class="im-api-helper__item">
-                <strong>`slug`</strong>
-                <span>Obligatorio en este ejemplo. String tipo slug URL-friendly, por ejemplo `mi-producto`.</span>
-              </div>
-            </div>
-            <p class="im-api-helper__uso">Reemplazá `mi-producto` por el slug real del item y ejecutá la consulta al resolver la ruta o el selector del producto.</p>
-          </div>
-          <pre id="api-detalle-producto-detail-snippet"><code data-api-detalle-producto-detail-snippet></code></pre>
-        </div>
+          </article>
+        </aside>
       </div>
     </div>
     <footer class="im-dialog__acciones">
@@ -711,13 +740,6 @@ $estadoTexto = static function (string $estado): string {
         toggleText.textContent = data.status === 'active' ? 'Desactivar' : 'Activar';
         submitText.textContent = mode === 'domain' ? 'Actualizar URL' : 'Guardar cambios';
         modal.querySelector('[data-api-detalle-all-snippets]').textContent = data.all_snippets || '';
-        modal.querySelector('[data-api-detalle-visit-snippet]').textContent = data.visit_snippet || '';
-        modal.querySelector('[data-api-detalle-form-snippet]').textContent = data.form_snippet || '';
-        modal.querySelector('[data-api-detalle-chatbot-snippet]').textContent = data.chatbot_snippet || '';
-        modal.querySelector('[data-api-detalle-blog-list-snippet]').textContent = data.blog_list_snippet || '';
-        modal.querySelector('[data-api-detalle-blog-detail-snippet]').textContent = data.blog_detail_snippet || '';
-        modal.querySelector('[data-api-detalle-producto-list-snippet]').textContent = data.producto_list_snippet || '';
-        modal.querySelector('[data-api-detalle-producto-detail-snippet]').textContent = data.producto_detail_snippet || '';
       };
 
       document.querySelectorAll('[data-abrir-api-detalle]').forEach((button) => {
