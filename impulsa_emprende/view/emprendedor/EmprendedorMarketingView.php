@@ -43,6 +43,10 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
           <span class="material-symbols-rounded" aria-hidden="true">web</span>
           <span class="im-nav-item__texto">Pagina web</span>
         </a>
+        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorMetricasController.php">
+          <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
+          <span class="im-nav-item__texto">Metricas</span>
+        </a>
         <a class="im-nav-item activo" href="/impulsa_emprende/controller/emprendedor/EmprendedorMarketingController.php">
           <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
           <span class="im-nav-item__texto">Marketing</span>
