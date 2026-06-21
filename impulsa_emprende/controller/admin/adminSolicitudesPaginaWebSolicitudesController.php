@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
 require_once __DIR__ . '/../../model/admin/adminSolicitudesPaginaWebSolicitudesModel.php';
 require_once __DIR__ . '/../../mail/Mail.php';
+require_once __DIR__ . '/../../partials/components/admin/cimientos/emprendedor_cimientosController.php';
 
 $usuario = authRequiereRol('impulsa_administrador');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
@@ -81,6 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['solicitudes_web_estado'] = ['estado' => $estado, 'mensaje' => $mensaje];
     header('Location: /impulsa_emprende/controller/admin/adminSolicitudesPaginaWebSolicitudesController.php');
     exit;
+}
+
+if (($_GET['ajax'] ?? '') === 'cimientos_usuario') {
+    emprendedorCimientosResponderAjax($pdo);
 }
 
 $solicitudesPaginaWeb = $solicitudesPaginaWebModel->obtenerSolicitudes();

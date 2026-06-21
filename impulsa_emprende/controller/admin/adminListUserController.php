@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
 require_once __DIR__ . '/../../model/admin/adminListUserModel.php';
 require_once __DIR__ . '/../../mail/Mail.php';
+require_once __DIR__ . '/../../partials/components/admin/cimientos/emprendedor_cimientosController.php';
 
 $usuario = authRequiereRol('impulsa_administrador');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
@@ -79,6 +80,10 @@ if (($_GET['ajax'] ?? '') === 'usuarios') {
         'usuarios' => $adminListUserModel->buscarUsuarios($busqueda),
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
+}
+
+if (($_GET['ajax'] ?? '') === 'cimientos_usuario') {
+    emprendedorCimientosResponderAjax($pdo);
 }
 
 $estado = (string) ($_GET['estado'] ?? '');

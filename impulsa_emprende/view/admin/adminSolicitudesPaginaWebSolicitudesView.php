@@ -367,6 +367,7 @@ $nombreSolicitante = static function (array $solicitud): string {
   <?php require __DIR__ . '/../../partials/components/admin/solicitudes recibidas/ver detalle externa/modal.php'; ?>
   <?php require __DIR__ . '/../../partials/components/admin/solicitudes recibidas/alta usuario/modal.php'; ?>
   <?php require __DIR__ . '/../../partials/components/admin/solicitudes recibidas/crear proyecto/modal.php'; ?>
+  <?php require __DIR__ . '/../../partials/components/admin/cimientos/emprendedor_cimientosView.php'; ?>
 
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="../../../assets/impulsa_material/js/material.js"></script>

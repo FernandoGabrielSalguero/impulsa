@@ -359,6 +359,12 @@ $formatearFecha = static function (?string $fecha): string {
                           <div class="im-menu-tabla" data-im-menu>
                             <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
                             <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
+                              <?php if ($rol === 'impulsa_emprendedor'): ?>
+                                <button type="button" role="menuitem" data-ver-cimientos="<?= (int) ($usuarioListado['id'] ?? 0) ?>">
+                                  <span class="material-symbols-rounded" aria-hidden="true">foundation</span>
+                                  Ver cimientos
+                                </button>
+                              <?php endif; ?>
                               <button class="im-usuario-accion-modificar" type="button" role="menuitem" data-modificar-usuario="<?= $toJson($usuarioListado) ?>">
                                 <span class="material-symbols-rounded" aria-hidden="true">edit</span>
                                 Modificar usuario
@@ -513,6 +519,8 @@ $formatearFecha = static function (?string $fecha): string {
     </form>
   </section>
 
+  <?php require __DIR__ . '/../../partials/components/admin/cimientos/emprendedor_cimientosView.php'; ?>
+
   <div class="im-bottom-sheet-cortina" data-cerrar-alta-usuario></div>
   <section class="im-bottom-sheet im-bottom-sheet--config" role="dialog" aria-modal="true" aria-labelledby="alta-usuario-titulo" aria-hidden="true" data-alta-usuario-sheet>
     <header class="im-bottom-sheet__cabecera">
@@ -622,6 +630,11 @@ $formatearFecha = static function (?string $fecha): string {
         <div class="im-menu-tabla" data-im-menu data-im-menu-dinamico>
           <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
           <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
+            ${String(usuario.rol || '') === 'impulsa_emprendedor' ? `
+            <button type="button" role="menuitem" data-ver-cimientos="${Number(usuario.id ?? 0)}">
+              <span class="material-symbols-rounded" aria-hidden="true">foundation</span>
+              Ver cimientos
+            </button>` : ''}
             <button class="im-usuario-accion-modificar" type="button" role="menuitem" data-modificar-usuario='${escapeHtml(JSON.stringify(usuario))}'>
               <span class="material-symbols-rounded" aria-hidden="true">edit</span>
               Modificar usuario

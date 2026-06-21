@@ -18,6 +18,12 @@ $atributoVerDetalleAccion = $esSolicitudInternaAccion ? 'data-ver-solicitud' : '
       <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
       Ver detalle
     </button>
+    <?php if ($esSolicitudInternaAccion && $clienteUserIdAccion > 0): ?>
+      <button type="button" role="menuitem" data-ver-cimientos="<?= $clienteUserIdAccion ?>">
+        <span class="material-symbols-rounded" aria-hidden="true">foundation</span>
+        Ver cimientos
+      </button>
+    <?php endif; ?>
     <?php if (!$esSolicitudInternaAccion): ?>
       <button type="button" role="menuitem" data-alta-usuario-impulsa="<?= $solicitudIdAccion ?>" data-solicitud-correo="<?= $h($solicitudCorreoAccion) ?>" data-solicitud-nombre="<?= $h($solicitudNombreAccion) ?>" data-cliente-user-id="<?= $clienteUserIdAccion ?>">
         <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
