@@ -367,7 +367,7 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
           <span>Resumen</span>
           <textarea name="excerpt" rows="3" maxlength="300" placeholder=" " data-im-placeholder data-blog-field="excerpt"></textarea>
         </label>
-        <div class="im-campo im-campo--ancho im-blog-editor-wrap">
+        <div class="im-campo im-campo--ancho im-blog-editor-wrap"> 
           <span class="im-blog-editor-label">Texto del blog</span>
           <div class="im-blog-editor" data-quill-editor data-placeholder="Escribe el contenido del blog..."></div>
         </div>
