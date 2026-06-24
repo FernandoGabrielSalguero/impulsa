@@ -78,6 +78,7 @@ abstract class ApiContentSharedModel
 
     protected PDO $pdo;
     private ApiIntegrationAccessModel $integrationAccessModel;
+    private static array $debugEvents = [];
 
     public function __construct(PDO $pdo)
     {
@@ -178,8 +179,18 @@ abstract class ApiContentSharedModel
                 return null;
             }
 
-            $absolutePath = $this->resolverRutaArchivoLocal($storedPath, (string) ($fieldConfig['upload_dir'] ?? ''));
+            $uploadDir = (string) ($fieldConfig['upload_dir'] ?? '');
+            $absolutePath = $this->resolverRutaArchivoLocal($storedPath, $uploadDir);
             if ($absolutePath === null) {
+                $this->registrarEventoArchivo(
+                    'stored_path_missing_on_read',
+                    $fieldConfig,
+                    [
+                        'item_id' => $itemId,
+                        'stored_path' => $storedPath,
+                        'resolver_candidates' => $this->construirCandidatosRutaArchivo($storedPath, $uploadDir),
+                    ]
+                );
                 return null;
             }
 
@@ -452,6 +463,14 @@ abstract class ApiContentSharedModel
         unset($userId);
 
         return $normalizado;
+    }
+
+    public static function pullDebugEvents(): array
+    {
+        $events = self::$debugEvents;
+        self::$debugEvents = [];
+
+        return $events;
     }
 
     private function normalizarPayload(array $payload, int $integrationId, ?array $existente): array
@@ -765,9 +784,20 @@ abstract class ApiContentSharedModel
 
     private function resolverRutaArchivoLocal(string $storedPath, string $uploadDir): ?string
     {
+        foreach ($this->construirCandidatosRutaArchivo($storedPath, $uploadDir) as $candidate) {
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function construirCandidatosRutaArchivo(string $storedPath, string $uploadDir): array
+    {
         $storedPath = trim($storedPath);
         if ($storedPath === '') {
-            return null;
+            return [];
         }
 
         $normalizedStoredPath = str_replace('\\', '/', $storedPath);
@@ -775,8 +805,14 @@ abstract class ApiContentSharedModel
         $uploadDir = $this->normalizarRutaDirectorio($uploadDir);
 
         $candidates = [];
+        $pushCandidate = static function (string $candidate) use (&$candidates): void {
+            if ($candidate !== '' && !in_array($candidate, $candidates, true)) {
+                $candidates[] = $candidate;
+            }
+        };
+
         if ($uploadDir !== '') {
-            $candidates[] = $uploadDir . DIRECTORY_SEPARATOR . $baseName;
+            $pushCandidate($uploadDir . DIRECTORY_SEPARATOR . $baseName);
         }
 
         $repoRoot = dirname(__DIR__, 3);
@@ -784,17 +820,11 @@ abstract class ApiContentSharedModel
         $trimmedPath = ltrim(preg_replace('#^https?://[^/]+#i', '', $normalizedStoredPath) ?? $normalizedStoredPath, '/');
 
         if ($trimmedPath !== '') {
-            $candidates[] = $repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $trimmedPath);
-            $candidates[] = $appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $trimmedPath) ?? $trimmedPath);
+            $pushCandidate($repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $trimmedPath));
+            $pushCandidate($appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $trimmedPath) ?? $trimmedPath));
         }
 
-        foreach ($candidates as $candidate) {
-            if (is_file($candidate)) {
-                return $candidate;
-            }
-        }
-
-        return null;
+        return $candidates;
     }
 
     private function obtenerBasePublica(): string
@@ -888,6 +918,7 @@ abstract class ApiContentSharedModel
             'context' => $context,
         ];
 
+        self::$debugEvents[] = $payload;
         error_log('[ImpulsaFile] ' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 

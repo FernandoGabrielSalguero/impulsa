@@ -8,6 +8,7 @@ $apiBlogIntegraciones = $apiBlogIntegraciones ?? [];
 $apiBlogItems = $apiBlogItems ?? [];
 $apiBlogEditingItem = $apiBlogEditingItem ?? null;
 $apiBlogSelectedIntegration = $apiBlogSelectedIntegration ?? null;
+$apiBlogDebugEvents = $apiBlogDebugEvents ?? [];
 $apiBlogCurrent = is_array($apiBlogEditingItem) ? $apiBlogEditingItem : [];
 $apiBlogDescriptionValue = (string) ($apiBlogCurrent['description_html'] ?? '<p></p>');
 $apiBlogBaseQuery = '?integration_id=' . (int) ($apiBlogSelectedIntegration['id'] ?? 0);
@@ -738,9 +739,13 @@ $apiBlogEmptyState = [
           if (empty($currentCoverDebug['exists'])) {
               $currentCoverCandidates = [];
           }
+          $currentAttachmentDebug = $apiBlogDebugArchivo($apiBlogCurrent['attachment_path'] ?? null);
           $currentAttachmentUrl = !empty($apiBlogCurrent['attachment_path']) && $currentItemId > 0
               ? $apiBlogBuildMediaUrl($currentItemId, 'attachment')
               : (string) ($apiBlogCurrent['attachment_path_url'] ?? '');
+          if (empty($currentAttachmentDebug['exists'])) {
+              $currentAttachmentUrl = '';
+          }
           ?>
 
           <label class="im-campo im-campo-material">
@@ -758,12 +763,13 @@ $apiBlogEmptyState = [
                 <?php endif; ?>
                 <small>Actual: <?= $h((string) ($apiBlogCurrent['cover_image_path'] ?? '')) ?></small>
                 <?php if (empty($currentCoverDebug['exists'])): ?>
-                  <small>La ruta esta guardada en base, pero el archivo ya no existe en el servidor.</small>
+                  <small>La ruta esta guardada en base, pero el archivo ya no existe en el servidor. Sube una nueva portada para restaurarlo.</small>
+                <?php else: ?>
+                  <label class="im-check">
+                    <input type="checkbox" name="cover_image_remove" value="1">
+                    <span>Quitar referencia de portada actual</span>
+                  </label>
                 <?php endif; ?>
-                <label class="im-check">
-                  <input type="checkbox" name="cover_image_remove" value="1">
-                  <span>Eliminar portada actual</span>
-                </label>
               </div>
             <?php endif; ?>
           </label>
@@ -775,11 +781,15 @@ $apiBlogEmptyState = [
                 <small>Actual: <?= $h((string) ($apiBlogCurrent['attachment_path'] ?? '')) ?></small>
                 <?php if ($currentAttachmentUrl !== ''): ?>
                   <a class="im-chip" href="<?= $h($currentAttachmentUrl) ?>" target="_blank" rel="noreferrer">Ver adjunto actual</a>
+                <?php else: ?>
+                  <small>La ruta del adjunto esta guardada en base, pero el archivo ya no existe en el servidor. Sube uno nuevo para restaurarlo.</small>
                 <?php endif; ?>
-                <label class="im-check">
-                  <input type="checkbox" name="attachment_remove" value="1">
-                  <span>Eliminar adjunto actual</span>
-                </label>
+                <?php if (!empty($currentAttachmentDebug['exists'])): ?>
+                  <label class="im-check">
+                    <input type="checkbox" name="attachment_remove" value="1">
+                    <span>Quitar referencia de adjunto actual</span>
+                  </label>
+                <?php endif; ?>
               </div>
             <?php endif; ?>
           </label>
@@ -809,6 +819,16 @@ $apiBlogEmptyState = [
   </dialog>
 
   <script>
+    window.imApiBlogDebugEvents = <?= json_encode($apiBlogDebugEvents, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+    if (Array.isArray(window.imApiBlogDebugEvents) && window.imApiBlogDebugEvents.length > 0) {
+      console.groupCollapsed('Impulsa Blog File Debug');
+      window.imApiBlogDebugEvents.forEach((event, index) => {
+        console.log('#' + (index + 1), event);
+      });
+      console.groupEnd();
+    }
+
     console.log('Impulsa Blog Debug', {
       script: <?= json_encode($apiBlogMediaControllerUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
       integrationId: <?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>,
