@@ -1157,10 +1157,11 @@ abstract class ApiContentSharedModel
         return rtrim($path, DIRECTORY_SEPARATOR);
     }
 
-    private function obtenerDirectorioUploads(string $moduleFolder): string
+    private function resolverDirectorioUploadDesdeRutaPublica(string $publicPath, string $moduleFolder): string
     {
+        $publicPath = '/' . ltrim(trim($publicPath), '/');
         $moduleFolder = trim($moduleFolder);
-        if ($moduleFolder === '') {
+        if ($publicPath === '/' || $moduleFolder === '') {
             return '';
         }
 
@@ -1169,33 +1170,18 @@ abstract class ApiContentSharedModel
             return $this->normalizarRutaDirectorio($customRoot) . DIRECTORY_SEPARATOR . $moduleFolder;
         }
 
-        $candidates = [];
-        $pushCandidate = static function (string $candidate) use (&$candidates): void {
-            $candidate = trim($candidate);
-            if ($candidate !== '' && !in_array($candidate, $candidates, true)) {
-                $candidates[] = $candidate;
-            }
-        };
-
         $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
         if ($documentRoot !== '') {
-            $pushCandidate($documentRoot . DIRECTORY_SEPARATOR . 'impulsa_emprende' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $moduleFolder);
+            return $documentRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, ltrim($publicPath, '/'));
         }
 
-        $pushCandidate(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $moduleFolder);
-
-        foreach ($candidates as $candidate) {
-            if (is_dir($candidate)) {
-                return $candidate;
-            }
-        }
-
-        return $candidates[0] ?? '';
+        return dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $moduleFolder;
     }
 
     protected function buildBlogFileFields(): array
     {
-        $blogUploadDir = $this->obtenerDirectorioUploads('API_Blog');
+        $blogPublicPath = '/impulsa_emprende/uploads/API_Blog';
+        $blogUploadDir = $this->resolverDirectorioUploadDesdeRutaPublica($blogPublicPath, 'API_Blog');
 
         return [
             'cover_image_file' => [
@@ -1203,7 +1189,7 @@ abstract class ApiContentSharedModel
                 'remove_field' => 'cover_image_remove',
                 'label' => 'portada',
                 'upload_dir' => $blogUploadDir,
-                'public_path' => '/impulsa_emprende/uploads/API_Blog',
+                'public_path' => $blogPublicPath,
                 'preserve_file_on_replace' => true,
                 'extensions' => self::BLOG_IMAGE_EXTENSIONS,
                 'mime_types' => self::BLOG_IMAGE_MIME_TYPES,
@@ -1215,7 +1201,7 @@ abstract class ApiContentSharedModel
                 'remove_field' => 'attachment_remove',
                 'label' => 'adjunto',
                 'upload_dir' => $blogUploadDir,
-                'public_path' => '/impulsa_emprende/uploads/API_Blog',
+                'public_path' => $blogPublicPath,
                 'preserve_file_on_replace' => true,
                 'extensions' => self::BLOG_ATTACHMENT_EXTENSIONS,
                 'mime_types' => self::BLOG_ATTACHMENT_MIME_TYPES,
@@ -1227,14 +1213,15 @@ abstract class ApiContentSharedModel
 
     protected function buildProductFileFields(): array
     {
-        $productUploadDir = $this->obtenerDirectorioUploads('API_Productos');
+        $productPublicPath = '/impulsa_emprende/uploads/API_Productos';
+        $productUploadDir = $this->resolverDirectorioUploadDesdeRutaPublica($productPublicPath, 'API_Productos');
 
         return [
             'main_image_file' => [
                 'column' => 'main_image_path',
                 'label' => 'imagen principal',
                 'upload_dir' => $productUploadDir,
-                'public_path' => '/impulsa_emprende/uploads/API_Productos',
+                'public_path' => $productPublicPath,
                 'extensions' => self::BLOG_IMAGE_EXTENSIONS,
                 'mime_types' => self::BLOG_IMAGE_MIME_TYPES,
                 'max_bytes' => 4 * 1024 * 1024,
@@ -1244,7 +1231,7 @@ abstract class ApiContentSharedModel
                 'column' => 'thumbnail_path',
                 'label' => 'miniatura',
                 'upload_dir' => $productUploadDir,
-                'public_path' => '/impulsa_emprende/uploads/API_Productos',
+                'public_path' => $productPublicPath,
                 'extensions' => self::BLOG_IMAGE_EXTENSIONS,
                 'mime_types' => self::BLOG_IMAGE_MIME_TYPES,
                 'max_bytes' => 4 * 1024 * 1024,
@@ -1254,7 +1241,7 @@ abstract class ApiContentSharedModel
                 'column' => 'attachment_path',
                 'label' => 'adjunto',
                 'upload_dir' => $productUploadDir,
-                'public_path' => '/impulsa_emprende/uploads/API_Productos',
+                'public_path' => $productPublicPath,
                 'extensions' => self::PRODUCT_ATTACHMENT_EXTENSIONS,
                 'mime_types' => self::PRODUCT_ATTACHMENT_MIME_TYPES,
                 'max_bytes' => 8 * 1024 * 1024,
