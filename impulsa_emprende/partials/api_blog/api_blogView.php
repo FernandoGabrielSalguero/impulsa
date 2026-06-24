@@ -868,6 +868,19 @@ $apiBlogEmptyState = [
         console.warn('Missing file for item', item.id, item.title, item);
       });
       console.groupEnd();
+
+      console.table(imApiBlogMissingFiles.map((item) => ({
+        id: item.id,
+        title: item.title,
+        cover_path: item.cover_image_path,
+        cover_exists: item.cover_debug?.exists ?? null,
+        cover_resolved_path: item.cover_debug?.resolved_path ?? null,
+        cover_candidates: (item.cover_debug?.candidates ?? []).join(' | '),
+        attachment_path: item.attachment_path,
+        attachment_exists: item.attachment_debug?.exists ?? null,
+        attachment_resolved_path: item.attachment_debug?.resolved_path ?? null,
+        attachment_candidates: (item.attachment_debug?.candidates ?? []).join(' | '),
+      })));
     }
 
     (() => {

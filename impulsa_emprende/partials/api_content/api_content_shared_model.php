@@ -822,6 +822,11 @@ abstract class ApiContentSharedModel
         if ($trimmedPath !== '') {
             $pushCandidate($repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $trimmedPath));
             $pushCandidate($appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $trimmedPath) ?? $trimmedPath));
+
+            $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+            if ($documentRoot !== '') {
+                $pushCandidate($documentRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', 'impulsa_emprende/', $trimmedPath) ?? $trimmedPath));
+            }
         }
 
         return $candidates;
@@ -1152,9 +1157,45 @@ abstract class ApiContentSharedModel
         return rtrim($path, DIRECTORY_SEPARATOR);
     }
 
+    private function obtenerDirectorioUploads(string $moduleFolder): string
+    {
+        $moduleFolder = trim($moduleFolder);
+        if ($moduleFolder === '') {
+            return '';
+        }
+
+        $customRoot = trim((string) getenv('IMPULSA_UPLOADS_ROOT'));
+        if ($customRoot !== '') {
+            return $this->normalizarRutaDirectorio($customRoot) . DIRECTORY_SEPARATOR . $moduleFolder;
+        }
+
+        $candidates = [];
+        $pushCandidate = static function (string $candidate) use (&$candidates): void {
+            $candidate = trim($candidate);
+            if ($candidate !== '' && !in_array($candidate, $candidates, true)) {
+                $candidates[] = $candidate;
+            }
+        };
+
+        $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+        if ($documentRoot !== '') {
+            $pushCandidate($documentRoot . DIRECTORY_SEPARATOR . 'impulsa_emprende' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $moduleFolder);
+        }
+
+        $pushCandidate(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $moduleFolder);
+
+        foreach ($candidates as $candidate) {
+            if (is_dir($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return $candidates[0] ?? '';
+    }
+
     protected function buildBlogFileFields(): array
     {
-        $blogUploadDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'API_Blog';
+        $blogUploadDir = $this->obtenerDirectorioUploads('API_Blog');
 
         return [
             'cover_image_file' => [
@@ -1186,7 +1227,7 @@ abstract class ApiContentSharedModel
 
     protected function buildProductFileFields(): array
     {
-        $productUploadDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'API_Productos';
+        $productUploadDir = $this->obtenerDirectorioUploads('API_Productos');
 
         return [
             'main_image_file' => [
