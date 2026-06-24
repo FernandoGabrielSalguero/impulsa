@@ -18,6 +18,7 @@ $apiBlogControllerPos = strpos($apiBlogScriptName, '/controller/');
 $apiBlogAppBasePath = $apiBlogControllerPos !== false ? rtrim(substr($apiBlogScriptName, 0, $apiBlogControllerPos), '/') : '';
 $apiBlogAppBasePath = $apiBlogAppBasePath === '/' ? '' : $apiBlogAppBasePath;
 $apiBlogMediaControllerUrl = (string) strtok((string) ($_SERVER['REQUEST_URI'] ?? $apiBlogScriptName), '?');
+$apiBlogCleanUrl = $apiBlogMediaControllerUrl;
 $apiBlogBuildMediaUrl = static function (int $itemId, string $type) use ($apiBlogMediaControllerUrl): string {
     return $apiBlogMediaControllerUrl . '?' . http_build_query([
         'media_item_id' => $itemId,
@@ -643,6 +644,7 @@ $apiBlogEmptyState = [
   <dialog
     class="im-blog-dialog"
     data-blog-dialog
+    data-close-href="<?= $h($apiBlogCleanUrl) ?>"
     <?= $apiBlogShouldOpenDialog ? 'data-auto-open="true"' : '' ?>
   >
     <div class="im-blog-dialog__shell">
@@ -806,7 +808,7 @@ $apiBlogEmptyState = [
 
           <div class="im-formulario__acciones">
             <?php if ($apiBlogCurrent): ?>
-              <a class="im-boton im-boton--texto" href="<?= $h($apiBlogBaseQuery) ?>">Cancelar</a>
+              <a class="im-boton im-boton--texto" href="<?= $h($apiBlogCleanUrl) ?>">Cancelar</a>
               <button class="im-boton" type="submit" name="api_blog_submit" value="delete" formnovalidate>Desactivar</button>
             <?php else: ?>
               <button class="im-boton im-boton--texto" type="button" data-blog-dialog-close>Cancelar</button>
@@ -990,6 +992,7 @@ $apiBlogEmptyState = [
       const closeButtons = dialog.querySelectorAll('[data-blog-dialog-close]');
       const emptyStateNode = form.querySelector('[data-blog-empty-state]');
       const emptyState = JSON.parse(emptyStateNode?.value || '{}');
+      const closeHref = dialog.dataset.closeHref || window.location.pathname;
       const hiddenHtml = form.querySelector('[data-quill-hidden]');
       const hiddenExcerpt = form.querySelector('[data-blog-excerpt-hidden]');
       const excerptEditor = form.querySelector('[data-blog-excerpt-editor]');
@@ -1038,6 +1041,12 @@ $apiBlogEmptyState = [
       };
 
       const closeDialog = () => {
+        const isEditing = Number(form.querySelector('[data-blog-item-id]')?.value || '0') > 0;
+        if (isEditing) {
+          window.location.href = closeHref;
+          return;
+        }
+
         if (dialog.open) {
           dialog.close();
         }
