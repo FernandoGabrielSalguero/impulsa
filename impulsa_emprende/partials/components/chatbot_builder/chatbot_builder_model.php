@@ -2,18 +2,55 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../api_content/api_content_shared_model.php';
+final class ChatbotBuilderIntegrationAccessModel
+{
+    public function __construct(private PDO $pdo)
+    {
+    }
+
+    public function obtenerIntegracionesAccesibles(int $userId): array
+    {
+        $sql = "
+            SELECT DISTINCT
+                ai.id,
+                ai.project_name,
+                ai.allowed_domain,
+                ai.public_key,
+                ai.status AS integration_status,
+                CASE
+                    WHEN p.id IS NOT NULL THEN 'project'
+                    WHEN lpr.id IS NOT NULL THEN 'landing_request'
+                    ELSE 'unknown'
+                END AS source_type
+            FROM api_integrations ai
+            LEFT JOIN projects p
+                ON p.project_name = ai.project_name
+               AND p.client_user_id = :user_id
+               AND p.client_visible = 1
+            LEFT JOIN landing_page_request lpr
+                ON lpr.nombre_emprendimiento = ai.project_name
+               AND lpr.user_auth_id = :user_id
+            WHERE p.id IS NOT NULL OR lpr.id IS NOT NULL
+            ORDER BY ai.project_name ASC, ai.id ASC
+        ";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':user_id' => $userId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
 
 final class ChatbotBuilderModel
 {
     private const CHATBOT_STATUSES = ['active', 'inactive'];
     private const NODE_STATUSES = ['active', 'inactive'];
     private const ACTION_TYPES = ['go_to_node', 'whatsapp', 'restart', 'close'];
-    private ApiIntegrationAccessModel $integrationAccessModel;
+    private ChatbotBuilderIntegrationAccessModel $integrationAccessModel;
 
     public function __construct(private PDO $pdo)
     {
-        $this->integrationAccessModel = new ApiIntegrationAccessModel($pdo);
+        $this->integrationAccessModel = new ChatbotBuilderIntegrationAccessModel($pdo);
     }
 
     public function obtenerContextoUsuario(int $userId): array
