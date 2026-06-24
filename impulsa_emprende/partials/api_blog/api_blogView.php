@@ -49,6 +49,7 @@ $apiBlogStatusLabels = [
     overflow: auto;
     display: grid;
     gap: 1rem;
+    max-height: min(70vh, 760px);
   }
 
   .im-blog-modal .im-dialog__acciones {
@@ -61,6 +62,10 @@ $apiBlogStatusLabels = [
   .im-blog-tabla-nombre strong,
   .im-blog-tabla-nombre small {
     display: block;
+  }
+
+  .im-blog-modal {
+    max-height: calc(100vh - 2rem);
   }
 </style>
 
@@ -85,7 +90,7 @@ $apiBlogStatusLabels = [
     <div class="im-tarjeta__cabecera">
       <div>
         <h3>Mis publicaciones</h3>
-        <p>Administra solo los blogs creados con tu usuario dentro de cada integracion.</p>
+        <p>Administra tus blogs creados.</p>
       </div>
     </div>
 
@@ -128,6 +133,7 @@ $apiBlogStatusLabels = [
               <th>Nombre</th>
               <th>Estado</th>
               <th>Fecha de publicacion</th>
+              <th>Orden</th>
               <th>Tiene foto</th>
               <th>Acciones</th>
             </tr>
@@ -148,6 +154,7 @@ $apiBlogStatusLabels = [
                 </td>
                 <td><span class="im-chip <?= $h($statusMeta[1]) ?>"><?= $h($statusMeta[0]) ?></span></td>
                 <td><?= !empty($item['publication_date']) ? $h(date('d/m/Y H:i', strtotime((string) $item['publication_date']))) : '-' ?></td>
+                <td><?= (int) ($item['sort_order'] ?? 1) ?></td>
                 <td>
                   <span class="im-chip <?= $tieneFoto ? 'im-chip--completado' : 'im-chip--pendiente' ?>">
                     <?= $tieneFoto ? 'Si' : 'No' ?>
@@ -208,10 +215,6 @@ $apiBlogStatusLabels = [
         <label class="im-campo im-campo-material">
           <span>Titulo</span>
           <input type="text" name="title" maxlength="180" value="<?= $h($apiBlogCurrent['title'] ?? '') ?>" required>
-        </label>
-        <label class="im-campo im-campo-material">
-          <span>Slug</span>
-          <input type="text" name="slug" maxlength="220" value="<?= $h($apiBlogCurrent['slug'] ?? '') ?>" placeholder="se-autogenera-si-lo-dejas-vacio">
         </label>
         <label class="im-campo im-campo-material">
           <span>Subtitulo</span>

@@ -107,7 +107,7 @@ final class ApiBlogModel
             $params[':integration_id'] = $integrationId;
         }
 
-        $sql .= ' ORDER BY b.publication_date DESC, b.created_at DESC, b.id DESC';
+        $sql .= ' ORDER BY b.sort_order ASC, b.publication_date DESC, b.created_at DESC, b.id DESC';
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
