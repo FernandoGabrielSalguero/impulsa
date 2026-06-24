@@ -64,22 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($apiBlogPostAction !== '' && ($_P
         ];
     }
 
-    $redirectPath = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
-    $redirectQuery = [];
-    $redirectIntegrationId = filter_var(
-        $_POST['api_integration_id'] ?? $_GET['integration_id'] ?? null,
-        FILTER_VALIDATE_INT,
-        ['options' => ['min_range' => 1]]
-    );
-
-    if ($redirectIntegrationId !== false && $redirectIntegrationId !== null) {
-        $redirectQuery['integration_id'] = (int) $redirectIntegrationId;
-    }
-
-    $redirectUrl = $redirectPath !== '' ? $redirectPath : (string) ($_SERVER['REQUEST_URI'] ?? '');
-    if ($redirectQuery !== []) {
-        $redirectUrl .= '?' . http_build_query($redirectQuery);
-    }
+$redirectPath = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+$redirectUrl = $redirectPath !== '' ? $redirectPath : (string) ($_SERVER['REQUEST_URI'] ?? '');
 
     header('Location: ' . $redirectUrl);
     exit;
