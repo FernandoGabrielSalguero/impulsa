@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 final class ApiBlogIntegrationAccessModel
 {
-    public function __construct(private PDO $pdo)
-    {
-    }
+    public function __construct(private PDO $pdo) {}
 
     public function obtenerIntegracionesAccesibles(int $userId): array
     {
@@ -111,7 +109,7 @@ final class ApiBlogModel
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
 
-        return array_map(fn (array $item): array => $this->mapearRegistroParaVista($item), $stmt->fetchAll(PDO::FETCH_ASSOC));
+        return array_map(fn(array $item): array => $this->mapearRegistroParaVista($item), $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
     public function obtenerItemEditable(int $userId, int $itemId): ?array
@@ -373,22 +371,22 @@ final class ApiBlogModel
         return rtrim((string) $fieldConfig['public_path'], '/') . '/' . $fileName;
     }
 
-private function obtenerConfiguracionArchivos(): array
-{
-    $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+    private function obtenerConfiguracionArchivos(): array
+    {
+        $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
 
-    if ($documentRoot === '') {
-        throw new RuntimeException('No se pudo resolver DOCUMENT_ROOT para guardar archivos.');
-    }
+        if ($documentRoot === '') {
+            throw new RuntimeException('No se pudo resolver DOCUMENT_ROOT para guardar archivos.');
+        }
 
-    // public_html está en DOCUMENT_ROOT. Subimos un nivel y usamos /storage/API_Blog.
-    $storageRoot = dirname($documentRoot);
-    $uploadDir = $storageRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'API_Blog';
+        // public_html está en DOCUMENT_ROOT. Subimos un nivel y usamos /storage/API_Blog.
+        $storageRoot = dirname($documentRoot);
+        $uploadDir = $storageRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'API_Blog';
 
-    // No es una URL pública directa. Es una marca interna para guardar el archivo.
-    $publicPath = 'API_Blog';
+        // No es una URL pública directa. Es una marca interna para guardar el archivo.
+        $publicPath = 'API_Blog';
 
-    return [
+        return [
             'cover_image_file' => [
                 'column' => 'cover_image_path',
                 'label' => 'portada',
@@ -425,30 +423,30 @@ private function obtenerConfiguracionArchivos(): array
         return null;
     }
 
-private function mapearRegistroParaVista(array $row): array
-{
-    $mapped = $row;
-    $itemId = (int) ($row['id'] ?? 0);
+    private function mapearRegistroParaVista(array $row): array
+    {
+        $mapped = $row;
+        $itemId = (int) ($row['id'] ?? 0);
 
-    foreach (self::PATH_COLUMNS as $column) {
-        $storedPath = trim((string) ($row[$column] ?? ''));
+        foreach (self::PATH_COLUMNS as $column) {
+            $storedPath = trim((string) ($row[$column] ?? ''));
 
-        if ($storedPath === '' || $itemId <= 0) {
-            $mapped[$column . '_url'] = null;
-            continue;
+            if ($storedPath === '' || $itemId <= 0) {
+                $mapped[$column . '_url'] = null;
+                continue;
+            }
+
+            $mediaType = $column === 'cover_image_path' ? 'cover' : 'attachment';
+
+            $mapped[$column . '_url'] = '/impulsa_emprende/controller/client/ClienteBlogController.php?'
+                . http_build_query([
+                    'media_item_id' => $itemId,
+                    'media_type' => $mediaType,
+                ]);
         }
 
-        $mediaType = $column === 'cover_image_path' ? 'cover' : 'attachment';
-
-        $mapped[$column . '_url'] = '/impulsa_emprende/controller/client/ClienteBlogController.php?'
-            . http_build_query([
-                'media_item_id' => $itemId,
-                'media_type' => $mediaType,
-            ]);
+        return $mapped;
     }
-
-    return $mapped;
-}
 
     private function asegurarSlugUnico(int $integrationId, string $slug, ?int $excludeId = null): void
     {
