@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$h = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+$h = static fn(mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 $apiBlogFlash = $apiBlogFlash ?? null;
 $apiBlogIntegraciones = $apiBlogIntegraciones ?? [];
 $apiBlogItems = $apiBlogItems ?? [];
@@ -11,30 +11,30 @@ $apiBlogSelectedIntegration = $apiBlogSelectedIntegration ?? null;
 $apiBlogCurrent = is_array($apiBlogEditingItem) ? $apiBlogEditingItem : [];
 
 $apiBlogStatusLabels = [
-    'draft' => ['Borrador', 'im-chip--pendiente'],
-    'active' => ['Activo', 'im-chip--completado'],
-    'inactive' => ['Inactivo', 'im-chip--alerta'],
+  'draft' => ['Borrador', 'im-chip--pendiente'],
+  'active' => ['Activo', 'im-chip--completado'],
+  'inactive' => ['Inactivo', 'im-chip--alerta'],
 ];
 
 $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
-    'id' => (int) ($apiBlogCurrent['id'] ?? 0),
-    'api_integration_id' => (int) ($apiBlogCurrent['api_integration_id'] ?? 0),
-    'title' => (string) ($apiBlogCurrent['title'] ?? ''),
-    'subtitle' => (string) ($apiBlogCurrent['subtitle'] ?? ''),
-    'author' => (string) ($apiBlogCurrent['author'] ?? ''),
-    'status' => (string) ($apiBlogCurrent['status'] ?? 'draft'),
-    'publication_date' => !empty($apiBlogCurrent['publication_date']) ? date('Y-m-d\TH:i', strtotime((string) $apiBlogCurrent['publication_date'])) : '',
-    'category' => (string) ($apiBlogCurrent['category'] ?? ''),
-    'subcategory' => (string) ($apiBlogCurrent['subcategory'] ?? ''),
-    'sort_order' => (int) ($apiBlogCurrent['sort_order'] ?? 1),
-    'excerpt' => (string) ($apiBlogCurrent['excerpt'] ?? ''),
-    'description_html' => (string) ($apiBlogCurrent['description_html'] ?? ''),
-    'bibliography' => (string) ($apiBlogCurrent['bibliography'] ?? ''),
-    'metadata_json' => (string) ($apiBlogCurrent['metadata_json'] ?? ''),
-    'cover_image_path_url' => (string) ($apiBlogCurrent['cover_image_path_url'] ?? ''),
-    'attachment_path_url' => (string) ($apiBlogCurrent['attachment_path_url'] ?? ''),
-    'attachment_name' => basename((string) ($apiBlogCurrent['attachment_path'] ?? '')),
-    'cover_image_name' => basename((string) ($apiBlogCurrent['cover_image_path'] ?? '')),
+  'id' => (int) ($apiBlogCurrent['id'] ?? 0),
+  'api_integration_id' => (int) ($apiBlogCurrent['api_integration_id'] ?? 0),
+  'title' => (string) ($apiBlogCurrent['title'] ?? ''),
+  'subtitle' => (string) ($apiBlogCurrent['subtitle'] ?? ''),
+  'author' => (string) ($apiBlogCurrent['author'] ?? ''),
+  'status' => (string) ($apiBlogCurrent['status'] ?? 'draft'),
+  'publication_date' => !empty($apiBlogCurrent['publication_date']) ? date('Y-m-d\TH:i', strtotime((string) $apiBlogCurrent['publication_date'])) : '',
+  'category' => (string) ($apiBlogCurrent['category'] ?? ''),
+  'subcategory' => (string) ($apiBlogCurrent['subcategory'] ?? ''),
+  'sort_order' => (int) ($apiBlogCurrent['sort_order'] ?? 1),
+  'excerpt' => (string) ($apiBlogCurrent['excerpt'] ?? ''),
+  'description_html' => (string) ($apiBlogCurrent['description_html'] ?? ''),
+  'bibliography' => (string) ($apiBlogCurrent['bibliography'] ?? ''),
+  'metadata_json' => (string) ($apiBlogCurrent['metadata_json'] ?? ''),
+  'cover_image_path_url' => (string) ($apiBlogCurrent['cover_image_path_url'] ?? ''),
+  'attachment_path_url' => (string) ($apiBlogCurrent['attachment_path_url'] ?? ''),
+  'attachment_name' => basename((string) ($apiBlogCurrent['attachment_path'] ?? '')),
+  'cover_image_name' => basename((string) ($apiBlogCurrent['cover_image_path'] ?? '')),
 ] : [];
 ?>
 <style>
@@ -239,24 +239,24 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
               $statusMeta = $apiBlogStatusLabels[$statusKey] ?? [$statusKey, 'im-chip--alerta'];
               $tieneFoto = !empty($item['cover_image_path']);
               $editPayload = [
-                  'id' => (int) ($item['id'] ?? 0),
-                  'api_integration_id' => (int) ($item['api_integration_id'] ?? 0),
-                  'title' => (string) ($item['title'] ?? ''),
-                  'subtitle' => (string) ($item['subtitle'] ?? ''),
-                  'author' => (string) ($item['author'] ?? ''),
-                  'status' => (string) ($item['status'] ?? 'draft'),
-                  'publication_date' => !empty($item['publication_date']) ? date('Y-m-d\TH:i', strtotime((string) $item['publication_date'])) : '',
-                  'category' => (string) ($item['category'] ?? ''),
-                  'subcategory' => (string) ($item['subcategory'] ?? ''),
-                  'sort_order' => (int) ($item['sort_order'] ?? 1),
-                  'excerpt' => (string) ($item['excerpt'] ?? ''),
-                  'description_html' => (string) ($item['description_html'] ?? ''),
-                  'bibliography' => (string) ($item['bibliography'] ?? ''),
-                  'metadata_json' => (string) ($item['metadata_json'] ?? ''),
-                  'cover_image_path_url' => (string) ($item['cover_image_path_url'] ?? ''),
-                  'attachment_path_url' => (string) ($item['attachment_path_url'] ?? ''),
-                  'attachment_name' => basename((string) ($item['attachment_path'] ?? '')),
-                  'cover_image_name' => basename((string) ($item['cover_image_path'] ?? '')),
+                'id' => (int) ($item['id'] ?? 0),
+                'api_integration_id' => (int) ($item['api_integration_id'] ?? 0),
+                'title' => (string) ($item['title'] ?? ''),
+                'subtitle' => (string) ($item['subtitle'] ?? ''),
+                'author' => (string) ($item['author'] ?? ''),
+                'status' => (string) ($item['status'] ?? 'draft'),
+                'publication_date' => !empty($item['publication_date']) ? date('Y-m-d\TH:i', strtotime((string) $item['publication_date'])) : '',
+                'category' => (string) ($item['category'] ?? ''),
+                'subcategory' => (string) ($item['subcategory'] ?? ''),
+                'sort_order' => (int) ($item['sort_order'] ?? 1),
+                'excerpt' => (string) ($item['excerpt'] ?? ''),
+                'description_html' => (string) ($item['description_html'] ?? ''),
+                'bibliography' => (string) ($item['bibliography'] ?? ''),
+                'metadata_json' => (string) ($item['metadata_json'] ?? ''),
+                'cover_image_path_url' => (string) ($item['cover_image_path_url'] ?? ''),
+                'attachment_path_url' => (string) ($item['attachment_path_url'] ?? ''),
+                'attachment_name' => basename((string) ($item['attachment_path'] ?? '')),
+                'cover_image_name' => basename((string) ($item['cover_image_path'] ?? '')),
               ];
               ?>
               <tr>
@@ -281,16 +281,14 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
                       type="button"
                       data-blog-open-modal="edit"
                       data-blog-edit='<?= $h(json_encode($editPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) ?>'
-                      aria-label="Editar publicacion"
-                    >edit</button>
+                      aria-label="Editar publicacion">edit</button>
                     <button
                       class="im-boton-icono material-symbols-rounded im-blog-accion--eliminar"
                       type="button"
                       data-blog-delete-open
                       data-blog-delete-id="<?= (int) ($item['id'] ?? 0) ?>"
                       data-blog-delete-title="<?= $h($item['title'] ?? 'Publicacion seleccionada') ?>"
-                      aria-label="Eliminar publicacion"
-                    >delete</button>
+                      aria-label="Eliminar publicacion">delete</button>
                   </div>
                 </td>
               </tr>
@@ -499,8 +497,12 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
 
     const dispatchInputEvents = (element) => {
       if (!element) return;
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-      element.dispatchEvent(new Event('change', { bubbles: true }));
+      element.dispatchEvent(new Event('input', {
+        bubbles: true
+      }));
+      element.dispatchEvent(new Event('change', {
+        bubbles: true
+      }));
     };
 
     const initQuill = () => {
@@ -516,11 +518,27 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
       }
 
       const toolbarOptions = [
-        [{ header: [1, 2, 3, false] }],
+        [{
+          header: [1, 2, 3, false]
+        }],
         ['bold', 'italic', 'underline', 'strike'],
-        [{ color: [] }, { background: [] }],
-        [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
-        [{ align: [] }],
+        [{
+          color: []
+        }, {
+          background: []
+        }],
+        [{
+          list: 'ordered'
+        }, {
+          list: 'bullet'
+        }, {
+          indent: '-1'
+        }, {
+          indent: '+1'
+        }],
+        [{
+          align: []
+        }],
         ['blockquote', 'code-block'],
         ['link', 'image', 'video']
       ];
@@ -536,7 +554,9 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
         placeholder: editorNode.dataset.placeholder || '',
         modules: {
           toolbar: toolbarOptions,
-          ...(hasTableSupport ? { table: true } : {})
+          ...(hasTableSupport ? {
+            table: true
+          } : {})
         }
       });
 
@@ -624,7 +644,8 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
     const getCleanUrl = () => {
       const url = new URL(window.location.href);
       url.searchParams.delete('edit_id');
-      return url.toString();
+      url.searchParams.delete('integration_id');
+      return url.pathname;
     };
 
     const syncUrl = () => {
