@@ -530,9 +530,22 @@ abstract class ApiContentSharedModel
     private function guardarArchivoSubido(?array $file, array $fieldConfig, string $currentPath, bool $shouldRemove = false): ?string
     {
         $currentPath = trim($currentPath);
+        $preserveFiles = (bool) ($fieldConfig['preserve_file_on_replace'] ?? false);
 
         if ($shouldRemove) {
-            $this->eliminarArchivoLocalSiExiste($currentPath, (string) ($fieldConfig['upload_dir'] ?? ''));
+            $this->registrarEventoArchivo(
+                'remove_requested',
+                $fieldConfig,
+                [
+                    'stored_path' => $currentPath,
+                    'preserve_file_on_replace' => $preserveFiles,
+                ]
+            );
+
+            if (!$preserveFiles) {
+                $this->eliminarArchivoLocalSiExiste($currentPath, (string) ($fieldConfig['upload_dir'] ?? ''));
+            }
+
             $currentPath = '';
         }
 
@@ -597,11 +610,34 @@ abstract class ApiContentSharedModel
             throw new RuntimeException('No se pudo guardar el archivo ' . $fieldConfig['label'] . ' en ' . $uploadDir . '.');
         }
 
+        $storedPath = rtrim($fieldConfig['public_path'], '/') . '/' . $fileName;
+        $this->registrarEventoArchivo(
+            'upload_stored',
+            $fieldConfig,
+            [
+                'original_name' => $originalName,
+                'stored_path' => $storedPath,
+                'destination' => $destination,
+                'replaced_previous_path' => $currentPath !== '' ? $currentPath : null,
+            ]
+        );
+
         if ($currentPath !== '') {
-            $this->eliminarArchivoLocalSiExiste($currentPath, (string) ($fieldConfig['upload_dir'] ?? ''));
+            $this->registrarEventoArchivo(
+                $preserveFiles ? 'replace_preserved_previous' : 'replace_deleted_previous',
+                $fieldConfig,
+                [
+                    'stored_path' => $currentPath,
+                    'preserve_file_on_replace' => $preserveFiles,
+                ]
+            );
+
+            if (!$preserveFiles) {
+                $this->eliminarArchivoLocalSiExiste($currentPath, (string) ($fieldConfig['upload_dir'] ?? ''));
+            }
         }
 
-        return rtrim($fieldConfig['public_path'], '/') . '/' . $fileName;
+        return $storedPath;
     }
 
     private function asegurarSlugUnico(int $integrationId, string $slug, ?int $excludeId = null): void
@@ -836,6 +872,23 @@ abstract class ApiContentSharedModel
         }
 
         @unlink($absolutePath);
+    }
+
+    private function registrarEventoArchivo(string $event, array $fieldConfig, array $context = []): void
+    {
+        $config = $this->obtenerConfiguracionModulo();
+        $payload = [
+            'component' => 'api_content_shared_model',
+            'module' => (string) ($config['module'] ?? 'unknown'),
+            'event' => $event,
+            'field' => (string) ($fieldConfig['column'] ?? ''),
+            'label' => (string) ($fieldConfig['label'] ?? ''),
+            'request_method' => (string) ($_SERVER['REQUEST_METHOD'] ?? ''),
+            'request_uri' => (string) ($_SERVER['REQUEST_URI'] ?? ''),
+            'context' => $context,
+        ];
+
+        error_log('[ImpulsaFile] ' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
     private function sanitizarHtmlBasico(?string $html): string
@@ -1079,6 +1132,7 @@ abstract class ApiContentSharedModel
                 'label' => 'portada',
                 'upload_dir' => $blogUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Blog',
+                'preserve_file_on_replace' => true,
                 'extensions' => self::BLOG_IMAGE_EXTENSIONS,
                 'mime_types' => self::BLOG_IMAGE_MIME_TYPES,
                 'max_bytes' => 4 * 1024 * 1024,
@@ -1090,6 +1144,7 @@ abstract class ApiContentSharedModel
                 'label' => 'adjunto',
                 'upload_dir' => $blogUploadDir,
                 'public_path' => '/impulsa_emprende/uploads/API_Blog',
+                'preserve_file_on_replace' => true,
                 'extensions' => self::BLOG_ATTACHMENT_EXTENSIONS,
                 'mime_types' => self::BLOG_ATTACHMENT_MIME_TYPES,
                 'max_bytes' => 8 * 1024 * 1024,
