@@ -373,12 +373,22 @@ final class ApiBlogModel
         return rtrim((string) $fieldConfig['public_path'], '/') . '/' . $fileName;
     }
 
-    private function obtenerConfiguracionArchivos(): array
-    {
-        $publicPath = '/impulsa_emprende/uploads/API_Blog';
-        $uploadDir = $this->resolverDirectorioUploadDesdeRutaPublica($publicPath, 'API_Blog');
+private function obtenerConfiguracionArchivos(): array
+{
+    $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
 
-        return [
+    if ($documentRoot === '') {
+        throw new RuntimeException('No se pudo resolver DOCUMENT_ROOT para guardar archivos.');
+    }
+
+    // public_html está en DOCUMENT_ROOT. Subimos un nivel y usamos /storage/API_Blog.
+    $storageRoot = dirname($documentRoot);
+    $uploadDir = $storageRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'API_Blog';
+
+    // No es una URL pública directa. Es una marca interna para guardar el archivo.
+    $publicPath = 'API_Blog';
+
+    return [
             'cover_image_file' => [
                 'column' => 'cover_image_path',
                 'label' => 'portada',
@@ -415,15 +425,30 @@ final class ApiBlogModel
         return null;
     }
 
-    private function mapearRegistroParaVista(array $row): array
-    {
-        $mapped = $row;
-        foreach (self::PATH_COLUMNS as $column) {
-            $mapped[$column . '_url'] = $this->resolverUrlPublica((string) ($row[$column] ?? ''));
+private function mapearRegistroParaVista(array $row): array
+{
+    $mapped = $row;
+    $itemId = (int) ($row['id'] ?? 0);
+
+    foreach (self::PATH_COLUMNS as $column) {
+        $storedPath = trim((string) ($row[$column] ?? ''));
+
+        if ($storedPath === '' || $itemId <= 0) {
+            $mapped[$column . '_url'] = null;
+            continue;
         }
 
-        return $mapped;
+        $mediaType = $column === 'cover_image_path' ? 'cover' : 'attachment';
+
+        $mapped[$column . '_url'] = '/impulsa_emprende/controller/client/ClienteBlogController.php?'
+            . http_build_query([
+                'media_item_id' => $itemId,
+                'media_type' => $mediaType,
+            ]);
     }
+
+    return $mapped;
+}
 
     private function asegurarSlugUnico(int $integrationId, string $slug, ?int $excludeId = null): void
     {
