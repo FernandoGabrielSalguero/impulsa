@@ -375,10 +375,6 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
           <span>Bibliografia</span>
           <textarea name="bibliography" rows="4" placeholder=" " data-im-placeholder data-blog-field="bibliography"></textarea>
         </label>
-        <label class="im-campo im-campo-material im-campo--ancho">
-          <span>Metadata JSON</span>
-          <textarea name="metadata_json" rows="3" placeholder=" " data-im-placeholder data-blog-field="metadata_json"></textarea>
-        </label>
 
         <label class="im-campo im-campo-material">
           <span>Imagen de portada</span>
