@@ -71,6 +71,7 @@ final class ApiBlogModel
 
     private const TABLE = 'api_blog_posts';
     private const PATH_COLUMNS = ['cover_image_path', 'attachment_path'];
+    private const PUBLIC_UPLOAD_PATH = '/impulsa_emprende/uploads/API_Blog';
 
     private ApiBlogIntegrationAccessModel $integrationAccessModel;
     private static array $debugEvents = [];
@@ -542,8 +543,8 @@ final class ApiBlogModel
 
     private function obtenerConfiguracionArchivos(): array
     {
-        $publicPath = '/impulsa_emprende/uploads/API_Blog';
-        $uploadDir = $this->resolverDirectorioUploadDesdeRutaPublica($publicPath, 'API_Blog');
+        $publicPath = self::PUBLIC_UPLOAD_PATH;
+        $uploadDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'API_Blog';
 
         return [
             'cover_image_file' => [
@@ -697,13 +698,15 @@ final class ApiBlogModel
 
     private function resolverRutaArchivoLocal(string $storedPath, string $uploadDir): ?string
     {
-        foreach ($this->construirCandidatosRutaArchivo($storedPath, $uploadDir) as $candidate) {
-            if (is_file($candidate)) {
-                return $candidate;
-            }
+        $storedPath = trim($storedPath);
+        $uploadDir = $this->normalizarRutaDirectorio($uploadDir);
+        if ($storedPath === '' || $uploadDir === '') {
+            return null;
         }
 
-        return null;
+        $candidate = $uploadDir . DIRECTORY_SEPARATOR . basename(str_replace('\\', '/', $storedPath));
+
+        return is_file($candidate) ? $candidate : null;
     }
 
     private function construirCandidatosRutaArchivo(string $storedPath, string $uploadDir): array
@@ -713,33 +716,12 @@ final class ApiBlogModel
             return [];
         }
 
-        $normalizedStoredPath = str_replace('\\', '/', $storedPath);
-        $baseName = basename($normalizedStoredPath);
         $uploadDir = $this->normalizarRutaDirectorio($uploadDir);
-        $candidates = [];
-        $pushCandidate = static function (string $candidate) use (&$candidates): void {
-            if ($candidate !== '' && !in_array($candidate, $candidates, true)) {
-                $candidates[] = $candidate;
-            }
-        };
-
-        if ($uploadDir !== '') {
-            $pushCandidate($uploadDir . DIRECTORY_SEPARATOR . $baseName);
+        if ($uploadDir === '') {
+            return [];
         }
 
-        $repoRoot = dirname(__DIR__, 3);
-        $appRoot = dirname(__DIR__, 2);
-        $trimmedPath = ltrim(preg_replace('#^https?://[^/]+#i', '', $normalizedStoredPath) ?? $normalizedStoredPath, '/');
-        if ($trimmedPath !== '') {
-            $pushCandidate($repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $trimmedPath));
-            $pushCandidate($appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $trimmedPath) ?? $trimmedPath));
-            $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
-            if ($documentRoot !== '') {
-                $pushCandidate($documentRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', 'impulsa_emprende/', $trimmedPath) ?? $trimmedPath));
-            }
-        }
-
-        return $candidates;
+        return [$uploadDir . DIRECTORY_SEPARATOR . basename(str_replace('\\', '/', $storedPath))];
     }
 
     private function obtenerBasePublica(): string
@@ -1003,19 +985,4 @@ final class ApiBlogModel
         return rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path), DIRECTORY_SEPARATOR);
     }
 
-    private function resolverDirectorioUploadDesdeRutaPublica(string $publicPath, string $moduleFolder): string
-    {
-        $publicPath = '/' . ltrim(trim($publicPath), '/');
-        $moduleFolder = trim($moduleFolder);
-        if ($publicPath === '/' || $moduleFolder === '') {
-            return '';
-        }
-
-        $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
-        if ($documentRoot !== '') {
-            return $documentRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, ltrim($publicPath, '/'));
-        }
-
-        return dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $moduleFolder;
-    }
 }
