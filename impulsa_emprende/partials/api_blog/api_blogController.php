@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($apiBlogPostAction !== '' && ($_P
                 throw new RuntimeException('Debes seleccionar una integracion valida.');
             }
 
-            $guardadoId = $apiBlogModel->guardarItem(
+            $apiBlogModel->guardarItem(
                 $apiBlogUserId,
                 $itemId !== false ? (int) $itemId : null,
                 (int) $integrationId,
@@ -54,7 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($apiBlogPostAction !== '' && ($_P
             $_SESSION[$apiBlogFlashKey] = [
                 'estado' => 'ok',
                 'mensaje' => $itemId !== false ? 'Publicacion actualizada correctamente.' : 'Publicacion creada correctamente.',
-                'edit_id' => $guardadoId,
                 'integration_id' => (int) $integrationId,
             ];
         }
@@ -65,7 +64,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($apiBlogPostAction !== '' && ($_P
         ];
     }
 
-    header('Location: ' . (string) ($_SERVER['REQUEST_URI'] ?? ''));
+    $redirectPath = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+    $redirectQuery = [];
+    $redirectIntegrationId = filter_var(
+        $_POST['api_integration_id'] ?? $_GET['integration_id'] ?? null,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+
+    if ($redirectIntegrationId !== false && $redirectIntegrationId !== null) {
+        $redirectQuery['integration_id'] = (int) $redirectIntegrationId;
+    }
+
+    $redirectUrl = $redirectPath !== '' ? $redirectPath : (string) ($_SERVER['REQUEST_URI'] ?? '');
+    if ($redirectQuery !== []) {
+        $redirectUrl .= '?' . http_build_query($redirectQuery);
+    }
+
+    header('Location: ' . $redirectUrl);
     exit;
 }
 
