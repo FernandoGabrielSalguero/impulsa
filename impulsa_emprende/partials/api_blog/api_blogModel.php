@@ -52,6 +52,266 @@ final class ApiBlogIntegrationAccessModel
 
 final class ApiBlogModel
 {
+
+public function obtenerListadoPublico(int $integrationId): array
+{
+    $sql = 'SELECT *
+            FROM ' . self::TABLE . '
+            WHERE api_integration_id = :integration_id
+              AND status = :status
+            ORDER BY sort_order ASC, publication_date DESC, created_at DESC, id DESC';
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([
+        ':integration_id' => $integrationId,
+        ':status' => 'active',
+    ]);
+
+    return array_map(
+        fn(array $item): array => $this->mapearRegistroParaApiPublica($item, $integrationId),
+        $stmt->fetchAll(PDO::FETCH_ASSOC)
+    );
+}
+
+public function obtenerDetallePublico(int $integrationId, ?int $itemId = null, ?string $slug = null): ?array
+{
+    if ($itemId === null && ($slug === null || trim($slug) === '')) {
+        throw new RuntimeException('Debes indicar id o slug.', 422);
+    }
+
+    $sql = 'SELECT *
+            FROM ' . self::TABLE . '
+            WHERE api_integration_id = :integration_id
+              AND status = :status';
+
+    $params = [
+        ':integration_id' => $integrationId,
+        ':status' => 'active',
+    ];
+
+    if ($itemId !== null) {
+        $sql .= ' AND id = :id';
+        $params[':id'] = $itemId;
+    } else {
+        $sql .= ' AND slug = :slug';
+        $params[':slug'] = trim((string) $slug);
+    }
+
+    $sql .= ' LIMIT 1';
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
+    $item = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return is_array($item) ? $this->mapearRegistroParaApiPublica($item, $integrationId) : null;
+}
+
+public function obtenerArchivoPublico(int $integrationId, int $itemId, string $column): ?array
+{
+    if (!in_array($column, self::PATH_COLUMNS, true)) {
+        return null;
+    }
+
+    $sql = 'SELECT *
+            FROM ' . self::TABLE . '
+            WHERE id = :id
+              AND api_integration_id = :integration_id
+              AND status = :status
+            LIMIT 1';
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([
+        ':id' => $itemId,
+        ':integration_id' => $integrationId,
+        ':status' => 'active',
+    ]);
+
+    $item = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!is_array($item)) {
+        return null;
+    }
+
+    $rutaGuardada = trim((string) ($item[$column] ?? ''));
+    if ($rutaGuardada === '') {
+        return null;
+    }
+
+    $config = $this->buscarConfiguracionArchivoPorColumna($column);
+    if ($config === null) {
+        return null;
+    }
+
+    $absolutePath = $this->resolverRutaArchivoLocal($rutaGuardada, (string) ($config['upload_dir'] ?? ''));
+    if ($absolutePath === null) {
+        return null;
+    }
+
+    $mimeType = function_exists('mime_content_type') ? (string) mime_content_type($absolutePath) : '';
+    if ($mimeType === '') {
+        $mimeType = $column === 'cover_image_path' ? 'image/jpeg' : 'application/octet-stream';
+    }
+
+    return [
+        'absolute_path' => $absolutePath,
+        'mime_type' => $mimeType,
+        'download_name' => basename($absolutePath),
+    ];
+}
+
+public function guardarItemApi(int $integrationId, ?int $itemId, ?int $createdByUserId, array $payload, array $files): int
+{
+    $existente = null;
+
+    if ($itemId !== null) {
+        $existente = $this->obtenerItemApi($integrationId, $itemId);
+        if ($existente === null) {
+            throw new RuntimeException('La publicacion indicada no existe.', 404);
+        }
+    }
+
+    $normalizado = $this->normalizarPayload($payload, $existente);
+    $archivos = $this->resolverArchivos($files, $existente, $payload);
+
+    $columnas = array_merge([
+        'api_integration_id' => $integrationId,
+        'title' => $normalizado['title'],
+        'slug' => $normalizado['slug'],
+        'subtitle' => $normalizado['subtitle'],
+        'author' => $normalizado['author'],
+        'bibliography' => $normalizado['bibliography'],
+        'category' => $normalizado['category'],
+        'subcategory' => $normalizado['subcategory'],
+        'excerpt' => $normalizado['excerpt'],
+        'description_html' => $normalizado['description_html'],
+        'publication_date' => $normalizado['publication_date'],
+        'status' => $normalizado['status'],
+        'sort_order' => $normalizado['sort_order'],
+        'metadata_json' => $normalizado['metadata_json'],
+    ], $archivos);
+
+    if ($itemId === null) {
+        $columnas['created_by_user_id'] = $createdByUserId;
+        $this->asegurarSlugUnico($integrationId, $columnas['slug']);
+
+        $campos = array_keys($columnas);
+        $sql = 'INSERT INTO ' . self::TABLE . ' (' . implode(', ', $campos) . ')
+                VALUES (:' . implode(', :', $campos) . ')';
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($this->prefijarParametros($columnas));
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    $this->asegurarSlugUnico($integrationId, $columnas['slug'], $itemId);
+
+    $sets = [];
+    foreach (array_keys($columnas) as $campo) {
+        $sets[] = $campo . ' = :' . $campo;
+    }
+
+    $sql = 'UPDATE ' . self::TABLE . '
+            SET ' . implode(', ', $sets) . ',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+              AND api_integration_id = :integration_id_guard';
+
+    $params = $this->prefijarParametros($columnas);
+    $params[':id'] = $itemId;
+    $params[':integration_id_guard'] = $integrationId;
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return $itemId;
+}
+
+public function actualizarEstadoApi(int $integrationId, int $itemId, string $status): void
+{
+    $status = $this->normalizarEstado($status);
+
+    $stmt = $this->pdo->prepare(
+        'UPDATE ' . self::TABLE . '
+         SET status = :status,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = :id
+           AND api_integration_id = :integration_id'
+    );
+
+    $stmt->execute([
+        ':status' => $status,
+        ':id' => $itemId,
+        ':integration_id' => $integrationId,
+    ]);
+}
+
+public function eliminarLogicamenteApi(int $integrationId, int $itemId): void
+{
+    $this->actualizarEstadoApi($integrationId, $itemId, 'inactive');
+}
+
+private function obtenerItemApi(int $integrationId, int $itemId): ?array
+{
+    $stmt = $this->pdo->prepare(
+        'SELECT *
+         FROM ' . self::TABLE . '
+         WHERE id = :id
+           AND api_integration_id = :integration_id
+         LIMIT 1'
+    );
+
+    $stmt->execute([
+        ':id' => $itemId,
+        ':integration_id' => $integrationId,
+    ]);
+
+    $item = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return is_array($item) ? $item : null;
+}
+
+private function mapearRegistroParaApiPublica(array $row, int $integrationId): array
+{
+    $mapped = $row;
+    $itemId = (int) ($row['id'] ?? 0);
+    $baseUrl = $this->obtenerBasePublica();
+
+    $mapped['cover_image_path_url'] = null;
+    $mapped['attachment_path_url'] = null;
+
+    if ($itemId > 0 && trim((string) ($row['cover_image_path'] ?? '')) !== '') {
+        $mapped['cover_image_path_url'] = rtrim($baseUrl, '/') . '/api/blog_api/index.php?' . http_build_query([
+            'public_key' => $this->obtenerPublicKeyPorIntegracion($integrationId),
+            'media_item_id' => $itemId,
+            'media_type' => 'cover',
+        ]);
+    }
+
+    if ($itemId > 0 && trim((string) ($row['attachment_path'] ?? '')) !== '') {
+        $mapped['attachment_path_url'] = rtrim($baseUrl, '/') . '/api/blog_api/index.php?' . http_build_query([
+            'public_key' => $this->obtenerPublicKeyPorIntegracion($integrationId),
+            'media_item_id' => $itemId,
+            'media_type' => 'attachment',
+        ]);
+    }
+
+    return $mapped;
+}
+
+private function obtenerPublicKeyPorIntegracion(int $integrationId): string
+{
+    $stmt = $this->pdo->prepare(
+        'SELECT public_key
+         FROM api_integrations
+         WHERE id = :id
+         LIMIT 1'
+    );
+
+    $stmt->execute([':id' => $integrationId]);
+
+    return (string) ($stmt->fetchColumn() ?: '');
+}
     private const TABLE = 'api_blog_posts';
     private const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
     private const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
