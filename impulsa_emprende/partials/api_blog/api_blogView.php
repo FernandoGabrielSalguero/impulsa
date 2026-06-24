@@ -819,17 +819,7 @@ $apiBlogEmptyState = [
   </dialog>
 
   <script>
-    window.imApiBlogDebugEvents = <?= json_encode($apiBlogDebugEvents, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-
-    if (Array.isArray(window.imApiBlogDebugEvents) && window.imApiBlogDebugEvents.length > 0) {
-      console.groupCollapsed('Impulsa Blog File Debug');
-      window.imApiBlogDebugEvents.forEach((event, index) => {
-        console.log('#' + (index + 1), event);
-      });
-      console.groupEnd();
-    }
-
-    console.log('Impulsa Blog Debug', {
+    const imApiBlogDebugState = {
       script: <?= json_encode($apiBlogMediaControllerUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
       integrationId: <?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>,
       editingItemId: <?= (int) ($apiBlogCurrent['id'] ?? 0) ?>,
@@ -848,7 +838,37 @@ $apiBlogEmptyState = [
           'attachment_debug' => $attachmentDebug,
         ];
       }, $apiBlogItems), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
+    };
+
+    window.imApiBlogDebugEvents = <?= json_encode($apiBlogDebugEvents, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    window.imApiBlogDebugState = imApiBlogDebugState;
+
+    if (Array.isArray(window.imApiBlogDebugEvents) && window.imApiBlogDebugEvents.length > 0) {
+      console.groupCollapsed('Impulsa Blog File Debug');
+      window.imApiBlogDebugEvents.forEach((event, index) => {
+        console.log('#' + (index + 1), event);
+      });
+      console.groupEnd();
+    }
+
+    console.log('Impulsa Blog Debug', imApiBlogDebugState);
+
+    const imApiBlogMissingFiles = (imApiBlogDebugState.items || []).filter((item) => {
+      const coverMissing = item.cover_image_path && item.cover_debug && item.cover_debug.exists === false;
+      const attachmentMissing = item.attachment_path && item.attachment_debug && item.attachment_debug.exists === false;
+
+      return coverMissing || attachmentMissing;
     });
+
+    window.imApiBlogMissingFiles = imApiBlogMissingFiles;
+
+    if (imApiBlogMissingFiles.length > 0) {
+      console.groupCollapsed('Impulsa Blog Missing Files');
+      imApiBlogMissingFiles.forEach((item) => {
+        console.warn('Missing file for item', item.id, item.title, item);
+      });
+      console.groupEnd();
+    }
 
     (() => {
       const bindFallbacks = (image, fallbackList) => {
