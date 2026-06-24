@@ -321,8 +321,7 @@ $formContactEstados = array_values($formContactEstados);
         </section>
         <section class="im-contacto-drawer__seccion">
           <div>
-            <h4>Consulta</h4>
-            <p>Contenido enviado por el visitante desde el formulario.</p>
+            <h4>Descripción de consulta</h4>
           </div>
           <div class="im-contacto-drawer__mensaje">${escapeHtml(consultation)}</div>
         </section>
