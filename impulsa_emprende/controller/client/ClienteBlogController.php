@@ -61,8 +61,8 @@ if ($usuarioMarcaNombre === '') {
 $apiBlogContext = [
     'user' => $usuario,
     'role_label' => 'Cliente',
-    'page_title' => 'Blog para tus integraciones',
-    'page_description' => 'Crea, edita y publica notas para cada integracion API visible en tu cuenta.',
+    'page_title' => 'Blog para tu página web',
+    'page_description' => 'Crea, edita y publica blogs para tu sitio web.',
     'back_href' => '/impulsa_emprende/controller/client/ClienteDashboardController.php',
     'back_label' => 'Volver al dashboard',
     'flash_key' => 'cliente_blog_flash',

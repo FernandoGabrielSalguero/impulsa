@@ -21,6 +21,49 @@ $apiBlogStatusLabels = [
     'inactive' => ['Inactivo', 'im-chip--alerta'],
 ];
 ?>
+<style>
+  .im-blog-toolbar {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .im-blog-acciones {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .im-blog-accion--editar {
+    color: var(--im-color-principal, #112c4e);
+  }
+
+  .im-blog-accion--eliminar {
+    color: #ba1a1a;
+  }
+
+  .im-blog-modal .im-dialog__contenido {
+    min-height: 0;
+    overflow: auto;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .im-blog-modal .im-dialog__acciones {
+    display: flex;
+    gap: .75rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .im-blog-tabla-nombre strong,
+  .im-blog-tabla-nombre small {
+    display: block;
+  }
+</style>
+
 <section class="im-seccion-documento activa" id="api-blog-builder" data-panel="api-blog-builder">
   <div class="im-encabezado-seccion">
     <div>
@@ -30,7 +73,6 @@ $apiBlogStatusLabels = [
         <p><?= $h($apiBlogPageDescription) ?></p>
       <?php endif; ?>
     </div>
-    <a class="im-boton im-boton--texto" href="<?= $h($apiBlogBackHref) ?>"><?= $h($apiBlogBackLabel) ?></a>
   </div>
 
   <?php if (is_array($apiBlogFlash) && trim((string) ($apiBlogFlash['mensaje'] ?? '')) !== ''): ?>
@@ -39,15 +81,15 @@ $apiBlogStatusLabels = [
     </div>
   <?php endif; ?>
 
-  <div class="im-grilla im-grilla--dashboard">
-    <article class="im-tarjeta">
-      <div class="im-tarjeta__cabecera">
-        <div>
-          <h3>Mis publicaciones</h3>
-          <p>Administra solo los blogs creados con tu usuario dentro de cada integracion.</p>
-        </div>
+  <article class="im-tarjeta">
+    <div class="im-tarjeta__cabecera">
+      <div>
+        <h3>Mis publicaciones</h3>
+        <p>Administra solo los blogs creados con tu usuario dentro de cada integracion.</p>
       </div>
+    </div>
 
+    <div class="im-blog-toolbar">
       <form method="get" class="im-formulario">
         <label class="im-campo im-campo-material im-campo--ancho">
           <span>Integracion asociada</span>
@@ -61,68 +103,98 @@ $apiBlogStatusLabels = [
         </label>
       </form>
 
-      <?php if (!$apiBlogIntegraciones): ?>
-        <div class="im-alerta im-alerta--info">Todavia no hay integraciones accesibles para tu cuenta.</div>
-      <?php elseif (!$apiBlogItems): ?>
-        <div class="im-alerta im-alerta--info">Aun no hay publicaciones para esta integracion.</div>
-      <?php else: ?>
-        <div class="im-tabla-contenedor">
-          <table class="im-tabla">
-            <thead>
-              <tr>
-                <th>Titulo</th>
-                <th>Estado</th>
-                <th>Publicacion</th>
-                <th>Slug</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($apiBlogItems as $item): ?>
-                <?php
-                $statusKey = (string) ($item['status'] ?? 'draft');
-                $statusMeta = $apiBlogStatusLabels[$statusKey] ?? [$statusKey, 'im-chip--alerta'];
-                ?>
-                <tr>
-                  <td>
-                    <strong><?= $h($item['title'] ?? '') ?></strong>
-                    <?php if (!empty($item['excerpt'])): ?>
-                      <br><small><?= $h($item['excerpt']) ?></small>
-                    <?php endif; ?>
-                  </td>
-                  <td><span class="im-chip <?= $h($statusMeta[1]) ?>"><?= $h($statusMeta[0]) ?></span></td>
-                  <td><?= !empty($item['publication_date']) ? $h(date('d/m/Y H:i', strtotime((string) $item['publication_date']))) : '-' ?></td>
-                  <td><code><?= $h($item['slug'] ?? '') ?></code></td>
-                  <td>
-                    <div class="im-chip-lista">
-                      <a class="im-boton im-boton--texto" href="?integration_id=<?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>&edit_id=<?= (int) ($item['id'] ?? 0) ?>">Editar</a>
-                      <form method="post" onsubmit="return confirm('Esta accion eliminara la publicacion seleccionada.');">
-                        <input type="hidden" name="api_blog_action_scope" value="<?= $h($apiBlogPostAction) ?>">
-                        <input type="hidden" name="item_id" value="<?= (int) ($item['id'] ?? 0) ?>">
-                        <button class="im-boton im-boton--texto" type="submit" name="api_blog_submit" value="delete">Eliminar</button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
+      <?php if ($apiBlogIntegraciones): ?>
+        <?php if ($apiBlogCurrent): ?>
+          <a class="im-boton im-boton--principal" href="?integration_id=<?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>">
+            Nueva publicacion
+          </a>
+        <?php else: ?>
+          <button class="im-boton im-boton--principal" type="button" data-blog-open-modal="create">
+            Nueva publicacion
+          </button>
+        <?php endif; ?>
       <?php endif; ?>
-    </article>
+    </div>
 
-    <article class="im-tarjeta">
-      <div class="im-tarjeta__cabecera">
-        <div>
-          <h3><?= $apiBlogCurrent ? 'Editar publicacion' : 'Nueva publicacion' ?></h3>
-          <p>Carga contenido, portada y datos de publicacion para la integracion seleccionada.</p>
-        </div>
+    <?php if (!$apiBlogIntegraciones): ?>
+      <div class="im-alerta im-alerta--info">Todavia no hay integraciones accesibles para tu cuenta.</div>
+    <?php elseif (!$apiBlogItems): ?>
+      <div class="im-alerta im-alerta--info">Aun no hay publicaciones para esta integracion.</div>
+    <?php else: ?>
+      <div class="im-tabla-contenedor">
+        <table class="im-tabla">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Estado</th>
+              <th>Fecha de publicacion</th>
+              <th>Tiene foto</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($apiBlogItems as $item): ?>
+              <?php
+              $statusKey = (string) ($item['status'] ?? 'draft');
+              $statusMeta = $apiBlogStatusLabels[$statusKey] ?? [$statusKey, 'im-chip--alerta'];
+              $tieneFoto = !empty($item['cover_image_path']);
+              ?>
+              <tr>
+                <td class="im-blog-tabla-nombre">
+                  <strong><?= $h($item['title'] ?? '') ?></strong>
+                  <?php if (!empty($item['slug'])): ?>
+                    <small><?= $h($item['slug']) ?></small>
+                  <?php endif; ?>
+                </td>
+                <td><span class="im-chip <?= $h($statusMeta[1]) ?>"><?= $h($statusMeta[0]) ?></span></td>
+                <td><?= !empty($item['publication_date']) ? $h(date('d/m/Y H:i', strtotime((string) $item['publication_date']))) : '-' ?></td>
+                <td>
+                  <span class="im-chip <?= $tieneFoto ? 'im-chip--completado' : 'im-chip--pendiente' ?>">
+                    <?= $tieneFoto ? 'Si' : 'No' ?>
+                  </span>
+                </td>
+                <td>
+                  <div class="im-blog-acciones">
+                    <a
+                      class="im-boton-icono material-symbols-rounded im-blog-accion--editar"
+                      href="?integration_id=<?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>&edit_id=<?= (int) ($item['id'] ?? 0) ?>"
+                      aria-label="Editar publicacion"
+                    >edit</a>
+                    <button
+                      class="im-boton-icono material-symbols-rounded im-blog-accion--eliminar"
+                      type="button"
+                      data-blog-delete-open
+                      data-blog-delete-id="<?= (int) ($item['id'] ?? 0) ?>"
+                      data-blog-delete-title="<?= $h($item['title'] ?? 'Publicacion seleccionada') ?>"
+                      aria-label="Eliminar publicacion"
+                    >delete</button>
+                  </div>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
       </div>
+    <?php endif; ?>
+  </article>
+</section>
 
-      <form method="post" enctype="multipart/form-data" class="im-formulario">
-        <input type="hidden" name="api_blog_action_scope" value="<?= $h($apiBlogPostAction) ?>">
-        <input type="hidden" name="item_id" value="<?= (int) ($apiBlogCurrent['id'] ?? 0) ?>">
+<div class="im-modal-cortina" data-blog-close-modal></div>
+<section class="im-dialog im-blog-modal" role="dialog" aria-modal="true" aria-labelledby="api-blog-modal-titulo" aria-hidden="true" data-blog-modal>
+  <header class="im-dialog__cabecera">
+    <div>
+      <p class="im-sobrelinea">Blog</p>
+      <h3 id="api-blog-modal-titulo"><?= $apiBlogCurrent ? 'Editar publicacion' : 'Nueva publicacion' ?></h3>
+    </div>
+    <button class="im-boton-icono" type="button" data-blog-close-modal aria-label="Cerrar dialog"></button>
+  </header>
 
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="api_blog_action_scope" value="<?= $h($apiBlogPostAction) ?>">
+    <input type="hidden" name="item_id" value="<?= (int) ($apiBlogCurrent['id'] ?? 0) ?>">
+
+    <div class="im-dialog__contenido">
+      <div class="im-formulario">
         <label class="im-campo im-campo-material im-campo--ancho">
           <span>Integracion asociada</span>
           <select name="api_integration_id" required>
@@ -215,14 +287,112 @@ $apiBlogStatusLabels = [
             <?php endif; ?>
           </div>
         <?php endif; ?>
+      </div>
+    </div>
 
-        <div class="im-formulario__acciones">
-          <?php if ($apiBlogCurrent): ?>
-            <a class="im-boton im-boton--texto" href="?integration_id=<?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>">Nueva publicacion</a>
-          <?php endif; ?>
-          <button class="im-boton im-boton--principal" type="submit" name="api_blog_submit" value="save">Guardar publicacion</button>
-        </div>
-      </form>
-    </article>
-  </div>
+    <footer class="im-dialog__acciones">
+      <button class="im-boton im-boton--texto" type="button" data-blog-close-modal>Cancelar</button>
+      <button class="im-boton im-boton--principal" type="submit" name="api_blog_submit" value="save">Guardar publicacion</button>
+    </footer>
+  </form>
 </section>
+
+<div class="im-modal-cortina" data-blog-close-delete></div>
+<section class="im-dialog im-blog-modal" role="dialog" aria-modal="true" aria-labelledby="api-blog-delete-titulo" aria-hidden="true" data-blog-delete-modal>
+  <header class="im-dialog__cabecera">
+    <div>
+      <p class="im-sobrelinea">Accion irreversible</p>
+      <h3 id="api-blog-delete-titulo">Eliminar publicacion</h3>
+    </div>
+    <button class="im-boton-icono" type="button" data-blog-close-delete aria-label="Cerrar dialog"></button>
+  </header>
+
+  <form method="post">
+    <input type="hidden" name="api_blog_action_scope" value="<?= $h($apiBlogPostAction) ?>">
+    <input type="hidden" name="item_id" value="" data-blog-delete-id-input>
+
+    <div class="im-dialog__contenido">
+      <p>Estas por eliminar la publicacion:</p>
+      <p><strong data-blog-delete-title>Publicacion seleccionada</strong></p>
+      <p>Esta accion borrara el registro y sus archivos asociados. No se puede deshacer.</p>
+    </div>
+
+    <footer class="im-dialog__acciones">
+      <button class="im-boton im-boton--texto" type="button" data-blog-close-delete>Cancelar</button>
+      <button class="im-boton im-boton--principal im-blog-accion--eliminar" type="submit" name="api_blog_submit" value="delete">Confirmar eliminacion</button>
+    </footer>
+  </form>
+</section>
+
+<script>
+  (() => {
+    const modal = document.querySelector('[data-blog-modal]');
+    const cortina = document.querySelector('[data-blog-close-modal].im-modal-cortina');
+    if (!modal || !cortina) {
+      return;
+    }
+
+    const alternarModal = (abrir) => {
+      modal.classList.toggle('abierto', abrir);
+      cortina.classList.toggle('abierto', abrir);
+      modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+    };
+
+    document.addEventListener('click', (evento) => {
+      if (evento.target.closest('[data-blog-open-modal]')) {
+        alternarModal(true);
+        return;
+      }
+
+      if (evento.target.closest('[data-blog-close-modal]')) {
+        alternarModal(false);
+      }
+    });
+
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape') {
+        alternarModal(false);
+      }
+    });
+
+    <?php if ($apiBlogCurrent): ?>
+    alternarModal(true);
+    <?php endif; ?>
+  })();
+
+  (() => {
+    const modal = document.querySelector('[data-blog-delete-modal]');
+    const cortina = document.querySelector('[data-blog-close-delete].im-modal-cortina');
+    const inputId = document.querySelector('[data-blog-delete-id-input]');
+    const titulo = document.querySelector('[data-blog-delete-title]');
+    if (!modal || !cortina || !inputId || !titulo) {
+      return;
+    }
+
+    const alternarModal = (abrir) => {
+      modal.classList.toggle('abierto', abrir);
+      cortina.classList.toggle('abierto', abrir);
+      modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+    };
+
+    document.addEventListener('click', (evento) => {
+      const trigger = evento.target.closest('[data-blog-delete-open]');
+      if (trigger) {
+        inputId.value = trigger.getAttribute('data-blog-delete-id') || '';
+        titulo.textContent = trigger.getAttribute('data-blog-delete-title') || 'Publicacion seleccionada';
+        alternarModal(true);
+        return;
+      }
+
+      if (evento.target.closest('[data-blog-close-delete]')) {
+        alternarModal(false);
+      }
+    });
+
+    document.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Escape') {
+        alternarModal(false);
+      }
+    });
+  })();
+</script>
