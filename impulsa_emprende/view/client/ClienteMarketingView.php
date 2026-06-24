@@ -2,6 +2,7 @@
 $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Cliente';
+$clienteActivePage = 'marketing';
 $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 ?>
 <!doctype html>
@@ -24,22 +25,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
 </head>
 <body>
   <div class="im-aplicacion" data-menu-colapsado="false">
-    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
-      <div class="im-marca">
-        <span class="im-marca__isotipo" aria-hidden="true">
-          <?php if ($usuarioAvatarUrl): ?><img src="<?= $h($usuarioAvatarUrl) ?>" alt=""><?php else: ?><?= $h($usuarioInicial) ?><?php endif; ?>
-        </span>
-        <div class="im-marca__texto"><strong><?= $h($usuarioMarcaNombre) ?></strong><span>Cliente</span></div>
-      </div>
-      <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteDashboardController.php"><span class="material-symbols-rounded" aria-hidden="true">dashboard</span><span class="im-nav-item__texto">Dashboard</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteMetricasController.php"><span class="material-symbols-rounded" aria-hidden="true">monitoring</span><span class="im-nav-item__texto">Metricas</span></a>
-        <a class="im-nav-item activo" href="/impulsa_emprende/controller/client/ClienteMarketingController.php"><span class="material-symbols-rounded" aria-hidden="true">campaign</span><span class="im-nav-item__texto">Marketing</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteChatbotController.php"><span class="material-symbols-rounded" aria-hidden="true">forum</span><span class="im-nav-item__texto">Chatbot</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteBlogController.php"><span class="material-symbols-rounded" aria-hidden="true">article</span><span class="im-nav-item__texto">Blog</span></a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/client/ClienteProductController.php"><span class="material-symbols-rounded" aria-hidden="true">inventory_2</span><span class="im-nav-item__texto">Productos</span></a>
-      </nav>
-    </aside>
+    <?php require __DIR__ . '/clienteMenu.php'; ?>
     <div class="im-cortina" data-cerrar-menu></div>
     <div class="im-contenedor">
       <header class="im-barra-superior">
