@@ -756,7 +756,7 @@ $apiBlogEmptyState = [
                     data-image-fallbacks='<?= $h(json_encode($currentCoverCandidates, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]') ?>'
                   >
                 <?php endif; ?>
-                <!-- <small>Actual: <?= $h((string) ($apiBlogCurrent['cover_image_path'] ?? '')) ?></small> -->
+                <small>Actual: <?= $h((string) ($apiBlogCurrent['cover_image_path'] ?? '')) ?></small>
                 <?php if (empty($currentCoverDebug['exists'])): ?>
                   <small>La ruta esta guardada en base, pero el archivo ya no existe en el servidor.</small>
                 <?php endif; ?>
