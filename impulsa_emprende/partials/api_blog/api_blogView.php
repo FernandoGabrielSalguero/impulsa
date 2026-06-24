@@ -35,7 +35,7 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
     'attachment_path_url' => (string) ($apiBlogCurrent['attachment_path_url'] ?? ''),
     'attachment_name' => basename((string) ($apiBlogCurrent['attachment_path'] ?? '')),
     'cover_image_name' => basename((string) ($apiBlogCurrent['cover_image_path'] ?? '')),
-];
+] : [];
 ?>
 <style>
   .im-blog-toolbar {
