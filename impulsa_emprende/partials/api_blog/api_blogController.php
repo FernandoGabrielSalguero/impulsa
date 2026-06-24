@@ -102,10 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($apiBlogPostAction !== '' && ($_P
         );
     }
 
-    if (isset($_SESSION[$apiBlogFlashKey]) && is_array($_SESSION[$apiBlogFlashKey])) {
-        $_SESSION[$apiBlogFlashKey]['debug_events'] = ApiBlogModel::pullDebugEvents();
-    }
-
     header('Location: ' . $apiBlogRedirectTo);
     exit;
 }
@@ -150,12 +146,5 @@ $apiBlogEditId = filter_var(
 );
 
 $apiBlogEditingItem = $apiBlogEditId !== false ? $apiBlogModel->obtenerItemEditable($apiBlogUserId, (int) $apiBlogEditId) : null;
-$apiBlogDebugEvents = [];
-
-if (is_array($apiBlogFlash) && isset($apiBlogFlash['debug_events']) && is_array($apiBlogFlash['debug_events'])) {
-    $apiBlogDebugEvents = $apiBlogFlash['debug_events'];
-}
-
-$apiBlogDebugEvents = array_merge($apiBlogDebugEvents, ApiBlogModel::pullDebugEvents());
 
 require __DIR__ . '/api_blogView.php';

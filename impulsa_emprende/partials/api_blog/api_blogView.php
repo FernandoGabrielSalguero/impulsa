@@ -8,74 +8,12 @@ $apiBlogIntegraciones = $apiBlogIntegraciones ?? [];
 $apiBlogItems = $apiBlogItems ?? [];
 $apiBlogEditingItem = $apiBlogEditingItem ?? null;
 $apiBlogSelectedIntegration = $apiBlogSelectedIntegration ?? null;
-$apiBlogDebugEvents = $apiBlogDebugEvents ?? [];
 $apiBlogCurrent = is_array($apiBlogEditingItem) ? $apiBlogEditingItem : [];
 $apiBlogDescriptionValue = (string) ($apiBlogCurrent['description_html'] ?? '<p></p>');
 $apiBlogBaseQuery = '?integration_id=' . (int) ($apiBlogSelectedIntegration['id'] ?? 0);
 $apiBlogShouldOpenDialog = $apiBlogCurrent !== [] || (is_array($apiBlogFlash) && ($apiBlogFlash['estado'] ?? '') === 'error');
-$apiBlogScriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
-$apiBlogControllerPos = strpos($apiBlogScriptName, '/controller/');
-$apiBlogAppBasePath = $apiBlogControllerPos !== false ? rtrim(substr($apiBlogScriptName, 0, $apiBlogControllerPos), '/') : '';
-$apiBlogAppBasePath = $apiBlogAppBasePath === '/' ? '' : $apiBlogAppBasePath;
-$apiBlogMediaControllerUrl = (string) strtok((string) ($_SERVER['REQUEST_URI'] ?? $apiBlogScriptName), '?');
-$apiBlogCleanUrl = $apiBlogMediaControllerUrl;
-$apiBlogBuildMediaUrl = static function (int $itemId, string $type) use ($apiBlogMediaControllerUrl): string {
-    return $apiBlogMediaControllerUrl . '?' . http_build_query([
-        'media_item_id' => $itemId,
-        'media_type' => $type,
-    ]);
-};
-$apiBlogDebugArchivo = static function (?string $storedPath): array {
-    $storedPath = trim((string) $storedPath);
-    if ($storedPath === '') {
-        return [
-            'stored_path' => null,
-            'basename' => null,
-            'candidates' => [],
-            'resolved_path' => null,
-            'exists' => false,
-        ];
-    }
-
-    $normalizedStoredPath = str_replace('\\', '/', $storedPath);
-    $baseName = basename($normalizedStoredPath);
-    $repoRoot = dirname(__DIR__, 3);
-    $appRoot = dirname(__DIR__, 2);
-    $blogUploadDir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'API_Blog';
-    $trimmedPath = ltrim(preg_replace('#^https?://[^/]+#i', '', $normalizedStoredPath) ?? $normalizedStoredPath, '/');
-
-    $candidates = [];
-    $pushCandidate = static function (string $candidate) use (&$candidates): void {
-        if ($candidate !== '' && !in_array($candidate, $candidates, true)) {
-            $candidates[] = $candidate;
-        }
-    };
-
-    $pushCandidate($blogUploadDir . DIRECTORY_SEPARATOR . $baseName);
-    if ($trimmedPath !== '') {
-        $pushCandidate($repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $trimmedPath));
-        $pushCandidate($appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $trimmedPath) ?? $trimmedPath));
-    }
-
-    $resolvedPath = null;
-    foreach ($candidates as $candidate) {
-        if (is_file($candidate)) {
-            $resolvedPath = $candidate;
-            break;
-        }
-    }
-
-    return [
-        'stored_path' => $storedPath,
-        'basename' => $baseName,
-        'candidates' => $candidates,
-        'resolved_path' => $resolvedPath,
-        'exists' => $resolvedPath !== null,
-    ];
-};
+$apiBlogCleanUrl = (string) strtok((string) ($_SERVER['REQUEST_URI'] ?? ($_SERVER['SCRIPT_NAME'] ?? '')), '?');
 $apiBlogResolverImagen = static function (?string $path, ?string $resolvedUrl = null): array {
-    global $apiBlogAppBasePath;
-
     $candidatos = [];
     $agregar = static function (?string $valor) use (&$candidatos): void {
         $valor = trim((string) $valor);
@@ -96,29 +34,11 @@ $apiBlogResolverImagen = static function (?string $path, ?string $resolvedUrl = 
     }
 
     $normalizado = '/' . ltrim(str_replace('\\', '/', $path), '/');
-    $alternativos = [];
-
-    if (!str_contains(trim($path, '/'), '/')) {
-        $alternativos[] = '/uploads/API_Blog/' . ltrim($path, '/');
-        $alternativos[] = '/impulsa_emprende/uploads/API_Blog/' . ltrim($path, '/');
+    $agregar($normalizado);
+    if (str_starts_with($normalizado, '/impulsa_emprende/')) {
+        $agregar('/' . ltrim(substr($normalizado, strlen('/impulsa_emprende/')), '/'));
     } else {
-        $alternativos[] = $normalizado;
-        if (str_starts_with($normalizado, '/impulsa_emprende/')) {
-            $alternativos[] = '/' . ltrim(substr($normalizado, strlen('/impulsa_emprende/')), '/');
-        } else {
-            $alternativos[] = '/impulsa_emprende' . $normalizado;
-        }
-    }
-
-    foreach ($alternativos as $alternativo) {
-        $alternativo = '/' . ltrim((string) $alternativo, '/');
-        if ($apiBlogAppBasePath !== '' && str_starts_with($alternativo, '/uploads/')) {
-            $agregar($apiBlogAppBasePath . $alternativo);
-        }
-        if ($apiBlogAppBasePath === '' && str_starts_with($alternativo, '/impulsa_emprende/')) {
-            $agregar('/' . ltrim(substr($alternativo, strlen('/impulsa_emprende/')), '/'));
-        }
-        $agregar($alternativo);
+        $agregar('/impulsa_emprende' . $normalizado);
     }
 
     return $candidatos;
@@ -528,17 +448,8 @@ $apiBlogEmptyState = [
                 ? 'im-chip--completado'
                 : ($itemStatus === 'draft' ? 'im-chip--pendiente' : 'im-chip--alerta');
             $itemExcerpt = trim((string) ($item['excerpt'] ?? ''));
-            $itemCoverDebug = $apiBlogDebugArchivo($item['cover_image_path'] ?? null);
-            $itemId = (int) ($item['id'] ?? 0);
-            $itemCoverCandidates = !empty($item['cover_image_path']) && !empty($itemCoverDebug['exists']) && $itemId > 0
-                ? [$apiBlogBuildMediaUrl($itemId, 'cover')]
-                : $apiBlogResolverImagen($item['cover_image_path'] ?? null, $item['cover_image_path_url'] ?? null);
-            if (empty($itemCoverDebug['exists'])) {
-                $itemCoverCandidates = [];
-            }
-            $itemAttachmentUrl = !empty($item['attachment_path']) && $itemId > 0
-                ? $apiBlogBuildMediaUrl($itemId, 'attachment')
-                : (string) ($item['attachment_path_url'] ?? '');
+            $itemCoverCandidates = $apiBlogResolverImagen($item['cover_image_path'] ?? null, $item['cover_image_path_url'] ?? null);
+            $itemAttachmentUrl = trim((string) ($item['attachment_path_url'] ?? ''));
             $itemViewPayload = $item;
             $itemViewPayload['attachment_path_url'] = $itemAttachmentUrl !== '' ? $itemAttachmentUrl : null;
             $itemViewPayload['cover_image_path_url'] = $itemCoverCandidates[0] ?? null;
@@ -733,21 +644,8 @@ $apiBlogEmptyState = [
           </div>
 
           <?php
-          $currentItemId = (int) ($apiBlogCurrent['id'] ?? 0);
-          $currentCoverDebug = $apiBlogDebugArchivo($apiBlogCurrent['cover_image_path'] ?? null);
-          $currentCoverCandidates = !empty($apiBlogCurrent['cover_image_path']) && !empty($currentCoverDebug['exists']) && $currentItemId > 0
-              ? [$apiBlogBuildMediaUrl($currentItemId, 'cover')]
-              : $apiBlogResolverImagen($apiBlogCurrent['cover_image_path'] ?? null, $apiBlogCurrent['cover_image_path_url'] ?? null);
-          if (empty($currentCoverDebug['exists'])) {
-              $currentCoverCandidates = [];
-          }
-          $currentAttachmentDebug = $apiBlogDebugArchivo($apiBlogCurrent['attachment_path'] ?? null);
-          $currentAttachmentUrl = !empty($apiBlogCurrent['attachment_path']) && $currentItemId > 0
-              ? $apiBlogBuildMediaUrl($currentItemId, 'attachment')
-              : (string) ($apiBlogCurrent['attachment_path_url'] ?? '');
-          if (empty($currentAttachmentDebug['exists'])) {
-              $currentAttachmentUrl = '';
-          }
+          $currentCoverCandidates = $apiBlogResolverImagen($apiBlogCurrent['cover_image_path'] ?? null, $apiBlogCurrent['cover_image_path_url'] ?? null);
+          $currentAttachmentUrl = trim((string) ($apiBlogCurrent['attachment_path_url'] ?? ''));
           ?>
 
           <label class="im-campo im-campo-material">
@@ -764,14 +662,10 @@ $apiBlogEmptyState = [
                   >
                 <?php endif; ?>
                 <small>Actual: <?= $h((string) ($apiBlogCurrent['cover_image_path'] ?? '')) ?></small>
-                <?php if (empty($currentCoverDebug['exists'])): ?>
-                  <small>La ruta esta guardada en base, pero el archivo ya no existe en el servidor. Sube una nueva portada para restaurarlo.</small>
-                <?php else: ?>
-                  <label class="im-check">
-                    <input type="checkbox" name="cover_image_remove" value="1">
-                    <span>Quitar referencia de portada actual</span>
-                  </label>
-                <?php endif; ?>
+                <label class="im-check">
+                  <input type="checkbox" name="cover_image_remove" value="1">
+                  <span>Quitar referencia de portada actual</span>
+                </label>
               </div>
             <?php endif; ?>
           </label>
@@ -783,15 +677,11 @@ $apiBlogEmptyState = [
                 <small>Actual: <?= $h((string) ($apiBlogCurrent['attachment_path'] ?? '')) ?></small>
                 <?php if ($currentAttachmentUrl !== ''): ?>
                   <a class="im-chip" href="<?= $h($currentAttachmentUrl) ?>" target="_blank" rel="noreferrer">Ver adjunto actual</a>
-                <?php else: ?>
-                  <small>La ruta del adjunto esta guardada en base, pero el archivo ya no existe en el servidor. Sube uno nuevo para restaurarlo.</small>
                 <?php endif; ?>
-                <?php if (!empty($currentAttachmentDebug['exists'])): ?>
-                  <label class="im-check">
-                    <input type="checkbox" name="attachment_remove" value="1">
-                    <span>Quitar referencia de adjunto actual</span>
-                  </label>
-                <?php endif; ?>
+                <label class="im-check">
+                  <input type="checkbox" name="attachment_remove" value="1">
+                  <span>Quitar referencia de adjunto actual</span>
+                </label>
               </div>
             <?php endif; ?>
           </label>
@@ -821,70 +711,6 @@ $apiBlogEmptyState = [
   </dialog>
 
   <script>
-    const imApiBlogDebugState = {
-      script: <?= json_encode($apiBlogMediaControllerUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
-      integrationId: <?= (int) ($apiBlogSelectedIntegration['id'] ?? 0) ?>,
-      editingItemId: <?= (int) ($apiBlogCurrent['id'] ?? 0) ?>,
-      items: <?= json_encode(array_map(static function (array $item) use ($apiBlogDebugArchivo): array {
-        $coverDebug = $apiBlogDebugArchivo($item['cover_image_path'] ?? null);
-        $attachmentDebug = $apiBlogDebugArchivo($item['attachment_path'] ?? null);
-        return [
-          'id' => (int) ($item['id'] ?? 0),
-          'title' => (string) ($item['title'] ?? ''),
-          'cover_image_path' => $item['cover_image_path'] ?? null,
-          'cover_image_path_url' => $item['cover_image_path_url'] ?? null,
-          'attachment_path' => $item['attachment_path'] ?? null,
-          'attachment_path_url' => $item['attachment_path_url'] ?? null,
-          'status' => $item['status'] ?? null,
-          'cover_debug' => $coverDebug,
-          'attachment_debug' => $attachmentDebug,
-        ];
-      }, $apiBlogItems), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
-    };
-
-    window.imApiBlogDebugEvents = <?= json_encode($apiBlogDebugEvents, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
-    window.imApiBlogDebugState = imApiBlogDebugState;
-
-    if (Array.isArray(window.imApiBlogDebugEvents) && window.imApiBlogDebugEvents.length > 0) {
-      console.groupCollapsed('Impulsa Blog File Debug');
-      window.imApiBlogDebugEvents.forEach((event, index) => {
-        console.log('#' + (index + 1), event);
-      });
-      console.groupEnd();
-    }
-
-    console.log('Impulsa Blog Debug', imApiBlogDebugState);
-
-    const imApiBlogMissingFiles = (imApiBlogDebugState.items || []).filter((item) => {
-      const coverMissing = item.cover_image_path && item.cover_debug && item.cover_debug.exists === false;
-      const attachmentMissing = item.attachment_path && item.attachment_debug && item.attachment_debug.exists === false;
-
-      return coverMissing || attachmentMissing;
-    });
-
-    window.imApiBlogMissingFiles = imApiBlogMissingFiles;
-
-    if (imApiBlogMissingFiles.length > 0) {
-      console.groupCollapsed('Impulsa Blog Missing Files');
-      imApiBlogMissingFiles.forEach((item) => {
-        console.warn('Missing file for item', item.id, item.title, item);
-      });
-      console.groupEnd();
-
-      console.table(imApiBlogMissingFiles.map((item) => ({
-        id: item.id,
-        title: item.title,
-        cover_path: item.cover_image_path,
-        cover_exists: item.cover_debug?.exists ?? null,
-        cover_resolved_path: item.cover_debug?.resolved_path ?? null,
-        cover_candidates: (item.cover_debug?.candidates ?? []).join(' | '),
-        attachment_path: item.attachment_path,
-        attachment_exists: item.attachment_debug?.exists ?? null,
-        attachment_resolved_path: item.attachment_debug?.resolved_path ?? null,
-        attachment_candidates: (item.attachment_debug?.candidates ?? []).join(' | '),
-      })));
-    }
-
     (() => {
       const bindFallbacks = (image, fallbackList) => {
         const fallbacks = Array.isArray(fallbackList)
