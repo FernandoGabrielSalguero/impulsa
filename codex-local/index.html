@@ -139,10 +139,14 @@ body {
     border-bottom: 1px solid rgba(20, 32, 51, 0.06);
 }
 
-.tree-toggle {
+.tree-toggle,
+.tree-toggle-spacer {
     min-width: 2rem;
     width: 2rem;
     height: 2rem;
+}
+
+.tree-toggle {
     padding: 0;
 }
 
@@ -173,6 +177,25 @@ body {
 .modal-file {
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+.project-meta,
+.workspace-meta {
+    overflow-wrap: anywhere;
+}
+
+.tree-panel > .im-tarjeta,
+.tree-panel .im-tarjeta,
+.tree-panel .im-tarjeta__cabecera,
+.tree-panel .im-tarjeta__cabecera > div,
+.tree-panel .helper,
+.tree-panel .im-etiqueta,
+.tree-summary {
+    min-width: 0;
+}
+
+.tree-panel .im-tarjeta__cabecera {
+    align-items: flex-start;
 }
 
 .tree-preview-btn {
@@ -797,14 +820,22 @@ function createTreeNode(node) {
 
     const row = document.createElement("div");
     row.className = "tree-row";
+    const tieneHijos = node.type === "dir" && node.children && node.children.length;
+    let toggle = null;
 
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "tree-toggle im-boton-icono material-symbols-rounded";
-    toggle.textContent = node.type === "dir" && node.children && node.children.length ? "chevron_right" : "fiber_manual_record";
-    toggle.disabled = !(node.type === "dir" && node.children && node.children.length);
-    toggle.setAttribute("aria-label", node.type === "dir" ? "Expandir carpeta" : "Archivo");
-    row.appendChild(toggle);
+    if (tieneHijos) {
+        toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "tree-toggle im-boton-icono material-symbols-rounded";
+        toggle.textContent = "chevron_right";
+        toggle.setAttribute("aria-label", "Expandir carpeta");
+        row.appendChild(toggle);
+    } else {
+        const toggleSpacer = document.createElement("span");
+        toggleSpacer.className = "tree-toggle-spacer";
+        toggleSpacer.setAttribute("aria-hidden", "true");
+        row.appendChild(toggleSpacer);
+    }
 
     if (node.type === "file") {
         const checkbox = document.createElement("input");
@@ -852,7 +883,7 @@ function createTreeNode(node) {
 
     item.appendChild(row);
 
-    if (node.type === "dir" && node.children && node.children.length) {
+    if (tieneHijos) {
         const children = document.createElement("ul");
         children.className = "tree-list tree-children";
 
