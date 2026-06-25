@@ -146,12 +146,11 @@ body {
 .sidebar-stack {
     min-height: 0;
     display: grid;
-    grid-template-rows: minmax(420px, 1.5fr) minmax(300px, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     gap: 16px;
 }
 
-.tree-panel,
-.viewer-card {
+.tree-panel {
     min-height: 0;
     display: grid;
     gap: 12px;
@@ -160,11 +159,7 @@ body {
 }
 
 .tree-panel {
-    grid-template-rows: auto auto auto minmax(220px, 1fr);
-}
-
-.viewer-card {
-    grid-template-rows: auto minmax(180px, 1fr);
+    grid-template-rows: auto auto auto minmax(420px, 1fr);
 }
 
 .workspace-summary {
@@ -230,7 +225,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 }
 
 .tree-scroll,
-.viewer-code,
+.modal-code,
 .chat {
     overflow: auto;
 }
@@ -336,49 +331,6 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
     font-size: 12px;
     background: var(--info-soft);
     color: #dbeafe;
-}
-
-.viewer-head {
-    display: grid;
-    gap: 10px;
-}
-
-.viewer-title {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.viewer-actions {
-    justify-content: flex-start;
-}
-
-.viewer-file {
-    font-size: 12px;
-    overflow-wrap: anywhere;
-}
-
-.viewer-code {
-    min-height: 0;
-    height: 100%;
-    padding: 14px;
-    border-radius: 16px;
-    background: rgba(2, 6, 23, 0.82);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    font: 13px/1.55 Consolas, "Courier New", monospace;
-    white-space: pre;
-}
-
-.viewer-empty {
-    display: grid;
-    place-items: center;
-    text-align: center;
-    padding: 24px;
-    min-height: 0;
-    height: 100%;
-    border-radius: 16px;
-    border: 1px dashed rgba(148, 163, 184, 0.18);
 }
 
 .topbar {
@@ -621,6 +573,79 @@ textarea::placeholder {
     color: var(--danger);
 }
 
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(2, 6, 23, 0.72);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-panel {
+    width: min(1080px, 100%);
+    height: min(82vh, 900px);
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 14px;
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(9, 15, 28, 0.98);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: var(--shadow);
+}
+
+.modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.modal-head h3 {
+    margin: 0;
+}
+
+.modal-file {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.modal-code {
+    min-height: 0;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(2, 6, 23, 0.88);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    font: 13px/1.55 Consolas, "Courier New", monospace;
+    white-space: pre;
+}
+
+.modal-empty {
+    display: grid;
+    place-items: center;
+    min-height: 180px;
+    text-align: center;
+    color: var(--muted);
+    border-radius: 16px;
+    border: 1px dashed rgba(148, 163, 184, 0.18);
+}
+
 @media (max-width: 1220px) {
     body {
         overflow: auto;
@@ -703,26 +728,6 @@ textarea::placeholder {
                 <div class="tree-scroll" id="treeScroll">
                     <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
                 </div>
-            </div>
-
-            <div class="viewer-card">
-                <div class="viewer-head">
-                    <div class="viewer-title">
-                        <div>
-                            <h3>Visor de código</h3>
-                            <div class="viewer-file" id="viewerFile">Ningún archivo abierto</div>
-                        </div>
-                    </div>
-
-                    <div class="viewer-actions">
-                        <button class="secondary" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo</button>
-                        <button class="secondary" id="markDbBtn" type="button" disabled>Usar como DB</button>
-                        <button class="secondary" id="markCdnBtn" type="button" disabled>Usar como CDN/UI</button>
-                    </div>
-                </div>
-
-                <div class="viewer-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
-                <pre class="viewer-code" id="viewerCode" hidden></pre>
             </div>
         </div>
     </aside>
@@ -825,6 +830,27 @@ textarea::placeholder {
     </main>
 </div>
 
+<div class="modal" id="fileModal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="fileModalTitle">
+        <div class="modal-head">
+            <div>
+                <h3 id="fileModalTitle">Vista de archivo</h3>
+                <p class="modal-file" id="modalFilePath">Ningún archivo abierto</p>
+            </div>
+            <button class="secondary" id="closeModalBtn" type="button">Cerrar</button>
+        </div>
+
+        <div class="modal-actions">
+            <button class="secondary" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo</button>
+            <button class="secondary" id="markDbBtn" type="button" disabled>Usar como DB</button>
+            <button class="secondary" id="markCdnBtn" type="button" disabled>Usar como CDN/UI</button>
+        </div>
+
+        <div class="modal-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
+        <pre class="modal-code" id="viewerCode" hidden></pre>
+    </div>
+</div>
+
 <script>
 const chatEl = document.getElementById("chat");
 const promptEl = document.getElementById("prompt");
@@ -837,7 +863,9 @@ const clearSelectionBtn = document.getElementById("clearSelectionBtn");
 const treeScrollEl = document.getElementById("treeScroll");
 const workspaceNameEl = document.getElementById("workspaceName");
 const workspaceMetaEl = document.getElementById("workspaceMeta");
-const viewerFileEl = document.getElementById("viewerFile");
+const fileModalEl = document.getElementById("fileModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const viewerFileEl = document.getElementById("modalFilePath");
 const viewerEmptyEl = document.getElementById("viewerEmpty");
 const viewerCodeEl = document.getElementById("viewerCode");
 const attachPreviewBtn = document.getElementById("attachPreviewBtn");
@@ -948,6 +976,16 @@ function updateWorkspaceSummary(payload) {
         fileCount + " archivo" + (fileCount === 1 ? "" : "s") + " visibles";
 }
 
+function openFileModal() {
+    fileModalEl.classList.add("open");
+    fileModalEl.setAttribute("aria-hidden", "false");
+}
+
+function closeFileModal() {
+    fileModalEl.classList.remove("open");
+    fileModalEl.setAttribute("aria-hidden", "true");
+}
+
 function resetViewer(message = "Elegí un archivo del árbol para ver su contenido acá.") {
     currentPreviewFile = "";
     viewerFileEl.textContent = "Ningún archivo abierto";
@@ -969,6 +1007,7 @@ function canUseAsCdn(path) {
 }
 
 async function previewFile(path) {
+    openFileModal();
     viewerFileEl.textContent = path;
     viewerEmptyEl.hidden = false;
     viewerEmptyEl.textContent = "Cargando código...";
@@ -1295,6 +1334,12 @@ clearDbBtn.addEventListener("click", () => {
 clearCdnBtn.addEventListener("click", () => {
     pinnedCdnReference = "";
     updatePinnedViews();
+});
+closeModalBtn.addEventListener("click", closeFileModal);
+fileModalEl.addEventListener("click", (event) => {
+    if (event.target === fileModalEl) {
+        closeFileModal();
+    }
 });
 clearBtn.addEventListener("click", () => {
     history.length = 0;
