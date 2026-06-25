@@ -7,7 +7,7 @@
 <style>
 :root {
     --bg: #0b1020;
-    --panel: rgba(10, 16, 32, 0.94);
+    --panel: rgba(10, 16, 32, 0.95);
     --panel-soft: rgba(255, 255, 255, 0.03);
     --panel-border: rgba(148, 163, 184, 0.18);
     --text: #e5eefb;
@@ -15,8 +15,9 @@
     --accent: #71e4c8;
     --accent-strong: #2dd4bf;
     --accent-soft: rgba(113, 228, 200, 0.12);
-    --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    --info-soft: rgba(96, 165, 250, 0.12);
     --danger: #fca5a5;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
     --radius: 22px;
 }
 
@@ -39,28 +40,28 @@ body {
 }
 
 .shell {
-    width: min(1480px, calc(100% - 24px));
+    width: min(1500px, calc(100% - 24px));
     height: calc(100vh - 24px);
     margin: 12px auto;
     display: grid;
-    grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+    grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
     gap: 18px;
 }
 
 .sidebar,
 .workspace {
+    min-height: 0;
     border: 1px solid var(--panel-border);
     border-radius: var(--radius);
     background: var(--panel);
     backdrop-filter: blur(18px);
     box-shadow: var(--shadow);
-    min-height: 0;
 }
 
 .sidebar {
-    padding: 20px;
+    padding: 18px;
     display: grid;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 16px;
     overflow: hidden;
 }
@@ -72,7 +73,6 @@ body {
 }
 
 .brand,
-.card,
 .tree-panel,
 .viewer-card {
     background: var(--panel-soft);
@@ -80,33 +80,39 @@ body {
     border-radius: 18px;
 }
 
-.brand,
-.card {
+.brand {
     padding: 16px;
-}
-
-.tree-panel,
-.viewer-card {
-    padding: 14px;
+    display: grid;
+    gap: 10px;
 }
 
 .brand h1,
 .topbar h2,
-.card h2,
 .tree-panel h3,
-.viewer-head h3 {
+.viewer-head h3,
+.section-head h3 {
     margin: 0;
 }
 
-.brand {
-    display: grid;
-    gap: 10px;
+.brand p,
+.helper,
+.hint,
+.tree-help,
+.project-meta,
+.field-note,
+.viewer-empty,
+.viewer-file,
+.section-head p,
+.meta {
+    margin: 0;
+    color: var(--muted);
 }
 
 .eyebrow,
 .status,
 .workspace-chip,
-.tech-chip input + span {
+.tech-chip input + span,
+.context-badge {
     display: inline-flex;
     width: fit-content;
     border-radius: 999px;
@@ -115,45 +121,42 @@ body {
     text-transform: uppercase;
 }
 
-.eyebrow {
+.eyebrow,
+.status {
     padding: 6px 10px;
+}
+
+.eyebrow {
     background: var(--accent-soft);
     color: var(--accent);
 }
 
+.status {
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+}
+
 .workspace-chip {
     padding: 6px 10px;
-    background: rgba(96, 165, 250, 0.12);
+    background: var(--info-soft);
     color: #bfdbfe;
 }
 
-.brand p,
-.helper,
-.hint,
-.tree-help,
-.meta,
-.project-meta,
-.viewer-empty,
-.field-note {
-    margin: 0;
-    color: var(--muted);
-}
-
-.tips {
-    margin: 10px 0 0;
-    padding-left: 18px;
-}
-
-.tips li {
-    margin-bottom: 6px;
-    color: var(--muted);
+.sidebar-stack {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(320px, 1.4fr) minmax(280px, 1fr);
+    gap: 16px;
 }
 
 .tree-panel,
 .viewer-card {
+    min-height: 0;
     display: grid;
     gap: 12px;
-    min-height: 0;
+    padding: 14px;
+    overflow: hidden;
 }
 
 .workspace-summary {
@@ -170,21 +173,30 @@ body {
 }
 
 .project-meta,
-.field-note {
+.field-note,
+.section-head p {
     font-size: 12px;
     line-height: 1.45;
 }
 
-.tree-actions {
+.tree-actions,
+.viewer-actions,
+.actions,
+.buttons {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
+}
+
+.actions {
+    justify-content: space-between;
 }
 
 button {
     border: 0;
     border-radius: 999px;
-    padding: 11px 16px;
+    padding: 10px 15px;
     font: inherit;
     cursor: pointer;
     transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
@@ -240,7 +252,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 
 .tree-row {
     display: grid;
-    grid-template-columns: 26px 18px minmax(0, 1fr) auto;
+    grid-template-columns: 24px 18px minmax(0, 1fr) 44px;
     align-items: start;
     gap: 8px;
     padding: 7px 8px;
@@ -253,11 +265,10 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 }
 
 .tree-toggle {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
+    width: 24px;
+    height: 24px;
     padding: 0;
-    border: 0;
+    border-radius: 8px;
     background: rgba(148, 163, 184, 0.12);
     color: var(--text);
 }
@@ -275,7 +286,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 }
 
 .tree-children {
-    margin-left: 13px;
+    margin-left: 12px;
     padding-left: 12px;
     border-left: 1px solid rgba(148, 163, 184, 0.14);
     display: none;
@@ -309,26 +320,29 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 }
 
 .tree-preview-btn {
-    padding: 6px 10px;
+    padding: 6px 0;
     font-size: 12px;
-    background: rgba(96, 165, 250, 0.12);
+    background: var(--info-soft);
     color: #dbeafe;
 }
 
-.viewer-card {
-    min-height: 240px;
-    overflow: hidden;
+.viewer-head {
+    display: grid;
+    gap: 10px;
 }
 
-.viewer-head {
+.viewer-title {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
 }
 
+.viewer-actions {
+    justify-content: flex-start;
+}
+
 .viewer-file {
-    color: var(--muted);
     font-size: 12px;
     overflow-wrap: anywhere;
 }
@@ -348,7 +362,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
     place-items: center;
     text-align: center;
     padding: 24px;
-    min-height: 180px;
+    min-height: 160px;
     border-radius: 16px;
     border: 1px dashed rgba(148, 163, 184, 0.18);
 }
@@ -368,21 +382,14 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
     font-size: 14px;
 }
 
-.status {
-    padding: 6px 10px;
-    background: var(--accent-soft);
-    color: var(--accent);
-    white-space: nowrap;
-}
-
 .workspace-main {
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
 }
 
 .chat-column,
-.code-column {
+.context-column {
     min-height: 0;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
@@ -396,17 +403,6 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
     padding: 16px 22px 10px;
     display: grid;
     gap: 6px;
-}
-
-.section-head h3 {
-    margin: 0;
-    font-size: 16px;
-}
-
-.section-head p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 13px;
 }
 
 .chat {
@@ -483,7 +479,8 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 
 .composer-grid,
 .field,
-.tech-grid {
+.tech-grid,
+.context-pins {
     display: grid;
     gap: 10px;
 }
@@ -514,14 +511,14 @@ textarea::placeholder {
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
 }
 
+.tech-chip {
+    position: relative;
+}
+
 .tech-chip input {
     position: absolute;
     opacity: 0;
     pointer-events: none;
-}
-
-.tech-chip {
-    position: relative;
 }
 
 .tech-chip input + span {
@@ -541,8 +538,42 @@ textarea::placeholder {
     color: var(--accent);
 }
 
-.tech-chip input + span:hover {
-    transform: translateY(-1px);
+.pin-card {
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(9, 15, 28, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    display: grid;
+    gap: 8px;
+}
+
+.pin-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.pin-head strong {
+    font-size: 13px;
+}
+
+.context-badge {
+    padding: 4px 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.pin-path {
+    font-size: 12px;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.pin-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .attachments {
@@ -558,7 +589,7 @@ textarea::placeholder {
     gap: 8px;
     padding: 8px 12px;
     border-radius: 999px;
-    background: rgba(96, 165, 250, 0.12);
+    background: var(--info-soft);
     border: 1px solid rgba(96, 165, 250, 0.24);
     color: #cfe2ff;
     font-size: 13px;
@@ -572,20 +603,11 @@ textarea::placeholder {
     line-height: 1;
 }
 
-.actions,
-.buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-}
-
 .viewer-error {
     color: var(--danger);
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1220px) {
     body {
         overflow: auto;
     }
@@ -618,9 +640,9 @@ textarea::placeholder {
     }
 
     .topbar,
-    .composer,
     .section-head,
     .chat,
+    .composer,
     .sidebar {
         padding-left: 14px;
         padding-right: 14px;
@@ -643,51 +665,51 @@ textarea::placeholder {
         <div class="brand">
             <span class="eyebrow">Local Coding Assistant</span>
             <h1>Codex Local</h1>
-            <p>Trabaja siempre sobre el proyecto instalado en este servidor. Usá el árbol para leer contexto real, previsualizar código y adjuntar archivos al chat.</p>
+            <p>Trabaja siempre sobre el proyecto instalado en este servidor. Podés marcar archivos normales, fijar un `.md` de base de datos y elegir un `index.html` local como referencia visual/CDN.</p>
         </div>
 
-        <div class="card">
-            <h2>Cómo usarlo</h2>
-            <ul class="tips">
-                <li>Cargá el árbol del proyecto y explorá la estructura real del servidor.</li>
-                <li>Hacé click en un archivo para ver su código sin salir del panel.</li>
-                <li>Marcá los archivos relevantes para usarlos como contexto del pedido.</li>
-                <li>Elegí las tecnologías con las que querés que trabajemos antes de enviar.</li>
-            </ul>
-        </div>
-
-        <div class="tree-panel">
-            <div>
-                <h3>Árbol del proyecto</h3>
-                <p class="tree-help">Esta vista siempre usa el proyecto donde `codex-local` está instalado. No busca otros workspaces.</p>
-            </div>
-
-            <div class="workspace-summary">
-                <span class="workspace-chip">Proyecto actual</span>
-                <strong id="workspaceName">Detectando...</strong>
-                <p class="project-meta" id="workspaceMeta">Todavía no se cargó el árbol.</p>
-            </div>
-
-            <div class="tree-actions">
-                <button class="ghost" id="loadTreeBtn" type="button">Recargar árbol</button>
-                <button class="secondary" id="clearSelectionBtn" type="button">Limpiar selección</button>
-            </div>
-
-            <div class="tree-scroll" id="treeScroll">
-                <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
-            </div>
-        </div>
-
-        <div class="viewer-card">
-            <div class="viewer-head">
+        <div class="sidebar-stack">
+            <div class="tree-panel">
                 <div>
-                    <h3>Visor de código</h3>
-                    <div class="viewer-file" id="viewerFile">Ningún archivo abierto</div>
+                    <h3>Árbol del proyecto</h3>
+                    <p class="tree-help">Solo muestra el proyecto actual del servidor. Click en `Ver` para abrir el código y usá los checks para adjuntar archivos al chat.</p>
                 </div>
-                <button class="secondary" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo visto</button>
+
+                <div class="workspace-summary">
+                    <span class="workspace-chip">Proyecto actual</span>
+                    <strong id="workspaceName">Detectando...</strong>
+                    <p class="project-meta" id="workspaceMeta">Todavía no se cargó el árbol.</p>
+                </div>
+
+                <div class="tree-actions">
+                    <button class="ghost" id="loadTreeBtn" type="button">Recargar árbol</button>
+                    <button class="secondary" id="clearSelectionBtn" type="button">Limpiar selección</button>
+                </div>
+
+                <div class="tree-scroll" id="treeScroll">
+                    <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
+                </div>
             </div>
-            <div class="viewer-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
-            <pre class="viewer-code" id="viewerCode" hidden></pre>
+
+            <div class="viewer-card">
+                <div class="viewer-head">
+                    <div class="viewer-title">
+                        <div>
+                            <h3>Visor de código</h3>
+                            <div class="viewer-file" id="viewerFile">Ningún archivo abierto</div>
+                        </div>
+                    </div>
+
+                    <div class="viewer-actions">
+                        <button class="secondary" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo</button>
+                        <button class="secondary" id="markDbBtn" type="button" disabled>Usar como DB</button>
+                        <button class="secondary" id="markCdnBtn" type="button" disabled>Usar como CDN/UI</button>
+                    </div>
+                </div>
+
+                <div class="viewer-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
+                <pre class="viewer-code" id="viewerCode" hidden></pre>
+            </div>
         </div>
     </aside>
 
@@ -695,7 +717,7 @@ textarea::placeholder {
         <div class="topbar">
             <div>
                 <h2>Chat de desarrollo</h2>
-                <p>El scroll queda contenido dentro de la app para que el chat y el visor sean más cómodos al crecer.</p>
+                <p>El scroll queda dentro de la app. El chat crece adentro del panel y no en toda la página.</p>
             </div>
             <div class="status" id="status">Listo para ayudarte</div>
         </div>
@@ -704,7 +726,7 @@ textarea::placeholder {
             <section class="chat-column">
                 <div class="section-head">
                     <h3>Conversación</h3>
-                    <p>Usá archivos seleccionados y tecnologías activas para darle contexto al pedido.</p>
+                    <p>Usá archivos seleccionados, contexto de base de datos y referencia visual para orientar mejor la respuesta.</p>
                 </div>
                 <div class="chat" id="chat">
                     <div class="empty-state" id="emptyState">
@@ -714,10 +736,10 @@ textarea::placeholder {
                 </div>
             </section>
 
-            <section class="code-column">
+            <section class="context-column">
                 <div class="section-head">
                     <h3>Contexto activo</h3>
-                    <p>Estos archivos y tecnologías se envían junto con tu mensaje actual.</p>
+                    <p>Acá se ve exactamente qué información extra se envía con cada mensaje.</p>
                 </div>
                 <div class="chat">
                     <div class="field">
@@ -730,13 +752,41 @@ textarea::placeholder {
                             <label class="tech-chip"><input type="checkbox" value="Python"><span>Python</span></label>
                             <label class="tech-chip"><input type="checkbox" value="MySQL" checked><span>MySQL</span></label>
                         </div>
-                        <p class="field-note">Se envían como preferencia técnica junto con el contexto de archivos.</p>
+                        <p class="field-note">Se envían como preferencia técnica del pedido.</p>
+                    </div>
+
+                    <div class="field">
+                        <label>Contextos fijos</label>
+                        <div class="context-pins">
+                            <div class="pin-card">
+                                <div class="pin-head">
+                                    <strong>Esquema de base</strong>
+                                    <span class="context-badge">DB</span>
+                                </div>
+                                <div class="pin-path" id="dbSchemaPath">Todavía no seleccionaste un archivo `.md` o de esquema.</div>
+                                <div class="pin-actions">
+                                    <button class="secondary" id="clearDbBtn" type="button">Quitar</button>
+                                </div>
+                            </div>
+
+                            <div class="pin-card">
+                                <div class="pin-head">
+                                    <strong>Referencia visual / CDN</strong>
+                                    <span class="context-badge">UI</span>
+                                </div>
+                                <div class="pin-path" id="cdnPath">Todavía no seleccionaste un archivo de referencia visual.</div>
+                                <div class="pin-actions">
+                                    <button class="secondary" id="clearCdnBtn" type="button">Quitar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="field-note">Mi recomendación: usar la copia local del CDN o un `index.html` representativo. Es más cómodo y confiable que pegar links.</p>
                     </div>
 
                     <div class="field">
                         <label>Archivos adjuntos</label>
                         <div class="attachments" id="attachments"></div>
-                        <p class="field-note">Podés adjuntar desde el árbol o desde el visor de código.</p>
+                        <p class="field-note">Estos son los archivos normales seleccionados desde el árbol o desde el visor.</p>
                     </div>
                 </div>
             </section>
@@ -746,7 +796,7 @@ textarea::placeholder {
             <div class="composer-grid">
                 <div class="field">
                     <label for="prompt">Tu pedido</label>
-                    <textarea id="prompt" placeholder="Ejemplo: revisá estos archivos y proponé una mejora puntual para la validación del formulario o para la consulta SQL."></textarea>
+                    <textarea id="prompt" placeholder="Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria."></textarea>
                 </div>
 
                 <div class="actions">
@@ -777,11 +827,19 @@ const viewerFileEl = document.getElementById("viewerFile");
 const viewerEmptyEl = document.getElementById("viewerEmpty");
 const viewerCodeEl = document.getElementById("viewerCode");
 const attachPreviewBtn = document.getElementById("attachPreviewBtn");
+const markDbBtn = document.getElementById("markDbBtn");
+const markCdnBtn = document.getElementById("markCdnBtn");
+const clearDbBtn = document.getElementById("clearDbBtn");
+const clearCdnBtn = document.getElementById("clearCdnBtn");
+const dbSchemaPathEl = document.getElementById("dbSchemaPath");
+const cdnPathEl = document.getElementById("cdnPath");
 const techGridEl = document.getElementById("techGrid");
 
 const history = [];
 const selectedFiles = new Set();
 let currentPreviewFile = "";
+let pinnedDbSchema = "";
+let pinnedCdnReference = "";
 
 function escapeHtml(text) {
     return text
@@ -803,6 +861,11 @@ function setStatus(text) {
 
 function getSelectedTechnologies() {
     return Array.from(techGridEl.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value);
+}
+
+function updatePinnedViews() {
+    dbSchemaPathEl.textContent = pinnedDbSchema || "Todavía no seleccionaste un archivo `.md` o de esquema.";
+    cdnPathEl.textContent = pinnedCdnReference || "Todavía no seleccionaste un archivo de referencia visual.";
 }
 
 function renderAttachments() {
@@ -879,6 +942,16 @@ function resetViewer(message = "Elegí un archivo del árbol para ver su conteni
     viewerCodeEl.hidden = true;
     viewerCodeEl.textContent = "";
     attachPreviewBtn.disabled = true;
+    markDbBtn.disabled = true;
+    markCdnBtn.disabled = true;
+}
+
+function canUseAsDb(path) {
+    return /\.(md|sql|txt)$/i.test(path);
+}
+
+function canUseAsCdn(path) {
+    return /(index\.html|\.html|\.css|\.js)$/i.test(path);
 }
 
 async function previewFile(path) {
@@ -887,6 +960,8 @@ async function previewFile(path) {
     viewerEmptyEl.textContent = "Cargando código...";
     viewerCodeEl.hidden = true;
     attachPreviewBtn.disabled = true;
+    markDbBtn.disabled = true;
+    markCdnBtn.disabled = true;
 
     try {
         const res = await fetch("readfile.php?file=" + encodeURIComponent(path));
@@ -902,6 +977,8 @@ async function previewFile(path) {
         viewerCodeEl.hidden = false;
         viewerEmptyEl.hidden = true;
         attachPreviewBtn.disabled = false;
+        markDbBtn.disabled = !canUseAsDb(data.file);
+        markCdnBtn.disabled = !canUseAsCdn(data.file);
     } catch (error) {
         currentPreviewFile = "";
         viewerCodeEl.hidden = true;
@@ -909,6 +986,8 @@ async function previewFile(path) {
         viewerEmptyEl.hidden = false;
         viewerEmptyEl.innerHTML = '<span class="viewer-error">' + escapeHtml(error.message) + "</span>";
         attachPreviewBtn.disabled = true;
+        markDbBtn.disabled = true;
+        markCdnBtn.disabled = true;
     }
 }
 
@@ -924,7 +1003,6 @@ function createTreeNode(node) {
     toggle.className = "tree-toggle";
     toggle.textContent = node.type === "dir" && node.children && node.children.length ? "▸" : "•";
     toggle.disabled = !(node.type === "dir" && node.children && node.children.length);
-    toggle.setAttribute("aria-label", node.type === "dir" ? "Expandir carpeta" : "Sin hijos");
     row.appendChild(toggle);
 
     if (node.type === "file") {
@@ -933,14 +1011,14 @@ function createTreeNode(node) {
         checkbox.className = "tree-check";
         checkbox.setAttribute("data-file-path", node.path);
         checkbox.checked = selectedFiles.has(node.path);
-        checkbox.onchange = () => {
+        checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 selectedFiles.add(node.path);
             } else {
                 selectedFiles.delete(node.path);
             }
             renderAttachments();
-        };
+        });
         row.appendChild(checkbox);
     } else {
         const spacer = document.createElement("span");
@@ -956,7 +1034,7 @@ function createTreeNode(node) {
         '<span class="tree-name">' + escapeHtml(node.name) + "</span>";
 
     if (node.type === "file") {
-        label.onclick = () => previewFile(node.path);
+        label.addEventListener("click", () => previewFile(node.path));
     }
 
     row.appendChild(label);
@@ -966,12 +1044,10 @@ function createTreeNode(node) {
         previewBtn.type = "button";
         previewBtn.className = "tree-preview-btn";
         previewBtn.textContent = "Ver";
-        previewBtn.onclick = () => previewFile(node.path);
+        previewBtn.addEventListener("click", () => previewFile(node.path));
         row.appendChild(previewBtn);
     } else {
-        const spacerBtn = document.createElement("span");
-        spacerBtn.style.width = "32px";
-        row.appendChild(spacerBtn);
+        row.appendChild(document.createElement("span"));
     }
 
     item.appendChild(row);
@@ -984,10 +1060,10 @@ function createTreeNode(node) {
             children.appendChild(createTreeNode(child));
         });
 
-        toggle.onclick = () => {
+        toggle.addEventListener("click", () => {
             children.classList.toggle("open");
             toggle.textContent = children.classList.contains("open") ? "▾" : "▸";
-        };
+        });
 
         item.appendChild(children);
     }
@@ -1031,8 +1107,8 @@ async function loadTree() {
 
         updateWorkspaceSummary(data);
         renderTree(data);
-        resetViewer();
         refreshCheckedStates();
+        resetViewer();
         setStatus("Árbol cargado");
     } catch (error) {
         treeScrollEl.innerHTML = '<div class="helper">' + escapeHtml(error.message) + "</div>";
@@ -1045,21 +1121,34 @@ async function loadTree() {
     }
 }
 
+async function loadFileContext(file, label) {
+    const res = await fetch("readfile.php?file=" + encodeURIComponent(file));
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+        throw new Error("No se pudo leer " + file + ": " + (data.error || "error desconocido"));
+    }
+
+    return {
+        path: data.file,
+        content: data.content,
+        label
+    };
+}
+
 async function readContextFiles(files) {
     const contexts = [];
 
     for (const file of files) {
-        const res = await fetch("readfile.php?file=" + encodeURIComponent(file));
-        const data = await res.json();
+        contexts.push(await loadFileContext(file, ""));
+    }
 
-        if (!res.ok || data.error) {
-            throw new Error("No se pudo leer " + file + ": " + (data.error || "error desconocido"));
-        }
+    if (pinnedDbSchema) {
+        contexts.push(await loadFileContext(pinnedDbSchema, "Esquema de base de datos"));
+    }
 
-        contexts.push({
-            path: data.file,
-            content: data.content
-        });
+    if (pinnedCdnReference) {
+        contexts.push(await loadFileContext(pinnedCdnReference, "Referencia visual / CDN local"));
     }
 
     return contexts;
@@ -1084,7 +1173,13 @@ async function send() {
         metaParts.push("Tecnologías: " + technologies.join(", "));
     }
     if (files.length) {
-        metaParts.push("Contexto: " + files.join(", "));
+        metaParts.push("Archivos: " + files.join(", "));
+    }
+    if (pinnedDbSchema) {
+        metaParts.push("DB: " + pinnedDbSchema);
+    }
+    if (pinnedCdnReference) {
+        metaParts.push("UI/CDN: " + pinnedCdnReference);
     }
 
     appendMessage("user", promptSnapshot, metaParts.join(" | "));
@@ -1125,8 +1220,11 @@ async function send() {
 
         history.push({
             role: "user",
-            content: "Tecnologías: " + (technologies.length ? technologies.join(", ") : "sin preferencia") +
+            content:
+                "Tecnologías: " + (technologies.length ? technologies.join(", ") : "sin preferencia") +
                 "\nArchivos: " + (files.length ? files.join(", ") : "sin adjuntos") +
+                "\nEsquema DB: " + (pinnedDbSchema || "sin contexto fijo") +
+                "\nReferencia visual: " + (pinnedCdnReference || "sin contexto fijo") +
                 "\nPedido: " + promptSnapshot
         });
         history.push({ role: "assistant", content: text });
@@ -1160,6 +1258,30 @@ attachPreviewBtn.addEventListener("click", () => {
     renderAttachments();
     refreshCheckedStates();
 });
+markDbBtn.addEventListener("click", () => {
+    if (!currentPreviewFile) {
+        return;
+    }
+
+    pinnedDbSchema = currentPreviewFile;
+    updatePinnedViews();
+});
+markCdnBtn.addEventListener("click", () => {
+    if (!currentPreviewFile) {
+        return;
+    }
+
+    pinnedCdnReference = currentPreviewFile;
+    updatePinnedViews();
+});
+clearDbBtn.addEventListener("click", () => {
+    pinnedDbSchema = "";
+    updatePinnedViews();
+});
+clearCdnBtn.addEventListener("click", () => {
+    pinnedCdnReference = "";
+    updatePinnedViews();
+});
 clearBtn.addEventListener("click", () => {
     history.length = 0;
     chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu código</h3><p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p></div>';
@@ -1167,6 +1289,7 @@ clearBtn.addEventListener("click", () => {
 });
 
 renderAttachments();
+updatePinnedViews();
 resetViewer();
 loadTree();
 </script>

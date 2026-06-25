@@ -51,12 +51,14 @@ function build_context_message(array $contextFiles): string
 
         $path = trim((string) ($file["path"] ?? ""));
         $content = (string) ($file["content"] ?? "");
+        $label = trim((string) ($file["label"] ?? ""));
 
         if ($path === "" || $content === "") {
             continue;
         }
 
-        $parts[] = "Archivo: {$path}\n```text\n{$content}\n```";
+        $heading = $label !== "" ? $label . ": {$path}" : "Archivo: {$path}";
+        $parts[] = $heading . "\n```text\n{$content}\n```";
     }
 
     if (empty($parts)) {
