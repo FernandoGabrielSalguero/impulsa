@@ -90,6 +90,7 @@ $prompt = trim((string) ($input["prompt"] ?? ""));
 $projectRoot = trim((string) ($input["projectRoot"] ?? "."));
 $contextFiles = $input["contextFiles"] ?? [];
 $history = $input["history"] ?? [];
+$technologies = $input["technologies"] ?? [];
 
 if ($prompt === "") {
     json_response([
@@ -142,6 +143,20 @@ if ($contextMessage !== "") {
         "role" => "user",
         "content" => $contextMessage
     ];
+}
+
+if (is_array($technologies)) {
+    $selectedTechnologies = array_values(array_filter(array_map(
+        static fn($tech) => trim((string) $tech),
+        $technologies
+    )));
+
+    if ($selectedTechnologies !== []) {
+        $messages[] = [
+            "role" => "user",
+            "content" => "Tecnologías prioritarias para este trabajo: " . implode(", ", $selectedTechnologies)
+        ];
+    }
 }
 
 $messages[] = [

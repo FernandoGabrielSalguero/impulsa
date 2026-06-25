@@ -7,21 +7,29 @@
 <style>
 :root {
     --bg: #0b1020;
-    --panel: rgba(10, 16, 32, 0.9);
+    --panel: rgba(10, 16, 32, 0.94);
+    --panel-soft: rgba(255, 255, 255, 0.03);
     --panel-border: rgba(148, 163, 184, 0.18);
     --text: #e5eefb;
     --muted: #9fb0ca;
     --accent: #71e4c8;
     --accent-strong: #2dd4bf;
+    --accent-soft: rgba(113, 228, 200, 0.12);
     --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    --danger: #fca5a5;
     --radius: 22px;
 }
 
 * { box-sizing: border-box; }
 
+html,
+body {
+    height: 100%;
+}
+
 body {
     margin: 0;
-    min-height: 100vh;
+    overflow: hidden;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text);
     background:
@@ -31,10 +39,11 @@ body {
 }
 
 .shell {
-    width: min(1440px, calc(100% - 32px));
-    margin: 24px auto;
+    width: min(1480px, calc(100% - 24px));
+    height: calc(100vh - 24px);
+    margin: 12px auto;
     display: grid;
-    grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+    grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
     gap: 18px;
 }
 
@@ -45,20 +54,47 @@ body {
     background: var(--panel);
     backdrop-filter: blur(18px);
     box-shadow: var(--shadow);
+    min-height: 0;
 }
 
 .sidebar {
-    padding: 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    min-height: calc(100vh - 48px);
+    padding: 20px;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 16px;
+    overflow: hidden;
+}
+
+.workspace {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+}
+
+.brand,
+.card,
+.tree-panel,
+.viewer-card {
+    background: var(--panel-soft);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    border-radius: 18px;
+}
+
+.brand,
+.card {
+    padding: 16px;
+}
+
+.tree-panel,
+.viewer-card {
+    padding: 14px;
 }
 
 .brand h1,
 .topbar h2,
 .card h2,
-.tree-panel h3 {
+.tree-panel h3,
+.viewer-head h3 {
     margin: 0;
 }
 
@@ -69,10 +105,10 @@ body {
 
 .eyebrow,
 .status,
-.workspace-chip {
+.workspace-chip,
+.tech-chip input + span {
     display: inline-flex;
     width: fit-content;
-    padding: 6px 10px;
     border-radius: 999px;
     font-size: 12px;
     letter-spacing: 0.08em;
@@ -80,11 +116,13 @@ body {
 }
 
 .eyebrow {
-    background: rgba(113, 228, 200, 0.12);
+    padding: 6px 10px;
+    background: var(--accent-soft);
     color: var(--accent);
 }
 
 .workspace-chip {
+    padding: 6px 10px;
     background: rgba(96, 165, 250, 0.12);
     color: #bfdbfe;
 }
@@ -94,18 +132,11 @@ body {
 .hint,
 .tree-help,
 .meta,
-.field-note,
-.project-meta {
+.project-meta,
+.viewer-empty,
+.field-note {
     margin: 0;
     color: var(--muted);
-}
-
-.card,
-.tree-panel {
-    padding: 16px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .tips {
@@ -118,19 +149,11 @@ body {
     color: var(--muted);
 }
 
-.tree-panel {
+.tree-panel,
+.viewer-card {
     display: grid;
-    gap: 14px;
+    gap: 12px;
     min-height: 0;
-    flex: 1;
-}
-
-.tree-toolbar,
-.composer-grid,
-.field,
-.project-actions {
-    display: grid;
-    gap: 10px;
 }
 
 .workspace-summary {
@@ -146,51 +169,59 @@ body {
     font-size: 16px;
 }
 
-.project-meta {
-    font-size: 13px;
-    line-height: 1.45;
-}
-
-label {
-    font-size: 13px;
-    color: var(--muted);
-}
-
-textarea,
-input {
-    width: 100%;
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    background: rgba(15, 23, 42, 0.88);
-    color: var(--text);
-    border-radius: 16px;
-    padding: 14px 16px;
-    font: inherit;
-}
-
-textarea {
-    min-height: 132px;
-    resize: vertical;
-}
-
-input::placeholder,
-textarea::placeholder {
-    color: #8ca0bf;
-}
-
+.project-meta,
 .field-note {
     font-size: 12px;
     line-height: 1.45;
 }
 
-.tree-scroll {
+.tree-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+button {
+    border: 0;
+    border-radius: 999px;
+    padding: 11px 16px;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+}
+
+button:hover { transform: translateY(-1px); }
+button:disabled { opacity: 0.55; cursor: wait; transform: none; }
+
+.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: #06251f;
+    font-weight: 700;
+}
+
+.secondary {
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text);
+}
+
+.ghost {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+}
+
+.tree-scroll,
+.viewer-code,
+.chat {
     overflow: auto;
-    min-height: 320px;
-    max-height: 56vh;
+}
+
+.tree-scroll {
+    min-height: 0;
     padding-right: 4px;
 }
 
 .tree-summary {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .tree-list {
@@ -209,7 +240,7 @@ textarea::placeholder {
 
 .tree-row {
     display: grid;
-    grid-template-columns: 26px 18px minmax(0, 1fr);
+    grid-template-columns: 26px 18px minmax(0, 1fr) auto;
     align-items: start;
     gap: 8px;
     padding: 7px 8px;
@@ -229,7 +260,6 @@ textarea::placeholder {
     border: 0;
     background: rgba(148, 163, 184, 0.12);
     color: var(--text);
-    cursor: pointer;
 }
 
 .tree-toggle:disabled {
@@ -237,12 +267,7 @@ textarea::placeholder {
     cursor: default;
 }
 
-.tree-check {
-    width: 16px;
-    height: 16px;
-    margin-top: 4px;
-}
-
+.tree-check,
 .tree-spacer {
     width: 16px;
     height: 16px;
@@ -283,11 +308,49 @@ textarea::placeholder {
     word-break: break-word;
 }
 
-.workspace {
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    min-height: calc(100vh - 48px);
+.tree-preview-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    background: rgba(96, 165, 250, 0.12);
+    color: #dbeafe;
+}
+
+.viewer-card {
+    min-height: 240px;
     overflow: hidden;
+}
+
+.viewer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.viewer-file {
+    color: var(--muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.viewer-code {
+    min-height: 0;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(2, 6, 23, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    font: 13px/1.55 Consolas, "Courier New", monospace;
+    white-space: pre;
+}
+
+.viewer-empty {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 24px;
+    min-height: 180px;
+    border-radius: 16px;
+    border: 1px dashed rgba(148, 163, 184, 0.18);
 }
 
 .topbar {
@@ -306,14 +369,48 @@ textarea::placeholder {
 }
 
 .status {
-    background: rgba(45, 212, 191, 0.12);
+    padding: 6px 10px;
+    background: var(--accent-soft);
     color: var(--accent);
     white-space: nowrap;
 }
 
+.workspace-main {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+
+.chat-column,
+.code-column {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+.chat-column {
+    border-right: 1px solid var(--panel-border);
+}
+
+.section-head {
+    padding: 16px 22px 10px;
+    display: grid;
+    gap: 6px;
+}
+
+.section-head h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.section-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
 .chat {
-    padding: 24px 22px;
-    overflow-y: auto;
+    padding: 8px 22px 22px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -321,7 +418,7 @@ textarea::placeholder {
 
 .empty-state {
     margin: auto;
-    max-width: 680px;
+    max-width: 620px;
     text-align: center;
     color: var(--muted);
 }
@@ -333,7 +430,7 @@ textarea::placeholder {
 }
 
 .message {
-    max-width: 88%;
+    max-width: 92%;
     padding: 16px 18px;
     border-radius: 20px;
     border: 1px solid rgba(148, 163, 184, 0.14);
@@ -381,23 +478,77 @@ textarea::placeholder {
 .composer {
     padding: 18px 22px 22px;
     border-top: 1px solid var(--panel-border);
-    background: rgba(7, 11, 22, 0.72);
+    background: rgba(7, 11, 22, 0.78);
 }
 
-.actions,
-.buttons,
+.composer-grid,
+.field,
+.tech-grid {
+    display: grid;
+    gap: 10px;
+}
+
+label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+textarea {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(15, 23, 42, 0.88);
+    color: var(--text);
+    border-radius: 16px;
+    padding: 14px 16px;
+    font: inherit;
+    min-height: 116px;
+    max-height: 220px;
+    resize: vertical;
+}
+
+textarea::placeholder {
+    color: #8ca0bf;
+}
+
+.tech-grid {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+
+.tech-chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tech-chip {
+    position: relative;
+}
+
+.tech-chip input + span {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.tech-chip input:checked + span {
+    background: var(--accent-soft);
+    border-color: rgba(113, 228, 200, 0.44);
+    color: var(--accent);
+}
+
+.tech-chip input + span:hover {
+    transform: translateY(-1px);
+}
+
 .attachments {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-}
-
-.actions {
-    align-items: center;
-    justify-content: space-between;
-}
-
-.attachments {
     min-height: 20px;
 }
 
@@ -421,53 +572,44 @@ textarea::placeholder {
     line-height: 1;
 }
 
-button {
-    border: 0;
-    border-radius: 999px;
-    padding: 12px 18px;
-    font: inherit;
-    cursor: pointer;
-    transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+.actions,
+.buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
 }
 
-button:hover { transform: translateY(-1px); }
-button:disabled { opacity: 0.55; cursor: wait; transform: none; }
-
-.primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-    color: #06251f;
-    font-weight: 700;
+.viewer-error {
+    color: var(--danger);
 }
 
-.secondary {
-    background: rgba(148, 163, 184, 0.12);
-    color: var(--text);
-}
+@media (max-width: 1180px) {
+    body {
+        overflow: auto;
+    }
 
-.ghost {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text);
-}
-
-@media (max-width: 1100px) {
     .shell {
+        height: auto;
+        min-height: calc(100vh - 24px);
         grid-template-columns: 1fr;
     }
 
-    .sidebar,
-    .workspace {
-        min-height: auto;
+    .workspace-main {
+        grid-template-columns: 1fr;
     }
 
-    .tree-scroll {
-        max-height: 48vh;
+    .chat-column {
+        border-right: 0;
+        border-bottom: 1px solid var(--panel-border);
     }
 }
 
 @media (max-width: 640px) {
     .shell {
-        width: min(100%, calc(100% - 16px));
-        margin: 8px auto;
+        width: min(100%, calc(100% - 12px));
+        margin: 6px auto;
     }
 
     .sidebar,
@@ -477,15 +619,16 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 
     .topbar,
     .composer,
+    .section-head,
     .chat,
     .sidebar {
-        padding-left: 16px;
-        padding-right: 16px;
+        padding-left: 14px;
+        padding-right: 14px;
     }
 
     .topbar {
-        align-items: flex-start;
         flex-direction: column;
+        align-items: flex-start;
     }
 
     .message {
@@ -500,54 +643,51 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
         <div class="brand">
             <span class="eyebrow">Local Coding Assistant</span>
             <h1>Codex Local</h1>
-            <p>Podés usar esta misma interfaz para abrir distintos proyectos locales y después enfocarte en una carpeta interna puntual si hace falta.</p>
+            <p>Trabaja siempre sobre el proyecto instalado en este servidor. Usá el árbol para leer contexto real, previsualizar código y adjuntar archivos al chat.</p>
         </div>
 
         <div class="card">
             <h2>Cómo usarlo</h2>
             <ul class="tips">
-                <li>Elegí primero el proyecto o workspace local que querés abrir.</li>
-                <li>Después definí el alcance: todo el proyecto (`.`) o una subcarpeta concreta.</li>
-                <li>Cargá el árbol y marcá los archivos que querés usar como contexto.</li>
-                <li>Pedí cambios concretos, refactors, fixes o revisiones sobre ese contexto.</li>
+                <li>Cargá el árbol del proyecto y explorá la estructura real del servidor.</li>
+                <li>Hacé click en un archivo para ver su código sin salir del panel.</li>
+                <li>Marcá los archivos relevantes para usarlos como contexto del pedido.</li>
+                <li>Elegí las tecnologías con las que querés que trabajemos antes de enviar.</li>
             </ul>
         </div>
 
         <div class="tree-panel">
             <div>
-                <h3>Workspace y árbol</h3>
-                <p class="tree-help">No hace falta instalarlo por cada proyecto. Podés cambiar de workspace y reutilizar la misma interfaz.</p>
+                <h3>Árbol del proyecto</h3>
+                <p class="tree-help">Esta vista siempre usa el proyecto donde `codex-local` está instalado. No busca otros workspaces.</p>
             </div>
 
-            <div class="workspace-summary" id="workspaceSummary">
-                <span class="workspace-chip">Workspace actual</span>
+            <div class="workspace-summary">
+                <span class="workspace-chip">Proyecto actual</span>
                 <strong id="workspaceName">Detectando...</strong>
                 <p class="project-meta" id="workspaceMeta">Todavía no se cargó el árbol.</p>
             </div>
 
-            <div class="tree-toolbar">
-                <div class="field">
-                    <label for="workspacePath">Proyecto o workspace</label>
-                    <input id="workspacePath" list="workspaceSuggestions" value="." placeholder="Ejemplo: ., ../RealObject, C:/proyectos/mi-app">
-                    <datalist id="workspaceSuggestions"></datalist>
-                    <p class="field-note">Acepta `.` para este repo, rutas relativas como `../OtroProyecto` o rutas absolutas del sistema.</p>
-                </div>
-
-                <div class="field">
-                    <label for="projectRoot">Carpeta interna a analizar</label>
-                    <input id="projectRoot" list="rootSuggestions" value="." placeholder="Ejemplo: ., src, admin/panel">
-                    <datalist id="rootSuggestions"></datalist>
-                    <p class="field-note">Usá `.` para todo el proyecto abierto o elegí una carpeta sugerida. También podés escribir otra ruta relativa si existe.</p>
-                </div>
-
-                <div class="project-actions">
-                    <button class="ghost" id="loadTreeBtn" type="button">Cargar árbol</button>
-                </div>
+            <div class="tree-actions">
+                <button class="ghost" id="loadTreeBtn" type="button">Recargar árbol</button>
+                <button class="secondary" id="clearSelectionBtn" type="button">Limpiar selección</button>
             </div>
 
             <div class="tree-scroll" id="treeScroll">
-                <div class="helper">Todavía no cargaste el árbol de ningún workspace.</div>
+                <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
             </div>
+        </div>
+
+        <div class="viewer-card">
+            <div class="viewer-head">
+                <div>
+                    <h3>Visor de código</h3>
+                    <div class="viewer-file" id="viewerFile">Ningún archivo abierto</div>
+                </div>
+                <button class="secondary" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo visto</button>
+            </div>
+            <div class="viewer-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
+            <pre class="viewer-code" id="viewerCode" hidden></pre>
         </div>
     </aside>
 
@@ -555,29 +695,58 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
         <div class="topbar">
             <div>
                 <h2>Chat de desarrollo</h2>
-                <p>Adjuntá contexto desde el árbol y trabajemos sobre cualquier proyecto local que abras acá.</p>
+                <p>El scroll queda contenido dentro de la app para que el chat y el visor sean más cómodos al crecer.</p>
             </div>
             <div class="status" id="status">Listo para ayudarte</div>
         </div>
 
-        <div class="chat" id="chat">
-            <div class="empty-state" id="emptyState">
-                <h3>Trabajemos sobre tu código</h3>
-                <p>Cargá el árbol, seleccioná archivos y pedime funciones, fixes, mejoras o una estrategia de implementación para esa parte del sistema.</p>
-            </div>
+        <div class="workspace-main">
+            <section class="chat-column">
+                <div class="section-head">
+                    <h3>Conversación</h3>
+                    <p>Usá archivos seleccionados y tecnologías activas para darle contexto al pedido.</p>
+                </div>
+                <div class="chat" id="chat">
+                    <div class="empty-state" id="emptyState">
+                        <h3>Trabajemos sobre tu código</h3>
+                        <p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="code-column">
+                <div class="section-head">
+                    <h3>Contexto activo</h3>
+                    <p>Estos archivos y tecnologías se envían junto con tu mensaje actual.</p>
+                </div>
+                <div class="chat">
+                    <div class="field">
+                        <label>Tecnologías</label>
+                        <div class="tech-grid" id="techGrid">
+                            <label class="tech-chip"><input type="checkbox" value="HTML" checked><span>HTML</span></label>
+                            <label class="tech-chip"><input type="checkbox" value="CSS" checked><span>CSS</span></label>
+                            <label class="tech-chip"><input type="checkbox" value="JavaScript" checked><span>JavaScript</span></label>
+                            <label class="tech-chip"><input type="checkbox" value="PHP" checked><span>PHP</span></label>
+                            <label class="tech-chip"><input type="checkbox" value="Python"><span>Python</span></label>
+                            <label class="tech-chip"><input type="checkbox" value="MySQL" checked><span>MySQL</span></label>
+                        </div>
+                        <p class="field-note">Se envían como preferencia técnica junto con el contexto de archivos.</p>
+                    </div>
+
+                    <div class="field">
+                        <label>Archivos adjuntos</label>
+                        <div class="attachments" id="attachments"></div>
+                        <p class="field-note">Podés adjuntar desde el árbol o desde el visor de código.</p>
+                    </div>
+                </div>
+            </section>
         </div>
 
         <div class="composer">
             <div class="composer-grid">
                 <div class="field">
                     <label for="prompt">Tu pedido</label>
-                    <textarea id="prompt" placeholder="Ejemplo: sobre estos archivos, generame una función para validar el formulario y mostrame cómo integrarla."></textarea>
-                </div>
-
-                <div class="field">
-                    <label for="filepath">Archivos adjuntos</label>
-                    <input id="filepath" placeholder="También podés escribir rutas manualmente, separadas por coma.">
-                    <div class="attachments" id="attachments"></div>
+                    <textarea id="prompt" placeholder="Ejemplo: revisá estos archivos y proponé una mejora puntual para la validación del formulario o para la consulta SQL."></textarea>
                 </div>
 
                 <div class="actions">
@@ -593,32 +762,26 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 </div>
 
 <script>
-const WORKSPACE_STORAGE_KEY = "codex-local-workspace";
-const ROOT_STORAGE_KEY = "codex-local-project-root";
 const chatEl = document.getElementById("chat");
 const promptEl = document.getElementById("prompt");
-const filepathEl = document.getElementById("filepath");
 const attachmentsEl = document.getElementById("attachments");
 const statusEl = document.getElementById("status");
 const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
 const loadTreeBtn = document.getElementById("loadTreeBtn");
-const workspacePathEl = document.getElementById("workspacePath");
-const projectRootEl = document.getElementById("projectRoot");
+const clearSelectionBtn = document.getElementById("clearSelectionBtn");
 const treeScrollEl = document.getElementById("treeScroll");
-const workspaceSuggestionsEl = document.getElementById("workspaceSuggestions");
-const rootSuggestionsEl = document.getElementById("rootSuggestions");
 const workspaceNameEl = document.getElementById("workspaceName");
 const workspaceMetaEl = document.getElementById("workspaceMeta");
+const viewerFileEl = document.getElementById("viewerFile");
+const viewerEmptyEl = document.getElementById("viewerEmpty");
+const viewerCodeEl = document.getElementById("viewerCode");
+const attachPreviewBtn = document.getElementById("attachPreviewBtn");
+const techGridEl = document.getElementById("techGrid");
 
 const history = [];
 const selectedFiles = new Set();
-let currentWorkspaceInput = ".";
-let currentWorkspaceRoot = "";
-let currentRoot = ".";
-
-workspacePathEl.value = localStorage.getItem(WORKSPACE_STORAGE_KEY) || ".";
-projectRootEl.value = localStorage.getItem(ROOT_STORAGE_KEY) || ".";
+let currentPreviewFile = "";
 
 function escapeHtml(text) {
     return text
@@ -638,28 +801,19 @@ function setStatus(text) {
     statusEl.textContent = text;
 }
 
-function getFileList() {
-    return filepathEl.value
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
-}
-
-function syncInputWithSelectedFiles() {
-    filepathEl.value = Array.from(selectedFiles).join(", ");
-    renderAttachments();
-}
-
-function syncSelectedFilesFromInput() {
-    selectedFiles.clear();
-    getFileList().forEach((file) => selectedFiles.add(file));
+function getSelectedTechnologies() {
+    return Array.from(techGridEl.querySelectorAll('input[type="checkbox"]:checked')).map((input) => input.value);
 }
 
 function renderAttachments() {
-    const files = getFileList();
     attachmentsEl.innerHTML = "";
 
-    files.forEach((file) => {
+    if (!selectedFiles.size) {
+        attachmentsEl.innerHTML = '<div class="helper">Todavía no seleccionaste archivos.</div>';
+        return;
+    }
+
+    Array.from(selectedFiles).forEach((file) => {
         const chip = document.createElement("span");
         chip.className = "chip";
         chip.innerHTML = "<span>" + escapeHtml(file) + "</span>";
@@ -669,7 +823,7 @@ function renderAttachments() {
         removeBtn.textContent = "×";
         removeBtn.onclick = () => {
             selectedFiles.delete(file);
-            syncInputWithSelectedFiles();
+            renderAttachments();
             refreshCheckedStates();
         };
 
@@ -702,45 +856,63 @@ function refreshCheckedStates() {
 
 function clearSelectedFiles() {
     selectedFiles.clear();
-    syncInputWithSelectedFiles();
+    renderAttachments();
     refreshCheckedStates();
-}
-
-function renderWorkspaceSuggestions(workspaces) {
-    workspaceSuggestionsEl.innerHTML = "";
-
-    workspaces.forEach((workspace) => {
-        const option = document.createElement("option");
-        option.value = workspace.value;
-        option.label = workspace.label;
-        workspaceSuggestionsEl.appendChild(option);
-    });
-}
-
-function renderRootSuggestions(roots) {
-    rootSuggestionsEl.innerHTML = "";
-
-    roots.forEach((root) => {
-        const option = document.createElement("option");
-        option.value = root.value;
-        option.label = root.label;
-        rootSuggestionsEl.appendChild(option);
-    });
 }
 
 function updateWorkspaceSummary(payload) {
     const workspaceName = payload.workspace_name || "proyecto";
     const workspaceRoot = payload.workspace_root || "";
-    const rootLabel = payload.root_label || payload.root || ".";
     const fileCount = Number(payload.total_files || 0);
 
     workspaceNameEl.textContent = workspaceName;
     workspaceMetaEl.textContent =
-        "Ruta: " + workspaceRoot + " | Vista: " + rootLabel + " | " +
+        "Ruta del servidor: " + workspaceRoot + " | " +
         fileCount + " archivo" + (fileCount === 1 ? "" : "s") + " visibles";
 }
 
-function createTreeNode(node, depth = 0) {
+function resetViewer(message = "Elegí un archivo del árbol para ver su contenido acá.") {
+    currentPreviewFile = "";
+    viewerFileEl.textContent = "Ningún archivo abierto";
+    viewerEmptyEl.textContent = message;
+    viewerEmptyEl.hidden = false;
+    viewerCodeEl.hidden = true;
+    viewerCodeEl.textContent = "";
+    attachPreviewBtn.disabled = true;
+}
+
+async function previewFile(path) {
+    viewerFileEl.textContent = path;
+    viewerEmptyEl.hidden = false;
+    viewerEmptyEl.textContent = "Cargando código...";
+    viewerCodeEl.hidden = true;
+    attachPreviewBtn.disabled = true;
+
+    try {
+        const res = await fetch("readfile.php?file=" + encodeURIComponent(path));
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+            throw new Error(data.error || "No se pudo leer el archivo.");
+        }
+
+        currentPreviewFile = data.file;
+        viewerFileEl.textContent = data.file;
+        viewerCodeEl.textContent = data.content;
+        viewerCodeEl.hidden = false;
+        viewerEmptyEl.hidden = true;
+        attachPreviewBtn.disabled = false;
+    } catch (error) {
+        currentPreviewFile = "";
+        viewerCodeEl.hidden = true;
+        viewerCodeEl.textContent = "";
+        viewerEmptyEl.hidden = false;
+        viewerEmptyEl.innerHTML = '<span class="viewer-error">' + escapeHtml(error.message) + "</span>";
+        attachPreviewBtn.disabled = true;
+    }
+}
+
+function createTreeNode(node) {
     const item = document.createElement("li");
     item.className = "tree-node";
 
@@ -767,7 +939,7 @@ function createTreeNode(node, depth = 0) {
             } else {
                 selectedFiles.delete(node.path);
             }
-            syncInputWithSelectedFiles();
+            renderAttachments();
         };
         row.appendChild(checkbox);
     } else {
@@ -784,14 +956,24 @@ function createTreeNode(node, depth = 0) {
         '<span class="tree-name">' + escapeHtml(node.name) + "</span>";
 
     if (node.type === "file") {
-        label.onclick = () => {
-            const checkbox = row.querySelector("[data-file-path]");
-            checkbox.checked = !checkbox.checked;
-            checkbox.dispatchEvent(new Event("change"));
-        };
+        label.onclick = () => previewFile(node.path);
     }
 
     row.appendChild(label);
+
+    if (node.type === "file") {
+        const previewBtn = document.createElement("button");
+        previewBtn.type = "button";
+        previewBtn.className = "tree-preview-btn";
+        previewBtn.textContent = "Ver";
+        previewBtn.onclick = () => previewFile(node.path);
+        row.appendChild(previewBtn);
+    } else {
+        const spacerBtn = document.createElement("span");
+        spacerBtn.style.width = "32px";
+        row.appendChild(spacerBtn);
+    }
+
     item.appendChild(row);
 
     if (node.type === "dir" && node.children && node.children.length) {
@@ -799,7 +981,7 @@ function createTreeNode(node, depth = 0) {
         children.className = "tree-list tree-children";
 
         node.children.forEach((child) => {
-            children.appendChild(createTreeNode(child, depth + 1));
+            children.appendChild(createTreeNode(child));
         });
 
         toggle.onclick = () => {
@@ -818,7 +1000,7 @@ function renderTree(payload) {
 
     const summary = document.createElement("div");
     summary.className = "helper tree-summary";
-    summary.textContent = "Workspace: " + payload.workspace_name + " | Vista: " + payload.root_label;
+    summary.textContent = "Proyecto: " + payload.workspace_name + " | Vista: " + payload.root_label;
     treeScrollEl.appendChild(summary);
 
     if (!payload.tree || !payload.tree.length) {
@@ -836,46 +1018,26 @@ function renderTree(payload) {
 }
 
 async function loadTree() {
-    const workspace = workspacePathEl.value.trim() || ".";
-    const root = projectRootEl.value.trim() || ".";
     loadTreeBtn.disabled = true;
     setStatus("Cargando árbol...");
 
     try {
-        const response = await fetch(
-            "project-tree.php?workspace=" + encodeURIComponent(workspace) +
-            "&root=" + encodeURIComponent(root)
-        );
+        const response = await fetch("project-tree.php");
         const data = await response.json();
 
         if (!response.ok || data.error) {
             throw new Error(data.error || "No se pudo cargar el árbol.");
         }
 
-        const workspaceChanged = currentWorkspaceRoot !== "" && currentWorkspaceRoot !== data.workspace_root;
-        const rootChanged = currentRoot !== data.root;
-
-        if (workspaceChanged || rootChanged) {
-            clearSelectedFiles();
-        }
-
-        currentWorkspaceInput = data.workspace_input || workspace;
-        currentWorkspaceRoot = data.workspace_root || "";
-        currentRoot = data.root || ".";
-
-        workspacePathEl.value = currentWorkspaceInput;
-        projectRootEl.value = currentRoot;
-        localStorage.setItem(WORKSPACE_STORAGE_KEY, currentWorkspaceInput);
-        localStorage.setItem(ROOT_STORAGE_KEY, currentRoot);
-        renderWorkspaceSuggestions(Array.isArray(data.available_workspaces) ? data.available_workspaces : []);
-        renderRootSuggestions(Array.isArray(data.available_roots) ? data.available_roots : []);
         updateWorkspaceSummary(data);
         renderTree(data);
-        setStatus("Árbol cargado");
+        resetViewer();
         refreshCheckedStates();
+        setStatus("Árbol cargado");
     } catch (error) {
         treeScrollEl.innerHTML = '<div class="helper">' + escapeHtml(error.message) + "</div>";
         workspaceMetaEl.textContent = error.message;
+        resetViewer("No se pudo abrir el visor porque el árbol falló al cargar.");
         setStatus("No se pudo cargar el árbol");
         console.error(error);
     } finally {
@@ -883,18 +1045,15 @@ async function loadTree() {
     }
 }
 
-async function readContextFiles(files, workspace) {
+async function readContextFiles(files) {
     const contexts = [];
 
     for (const file of files) {
-        const res = await fetch(
-            "readfile.php?workspace=" + encodeURIComponent(workspace) +
-            "&file=" + encodeURIComponent(file)
-        );
+        const res = await fetch("readfile.php?file=" + encodeURIComponent(file));
         const data = await res.json();
 
-        if (data.error) {
-            throw new Error("No se pudo leer " + file + ": " + data.error);
+        if (!res.ok || data.error) {
+            throw new Error("No se pudo leer " + file + ": " + (data.error || "error desconocido"));
         }
 
         contexts.push({
@@ -908,9 +1067,8 @@ async function readContextFiles(files, workspace) {
 
 async function send() {
     const prompt = promptEl.value.trim();
-    const files = getFileList();
-    const workspace = workspacePathEl.value.trim() || ".";
-    const root = projectRootEl.value.trim() || ".";
+    const files = Array.from(selectedFiles);
+    const technologies = getSelectedTechnologies();
 
     if (!prompt) {
         setStatus("Escribí un pedido para continuar");
@@ -918,21 +1076,32 @@ async function send() {
         return;
     }
 
-    const scopeMeta = "Workspace: " + workspace + " | Carpeta: " + root;
-    appendMessage("user", prompt, files.length ? scopeMeta + " | Contexto: " + files.join(", ") : scopeMeta);
+    const promptSnapshot = prompt;
+    promptEl.value = "";
+
+    const metaParts = [];
+    if (technologies.length) {
+        metaParts.push("Tecnologías: " + technologies.join(", "));
+    }
+    if (files.length) {
+        metaParts.push("Contexto: " + files.join(", "));
+    }
+
+    appendMessage("user", promptSnapshot, metaParts.join(" | "));
 
     sendBtn.disabled = true;
     setStatus("Pensando...");
 
     try {
-        const contextFiles = await readContextFiles(files, workspace);
+        const contextFiles = await readContextFiles(files);
 
         const response = await fetch("api.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                prompt,
-                projectRoot: workspace + (root !== "." ? " :: " + root : ""),
+                prompt: promptSnapshot,
+                projectRoot: ".",
+                technologies,
                 contextFiles,
                 history
             })
@@ -954,10 +1123,14 @@ async function send() {
         const text = json.choices?.[0]?.message?.content || "La respuesta llegó sin contenido.";
         appendMessage("assistant", text, "Asistente");
 
-        history.push({ role: "user", content: "Workspace: " + workspace + "\nCarpeta interna: " + root + "\nPedido: " + prompt });
+        history.push({
+            role: "user",
+            content: "Tecnologías: " + (technologies.length ? technologies.join(", ") : "sin preferencia") +
+                "\nArchivos: " + (files.length ? files.join(", ") : "sin adjuntos") +
+                "\nPedido: " + promptSnapshot
+        });
         history.push({ role: "assistant", content: text });
 
-        promptEl.value = "";
         setStatus("Listo para seguir");
     } catch (error) {
         appendMessage("error", error.message, "Error");
@@ -968,26 +1141,6 @@ async function send() {
     }
 }
 
-filepathEl.addEventListener("input", () => {
-    syncSelectedFilesFromInput();
-    renderAttachments();
-    refreshCheckedStates();
-});
-
-workspacePathEl.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        loadTree();
-    }
-});
-
-projectRootEl.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        loadTree();
-    }
-});
-
 promptEl.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
@@ -997,13 +1150,24 @@ promptEl.addEventListener("keydown", (event) => {
 
 sendBtn.addEventListener("click", send);
 loadTreeBtn.addEventListener("click", loadTree);
+clearSelectionBtn.addEventListener("click", clearSelectedFiles);
+attachPreviewBtn.addEventListener("click", () => {
+    if (!currentPreviewFile) {
+        return;
+    }
+
+    selectedFiles.add(currentPreviewFile);
+    renderAttachments();
+    refreshCheckedStates();
+});
 clearBtn.addEventListener("click", () => {
     history.length = 0;
-    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu código</h3><p>Cargá el árbol, seleccioná archivos y pedime funciones, fixes, mejoras o una estrategia de implementación para esa parte del sistema.</p></div>';
+    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu código</h3><p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p></div>';
     setStatus("Chat limpio");
 });
 
 renderAttachments();
+resetViewer();
 loadTree();
 </script>
 </body>
