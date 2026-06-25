@@ -471,9 +471,10 @@ body {
                                 </label>
 
                                 <div class="im-muestra">
-                                    <button class="im-boton im-boton--tonal" id="sendBtn" type="button">Planificar</button>
-                                </div>
+                                <button class="im-boton im-boton--tonal" id="sendBtn" type="button">Planificar</button>
                             </div>
+                            <div class="attachments" id="composerAttachments"></div>
+                        </div>
                         </article>
                     </section>
                 </div>
@@ -698,11 +699,43 @@ function renderAttachments() {
         removeBtn.onclick = () => {
             selectedFiles.delete(file);
             renderAttachments();
+            renderComposerAttachments();
             refreshCheckedStates();
         };
 
         chip.appendChild(removeBtn);
         attachmentsEl.appendChild(chip);
+    });
+}
+
+function renderComposerAttachments() {
+    const composerAttachmentsEl = document.getElementById("composerAttachments");
+    if (!composerAttachmentsEl) return;
+
+    composerAttachmentsEl.innerHTML = "";
+
+    if (!selectedFiles.size) {
+        return;
+    }
+
+    Array.from(selectedFiles).forEach((file) => {
+        const chip = document.createElement("span");
+        chip.className = "im-chip chip";
+        chip.innerHTML = "<span>" + escapeHtml(file) + "</span>";
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.setAttribute("aria-label", "Quitar archivo adjunto");
+        removeBtn.textContent = "×";
+        removeBtn.onclick = () => {
+            selectedFiles.delete(file);
+            renderAttachments();
+            renderComposerAttachments();
+            refreshCheckedStates();
+        };
+
+        chip.appendChild(removeBtn);
+        composerAttachmentsEl.appendChild(chip);
     });
 }
 
@@ -731,6 +764,7 @@ function refreshCheckedStates() {
 function clearSelectedFiles() {
     selectedFiles.clear();
     renderAttachments();
+    renderComposerAttachments();
     refreshCheckedStates();
 }
 
@@ -845,13 +879,14 @@ function createTreeNode(node) {
         checkbox.setAttribute("data-file-path", node.path);
         checkbox.setAttribute("aria-label", "Adjuntar " + node.name);
         checkbox.checked = selectedFiles.has(node.path);
-        checkbox.addEventListener("change", () => {
+checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 selectedFiles.add(node.path);
             } else {
                 selectedFiles.delete(node.path);
             }
             renderAttachments();
+            renderComposerAttachments();
         });
         row.appendChild(checkbox);
     } else {
@@ -1098,6 +1133,7 @@ attachPreviewBtn.addEventListener("click", () => {
 
     selectedFiles.add(currentPreviewFile);
     renderAttachments();
+    renderComposerAttachments();
     refreshCheckedStates();
 });
 markDbBtn.addEventListener("click", () => {
@@ -1141,6 +1177,7 @@ clearBtn.addEventListener("click", () => {
 });
 
 renderAttachments();
+renderComposerAttachments();
 updatePinnedViews();
 resetViewer();
 applyAssistantMode(localStorage.getItem(ASSISTANT_MODE_STORAGE_KEY) || "plan");
