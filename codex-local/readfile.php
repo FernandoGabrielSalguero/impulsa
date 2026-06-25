@@ -1,5 +1,8 @@
 <?php
 header("Content-Type: application/json; charset=UTF-8");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 
 function json_response(array $payload, int $status = 200): void
 {
@@ -37,5 +40,7 @@ if ($content === false) {
 
 json_response([
     "file" => str_replace("\\", "/", ltrim(substr($requestedPath, strlen($projectRoot)), "\\/")),
-    "content" => $content
+    "content" => $content,
+    "modifiedAt" => gmdate("c", filemtime($requestedPath) ?: time()),
+    "readAt" => gmdate("c")
 ]);

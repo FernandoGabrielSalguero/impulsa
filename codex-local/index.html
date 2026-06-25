@@ -553,7 +553,7 @@ body {
                             </div>
 
                             <div class="composer-grid">
-                                <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA. `Planificar - prompt y código` devuelve archivo, fragmento exacto a buscar y reemplazo listo para copiar.</p>
+                                <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA. `Planificar - prompt y código` devuelve archivo, fragmento exacto a buscar y reemplazo listo para copiar. Si falta contexto, debe decirlo en vez de inventar.</p>
 
                                 <label class="im-campo im-campo-material im-campo--ancho">
                                     <span>Tu pedido</span>
@@ -741,15 +741,15 @@ function applyAssistantMode(mode) {
 
     if (selectedMode === "prompt") {
         promptEl.placeholder = "Ejemplo: con este contexto, armame un prompt quirúrgico para que Codex implemente el nuevo módulo respetando la base, la UI y los imports reales del CDN.";
-        assistantModeHelpEl.textContent = "`Generar prompt` crea un prompt final, exacto y listo para pegar en Codex u otra IA.";
+        assistantModeHelpEl.textContent = "`Generar prompt` crea un prompt final, exacto y listo para pegar en Codex u otra IA. Si falta contexto, lo marca en vez de asumir.";
         sendBtn.textContent = "Generar prompt";
     } else if (selectedMode === "plan-code") {
         promptEl.placeholder = "Ejemplo: analizá estos archivos y devolveme el plan junto con los bloques exactos a buscar y reemplazar, indicando archivo por archivo.";
-        assistantModeHelpEl.textContent = "`Planificar - prompt y código` devuelve una estrategia breve y luego bloques exactos con archivo, fragmento actual y reemplazo listo para copiar.";
+        assistantModeHelpEl.textContent = "`Planificar - prompt y código` devuelve una estrategia breve y luego bloques exactos con archivo, fragmento actual y reemplazo listo para copiar. Si no encuentra el fragmento literal, debe decirlo.";
         sendBtn.textContent = "Planificar + código";
     } else {
         promptEl.placeholder = "Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria.";
-        assistantModeHelpEl.textContent = "`Planificar` te devuelve una estrategia de implementación clara, con pasos, riesgos y archivos probables a tocar.";
+        assistantModeHelpEl.textContent = "`Planificar` te devuelve una estrategia de implementación clara, con pasos, riesgos y archivos probables a tocar. Si algo no está en contexto, lo marca como supuesto.";
         sendBtn.textContent = "Planificar";
     }
 
@@ -1129,7 +1129,7 @@ async function loadTree() {
     setStatus("Cargando árbol...");
 
     try {
-        const response = await fetch("project-tree.php");
+        const response = await fetch("project-tree.php", { cache: "no-store" });
         const data = await response.json();
 
         if (!response.ok || data.error) {
@@ -1153,7 +1153,7 @@ async function loadTree() {
 }
 
 async function loadFileContext(file, label) {
-    const res = await fetch("readfile.php?file=" + encodeURIComponent(file));
+    const res = await fetch("readfile.php?file=" + encodeURIComponent(file), { cache: "no-store" });
     const data = await res.json();
 
     if (!res.ok || data.error) {
@@ -1163,7 +1163,9 @@ async function loadFileContext(file, label) {
     return {
         path: data.file,
         content: data.content,
-        label
+        label,
+        modifiedAt: data.modifiedAt || "",
+        contextReadAt: data.readAt || new Date().toISOString()
     };
 }
 
@@ -1197,6 +1199,7 @@ async function send() {
     const technologies = getSelectedTechnologies();
     const cdnImports = cdnImportsEl.value.trim();
     const assistantMode = getAssistantMode();
+    const requestReadAt = new Date().toISOString();
 
     if (!prompt) {
         setStatus("Escribí un pedido para continuar");
@@ -1235,6 +1238,7 @@ async function send() {
 
         const response = await fetch("api.php", {
             method: "POST",
+            cache: "no-store",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 prompt: promptSnapshot,
@@ -1243,6 +1247,7 @@ async function send() {
                 cdnImports,
                 assistantMode,
                 contextFiles,
+                contextReadAt: requestReadAt,
                 history
             })
         });
@@ -1272,6 +1277,7 @@ async function send() {
                 "\nFuente de verdad visual: " + (pinnedCdnReference || "sin contexto fijo") +
                 "\nImports reales CDN: " + (cdnImports || "sin imports definidos") +
                 "\nModo: " + (assistantMode === "prompt" ? "generar prompt" : assistantMode === "plan-code" ? "planificar con prompt y código" : "planificar") +
+                "\nContexto leído en: " + requestReadAt +
                 "\nPedido: " + promptSnapshot
         });
         history.push({ role: "assistant", content: text });
