@@ -31,10 +31,10 @@ body {
 }
 
 .shell {
-    width: min(1380px, calc(100% - 32px));
+    width: min(1440px, calc(100% - 32px));
     margin: 24px auto;
     display: grid;
-    grid-template-columns: 360px 1fr;
+    grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
     gap: 18px;
 }
 
@@ -64,11 +64,12 @@ body {
 
 .brand {
     display: grid;
-    gap: 8px;
+    gap: 10px;
 }
 
 .eyebrow,
-.status {
+.status,
+.workspace-chip {
     display: inline-flex;
     width: fit-content;
     padding: 6px 10px;
@@ -83,11 +84,18 @@ body {
     color: var(--accent);
 }
 
+.workspace-chip {
+    background: rgba(96, 165, 250, 0.12);
+    color: #bfdbfe;
+}
+
 .brand p,
 .helper,
 .hint,
 .tree-help,
-.meta {
+.meta,
+.field-note,
+.project-meta {
     margin: 0;
     color: var(--muted);
 }
@@ -112,7 +120,7 @@ body {
 
 .tree-panel {
     display: grid;
-    gap: 12px;
+    gap: 14px;
     min-height: 0;
     flex: 1;
 }
@@ -123,6 +131,24 @@ body {
 .project-actions {
     display: grid;
     gap: 10px;
+}
+
+.workspace-summary {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(9, 15, 28, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.workspace-summary strong {
+    font-size: 16px;
+}
+
+.project-meta {
+    font-size: 13px;
+    line-height: 1.45;
 }
 
 label {
@@ -151,11 +177,20 @@ textarea::placeholder {
     color: #8ca0bf;
 }
 
+.field-note {
+    font-size: 12px;
+    line-height: 1.45;
+}
+
 .tree-scroll {
     overflow: auto;
-    min-height: 280px;
-    max-height: 520px;
+    min-height: 320px;
+    max-height: 56vh;
     padding-right: 4px;
+}
+
+.tree-summary {
+    margin-bottom: 12px;
 }
 
 .tree-list {
@@ -169,14 +204,17 @@ textarea::placeholder {
 .tree-node {
     display: grid;
     gap: 6px;
+    min-width: 0;
 }
 
 .tree-row {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: 26px 18px minmax(0, 1fr);
+    align-items: start;
     gap: 8px;
-    padding: 6px 8px;
+    padding: 7px 8px;
     border-radius: 12px;
+    min-width: 0;
 }
 
 .tree-row:hover {
@@ -199,8 +237,20 @@ textarea::placeholder {
     cursor: default;
 }
 
+.tree-check {
+    width: 16px;
+    height: 16px;
+    margin-top: 4px;
+}
+
+.tree-spacer {
+    width: 16px;
+    height: 16px;
+    margin-top: 4px;
+}
+
 .tree-children {
-    margin-left: 18px;
+    margin-left: 13px;
     padding-left: 12px;
     border-left: 1px solid rgba(148, 163, 184, 0.14);
     display: none;
@@ -212,19 +262,24 @@ textarea::placeholder {
 
 .tree-label {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
-    flex: 1;
+    min-width: 0;
     cursor: pointer;
 }
 
 .tree-type {
     font-size: 13px;
-    opacity: 0.85;
+    opacity: 0.9;
+    line-height: 1.5;
+    flex: 0 0 auto;
 }
 
 .tree-name {
+    min-width: 0;
     font-size: 14px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
     word-break: break-word;
 }
 
@@ -358,6 +413,14 @@ textarea::placeholder {
     font-size: 13px;
 }
 
+.chip button {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 16px;
+    line-height: 1;
+}
+
 button {
     border: 0;
     border-radius: 999px;
@@ -395,6 +458,39 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
     .workspace {
         min-height: auto;
     }
+
+    .tree-scroll {
+        max-height: 48vh;
+    }
+}
+
+@media (max-width: 640px) {
+    .shell {
+        width: min(100%, calc(100% - 16px));
+        margin: 8px auto;
+    }
+
+    .sidebar,
+    .workspace {
+        border-radius: 18px;
+    }
+
+    .topbar,
+    .composer,
+    .chat,
+    .sidebar {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .message {
+        max-width: 100%;
+    }
 }
 </style>
 </head>
@@ -404,28 +500,36 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
         <div class="brand">
             <span class="eyebrow">Local Coding Assistant</span>
             <h1>Codex Local</h1>
-            <p>Elegí un proyecto, seleccioná archivos desde el árbol y pedile código, refactors, fixes u optimizaciones con contexto real.</p>
+            <p>Funciona sobre el repositorio actual. Podés cargar el repo completo o cualquier subcarpeta, sin depender de un proyecto fijo.</p>
         </div>
 
         <div class="card">
             <h2>Cómo usarlo</h2>
             <ul class="tips">
-                <li>Definí una carpeta base del proyecto, por ejemplo `.` o `core`.</li>
-                <li>Cargá el árbol y marcá los archivos relevantes.</li>
-                <li>Pedile cambios concretos usando esos archivos como contexto.</li>
+                <li>Elegí el alcance: el repo completo (`.`) o una carpeta concreta.</li>
+                <li>Cargá el árbol y marcá los archivos que querés usar como contexto.</li>
+                <li>Pedí cambios concretos, refactors, fixes o revisiones sobre ese contexto.</li>
             </ul>
         </div>
 
         <div class="tree-panel">
             <div>
-                <h3>Proyecto y árbol</h3>
-                <p class="tree-help">Podés trabajar sobre una carpeta específica del repo y adjuntar archivos sin escribir rutas a mano.</p>
+                <h3>Workspace y árbol</h3>
+                <p class="tree-help">No hace falta instalarlo por cada módulo interno del repo. Cambiás la carpeta a analizar y reutilizás la misma interfaz.</p>
+            </div>
+
+            <div class="workspace-summary" id="workspaceSummary">
+                <span class="workspace-chip">Workspace actual</span>
+                <strong id="workspaceName">Detectando...</strong>
+                <p class="project-meta" id="workspaceMeta">Todavía no se cargó el árbol.</p>
             </div>
 
             <div class="tree-toolbar">
                 <div class="field">
-                    <label for="projectRoot">Carpeta base del proyecto</label>
-                    <input id="projectRoot" value="." placeholder="Ejemplo: ., core, admin/panel">
+                    <label for="projectRoot">Carpeta a analizar</label>
+                    <input id="projectRoot" list="rootSuggestions" value="." placeholder="Ejemplo: ., core, admin/panel">
+                    <datalist id="rootSuggestions"></datalist>
+                    <p class="field-note">Usá `.` para todo el repositorio o elegí una carpeta sugerida. También podés escribir otra ruta relativa si existe.</p>
                 </div>
 
                 <div class="project-actions">
@@ -434,7 +538,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
             </div>
 
             <div class="tree-scroll" id="treeScroll">
-                <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
+                <div class="helper">Todavía no cargaste el árbol del workspace.</div>
             </div>
         </div>
     </aside>
@@ -443,14 +547,14 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
         <div class="topbar">
             <div>
                 <h2>Chat de desarrollo</h2>
-                <p>Usá el árbol para adjuntar contexto y hablar sobre un proyecto específico.</p>
+                <p>Adjuntá contexto desde el árbol y trabajemos sobre cualquier parte del repositorio actual.</p>
             </div>
             <div class="status" id="status">Listo para ayudarte</div>
         </div>
 
         <div class="chat" id="chat">
             <div class="empty-state" id="emptyState">
-                <h3>Trabajemos sobre tu proyecto</h3>
+                <h3>Trabajemos sobre tu código</h3>
                 <p>Cargá el árbol, seleccioná archivos y pedime funciones, fixes, mejoras o una estrategia de implementación para esa parte del sistema.</p>
             </div>
         </div>
@@ -481,6 +585,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 </div>
 
 <script>
+const STORAGE_KEY = "codex-local-project-root";
 const chatEl = document.getElementById("chat");
 const promptEl = document.getElementById("prompt");
 const filepathEl = document.getElementById("filepath");
@@ -491,9 +596,14 @@ const clearBtn = document.getElementById("clearBtn");
 const loadTreeBtn = document.getElementById("loadTreeBtn");
 const projectRootEl = document.getElementById("projectRoot");
 const treeScrollEl = document.getElementById("treeScroll");
+const rootSuggestionsEl = document.getElementById("rootSuggestions");
+const workspaceNameEl = document.getElementById("workspaceName");
+const workspaceMetaEl = document.getElementById("workspaceMeta");
 
 const history = [];
 const selectedFiles = new Set();
+
+projectRootEl.value = localStorage.getItem(STORAGE_KEY) || ".";
 
 function escapeHtml(text) {
     return text
@@ -575,7 +685,29 @@ function refreshCheckedStates() {
     });
 }
 
-function createTreeNode(node) {
+function renderRootSuggestions(roots) {
+    rootSuggestionsEl.innerHTML = "";
+
+    roots.forEach((root) => {
+        const option = document.createElement("option");
+        option.value = root.value;
+        option.label = root.label;
+        rootSuggestionsEl.appendChild(option);
+    });
+}
+
+function updateWorkspaceSummary(payload) {
+    const workspaceName = payload.workspace_name || "repo";
+    const rootLabel = payload.root_label || payload.root || ".";
+    const fileCount = Number(payload.total_files || 0);
+
+    workspaceNameEl.textContent = workspaceName;
+    workspaceMetaEl.textContent =
+        "Vista actual: " + rootLabel + " | " +
+        fileCount + " archivo" + (fileCount === 1 ? "" : "s") + " visibles";
+}
+
+function createTreeNode(node, depth = 0) {
     const item = document.createElement("li");
     item.className = "tree-node";
 
@@ -587,11 +719,13 @@ function createTreeNode(node) {
     toggle.className = "tree-toggle";
     toggle.textContent = node.type === "dir" && node.children && node.children.length ? "▸" : "•";
     toggle.disabled = !(node.type === "dir" && node.children && node.children.length);
+    toggle.setAttribute("aria-label", node.type === "dir" ? "Expandir carpeta" : "Sin hijos");
     row.appendChild(toggle);
 
     if (node.type === "file") {
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
+        checkbox.className = "tree-check";
         checkbox.setAttribute("data-file-path", node.path);
         checkbox.checked = selectedFiles.has(node.path);
         checkbox.onchange = () => {
@@ -605,17 +739,26 @@ function createTreeNode(node) {
         row.appendChild(checkbox);
     } else {
         const spacer = document.createElement("span");
-        spacer.style.width = "16px";
+        spacer.className = "tree-spacer";
         row.appendChild(spacer);
     }
 
     const label = document.createElement("div");
     label.className = "tree-label";
+    label.title = node.path || node.name;
     label.innerHTML =
         '<span class="tree-type">' + (node.type === "dir" ? "📁" : "📄") + '</span>' +
         '<span class="tree-name">' + escapeHtml(node.name) + "</span>";
-    row.appendChild(label);
 
+    if (node.type === "file") {
+        label.onclick = () => {
+            const checkbox = row.querySelector("[data-file-path]");
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event("change"));
+        };
+    }
+
+    row.appendChild(label);
     item.appendChild(row);
 
     if (node.type === "dir" && node.children && node.children.length) {
@@ -623,8 +766,13 @@ function createTreeNode(node) {
         children.className = "tree-list tree-children";
 
         node.children.forEach((child) => {
-            children.appendChild(createTreeNode(child));
+            children.appendChild(createTreeNode(child, depth + 1));
         });
+
+        if (depth === 0) {
+            children.classList.add("open");
+            toggle.textContent = "▾";
+        }
 
         toggle.onclick = () => {
             children.classList.toggle("open");
@@ -641,8 +789,8 @@ function renderTree(payload) {
     treeScrollEl.innerHTML = "";
 
     const summary = document.createElement("div");
-    summary.className = "helper";
-    summary.textContent = "Proyecto cargado: " + payload.root + " | " + payload.total_files + " archivos visibles";
+    summary.className = "helper tree-summary";
+    summary.textContent = "Workspace: " + payload.workspace_name + " | Vista: " + payload.root_label;
     treeScrollEl.appendChild(summary);
 
     if (!payload.tree || !payload.tree.length) {
@@ -672,11 +820,15 @@ async function loadTree() {
             throw new Error(data.error || "No se pudo cargar el árbol.");
         }
 
+        localStorage.setItem(STORAGE_KEY, root);
+        renderRootSuggestions(Array.isArray(data.available_roots) ? data.available_roots : []);
+        updateWorkspaceSummary(data);
         renderTree(data);
         setStatus("Árbol cargado");
         refreshCheckedStates();
     } catch (error) {
         treeScrollEl.innerHTML = '<div class="helper">' + escapeHtml(error.message) + "</div>";
+        workspaceMetaEl.textContent = error.message;
         setStatus("No se pudo cargar el árbol");
         console.error(error);
     } finally {
@@ -715,7 +867,7 @@ async function send() {
         return;
     }
 
-    appendMessage("user", prompt, files.length ? "Proyecto: " + root + " | Contexto: " + files.join(", ") : "Proyecto: " + root);
+    appendMessage("user", prompt, files.length ? "Alcance: " + root + " | Contexto: " + files.join(", ") : "Alcance: " + root);
 
     sendBtn.disabled = true;
     setStatus("Pensando...");
@@ -750,7 +902,7 @@ async function send() {
         const text = json.choices?.[0]?.message?.content || "La respuesta llegó sin contenido.";
         appendMessage("assistant", text, "Asistente");
 
-        history.push({ role: "user", content: "Proyecto: " + root + "\nPedido: " + prompt });
+        history.push({ role: "user", content: "Carpeta base: " + root + "\nPedido: " + prompt });
         history.push({ role: "assistant", content: text });
 
         promptEl.value = "";
@@ -770,6 +922,13 @@ filepathEl.addEventListener("input", () => {
     refreshCheckedStates();
 });
 
+projectRootEl.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        loadTree();
+    }
+});
+
 promptEl.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
@@ -781,7 +940,7 @@ sendBtn.addEventListener("click", send);
 loadTreeBtn.addEventListener("click", loadTree);
 clearBtn.addEventListener("click", () => {
     history.length = 0;
-    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu proyecto</h3><p>Cargá el árbol, seleccioná archivos y pedime funciones, fixes, mejoras o una estrategia de implementación para esa parte del sistema.</p></div>';
+    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu código</h3><p>Cargá el árbol, seleccioná archivos y pedime funciones, fixes, mejoras o una estrategia de implementación para esa parte del sistema.</p></div>';
     setStatus("Chat limpio");
 });
 

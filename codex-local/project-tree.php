@@ -29,6 +29,46 @@ function should_skip(string $name): bool
     return in_array($name, $ignored, true);
 }
 
+function list_available_roots(string $projectRoot): array
+{
+    $entries = scandir($projectRoot);
+    if ($entries === false) {
+        return [["value" => ".", "label" => "Repositorio completo"]];
+    }
+
+    $roots = [["value" => ".", "label" => "Repositorio completo"]];
+
+    foreach ($entries as $entry) {
+        if ($entry === "." || $entry === ".." || should_skip($entry)) {
+            continue;
+        }
+
+        $absolutePath = $projectRoot . DIRECTORY_SEPARATOR . $entry;
+        if (!is_dir($absolutePath)) {
+            continue;
+        }
+
+        $roots[] = [
+            "value" => $entry,
+            "label" => $entry
+        ];
+    }
+
+    usort($roots, static function (array $a, array $b): int {
+        if ($a["value"] === ".") {
+            return -1;
+        }
+
+        if ($b["value"] === ".") {
+            return 1;
+        }
+
+        return strcasecmp($a["label"], $b["label"]);
+    });
+
+    return $roots;
+}
+
 function build_tree(string $absolutePath, string $relativePath, int $depth, int $maxDepth, int &$fileCount, int &$nodeBudget): array
 {
     if ($depth > $maxDepth || $nodeBudget <= 0) {
@@ -112,9 +152,13 @@ if (!is_dir($requestedRoot)) {
 $fileCount = 0;
 $nodeBudget = 2500;
 $tree = build_tree($requestedRoot, $root, 0, 5, $fileCount, $nodeBudget);
+$workspaceName = basename($projectRoot);
 
 json_response([
+    "workspace_name" => $workspaceName !== "" ? $workspaceName : "repo",
     "root" => $root,
+    "root_label" => $root === "." ? "Repositorio completo" : $root,
     "total_files" => $fileCount,
+    "available_roots" => list_available_roots($projectRoot),
     "tree" => $tree
 ]);
