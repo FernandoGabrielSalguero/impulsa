@@ -341,7 +341,40 @@
             <article class="im-tarjeta"><h3>SnackBar</h3><button class="im-boton im-boton--principal" type="button" data-abrir-snackbar>Mostrar snack-bar</button></article>
             <article class="im-tarjeta"><h3>Toolbar</h3><div class="im-toolbar"><button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Menu">menu</button><strong>Barra</strong><div class="im-menu-tabla" data-im-menu><button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button><div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">refresh</span>Actualizar</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">download</span>Exportar</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">view_column</span>Columnas</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>Filtrar</button></div></div></div></article>
             <article class="im-tarjeta"><h3>Tooltip</h3><button class="im-boton im-boton--tonal im-tooltip" data-tooltip="Texto explicativo breve" type="button">Hover</button></article>
-            <article class="im-tarjeta"><h3>Tree</h3><ul class="im-tree"><li>Componentes<ul><li>Botones</li><li>Campos</li></ul></li><li>CDN<ul><li>CSS</li><li>JS</li></ul></li></ul></article>
+            <article class="im-tarjeta im-treeview-demo">
+              <h3>Tree</h3>
+              <p>Arbol reutilizable con seleccion, plegado y deteccion automatica de iconos por tipo de archivo.</p>
+              <ul data-im-tree data-im-tree-selectable="true">
+                <li data-tree-open="true" data-tree-meta="1 carpeta raiz">assets
+                  <ul>
+                    <li data-tree-open="true" data-tree-meta="4 recursos">impulsa_material
+                      <ul>
+                        <li data-tree-open="true" data-tree-meta="2 hojas de estilo">css
+                          <ul>
+                            <li data-tree-meta="65 KB">material.css</li>
+                            <li data-tree-meta="12 KB">tokens.css</li>
+                          </ul>
+                        </li>
+                        <li data-tree-open="true" data-tree-meta="2 scripts">js
+                          <ul>
+                            <li data-tree-meta="31 KB">material.js</li>
+                            <li data-tree-meta="9 KB">material-validaciones.js</li>
+                          </ul>
+                        </li>
+                        <li data-tree-open="true" data-tree-meta="3 recursos visuales">media
+                          <ul>
+                            <li data-tree-meta="SVG">logo-impulsa.svg</li>
+                            <li data-tree-meta="PNG">preview-dashboard.png</li>
+                            <li data-tree-meta="WOFF2">MaterialSymbolsRounded.woff2</li>
+                          </ul>
+                        </li>
+                        <li data-tree-meta="Guia de uso">README.md</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </article>
           </div>
         </section>
 

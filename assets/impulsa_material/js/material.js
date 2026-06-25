@@ -571,6 +571,261 @@
     });
   });
 
+  const iconosTreePorTipo = {
+    archive: "folder_zip",
+    audio: "audio_file",
+    code: "code",
+    database: "storage",
+    design: "draw",
+    document: "description",
+    font: "format_size",
+    image: "image",
+    pdf: "picture_as_pdf",
+    presentation: "slideshow",
+    spreadsheet: "table_chart",
+    stylesheet: "palette",
+    video: "movie"
+  };
+
+  const extensionesTreePorTipo = {
+    archive: ["7z", "bz2", "gz", "rar", "tar", "tgz", "xz", "zip"],
+    audio: ["aac", "flac", "m4a", "mp3", "ogg", "wav"],
+    code: ["c", "cpp", "cs", "go", "html", "java", "js", "json", "jsx", "kt", "lua", "mjs", "php", "py", "rb", "rs", "sh", "sql", "ts", "tsx", "vue", "xml", "yaml", "yml"],
+    database: ["db", "sqlite", "sqlite3", "mdb"],
+    design: ["ai", "fig", "psd", "sketch", "xd"],
+    document: ["doc", "docx", "md", "odt", "pages", "rtf", "txt"],
+    font: ["eot", "otf", "ttf", "woff", "woff2"],
+    image: ["avif", "gif", "jpeg", "jpg", "png", "svg", "webp"],
+    pdf: ["pdf"],
+    presentation: ["key", "odp", "ppt", "pptx"],
+    spreadsheet: ["csv", "ods", "tsv", "xls", "xlsx"],
+    stylesheet: ["css", "less", "sass", "scss"],
+    video: ["avi", "mkv", "mov", "mp4", "webm"]
+  };
+
+  const tipoTreePorExtension = Object.entries(extensionesTreePorTipo).reduce((mapa, [tipo, extensiones]) => {
+    extensiones.forEach((extension) => {
+      mapa[extension] = tipo;
+    });
+    return mapa;
+  }, {});
+
+  const obtenerTextoTree = (li, grupoHijo) => {
+    if (li.dataset.treeLabel) {
+      return li.dataset.treeLabel.trim();
+    }
+
+    const clon = li.cloneNode(true);
+    clon.querySelectorAll("ul, ol").forEach((grupo) => grupo.remove());
+    return clon.textContent.replace(/\s+/g, " ").trim();
+  };
+
+  const obtenerExtensionTree = (etiqueta) => {
+    const base = etiqueta.split(/[\\/]/).pop() || etiqueta;
+    const coincide = base.match(/\.([a-z0-9]+)$/i);
+    return coincide ? coincide[1].toLowerCase() : "";
+  };
+
+  const resolverIconoTree = (li, esCarpeta, etiqueta) => {
+    if (esCarpeta) {
+      return "folder";
+    }
+
+    const tipoExplicito = (li.dataset.fileType || "").trim().toLowerCase();
+    if (tipoExplicito && iconosTreePorTipo[tipoExplicito]) {
+      return iconosTreePorTipo[tipoExplicito];
+    }
+
+    const extension = obtenerExtensionTree(etiqueta);
+    const tipoDetectado = tipoTreePorExtension[extension];
+    return tipoDetectado ? iconosTreePorTipo[tipoDetectado] : "draft";
+  };
+
+  const checkboxTreeDeNodo = (nodo) => nodo?.querySelector(":scope > .im-treeview__item .im-treeview__checkbox");
+  const grupoTreeDeNodo = (nodo) => nodo?.querySelector(":scope > .im-treeview__group");
+  const checkboxesTreeDeGrupo = (grupo) => grupo ? [...grupo.querySelectorAll(".im-treeview__checkbox")] : [];
+
+  const actualizarEstadoVisualTree = (nodo) => {
+    const checkbox = checkboxTreeDeNodo(nodo);
+    nodo?.classList.toggle("is-selected", Boolean(checkbox?.checked || checkbox?.indeterminate));
+    if (checkbox) {
+      nodo?.setAttribute("aria-selected", String(checkbox.checked));
+    }
+  };
+
+  const actualizarAncestrosTree = (nodo) => {
+    let actual = nodo?.parentElement?.closest(".im-treeview__node");
+
+    while (actual) {
+      const checkbox = checkboxTreeDeNodo(actual);
+      const descendientes = checkboxesTreeDeGrupo(grupoTreeDeNodo(actual));
+      const marcados = descendientes.filter((item) => item.checked).length;
+      const indeterminados = descendientes.some((item) => item.indeterminate);
+
+      if (checkbox) {
+        checkbox.checked = marcados > 0 && marcados === descendientes.length;
+        checkbox.indeterminate = !checkbox.checked && (marcados > 0 || indeterminados);
+      }
+
+      actualizarEstadoVisualTree(actual);
+      actual = actual.parentElement?.closest(".im-treeview__node");
+    }
+  };
+
+  const propagarSeleccionTree = (nodo, marcado) => {
+    const descendientes = checkboxesTreeDeGrupo(grupoTreeDeNodo(nodo));
+    descendientes.forEach((checkbox) => {
+      checkbox.checked = marcado;
+      checkbox.indeterminate = false;
+      checkbox.closest(".im-treeview__node")?.classList.toggle("is-selected", marcado);
+    });
+  };
+
+  const definirExpansionTree = (nodo, expandido) => {
+    const grupo = grupoTreeDeNodo(nodo);
+    const toggle = nodo.querySelector(":scope > .im-treeview__item .im-treeview__toggle");
+
+    if (!grupo || !toggle) {
+      return;
+    }
+
+    grupo.hidden = !expandido;
+    toggle.setAttribute("aria-expanded", String(expandido));
+  };
+
+  const construirNodoTree = (li, profundidad, selectable) => {
+    const grupoHijo = [...li.children].find((child) => child.matches("ul, ol")) || null;
+    const esCarpeta = Boolean(grupoHijo) || li.dataset.treeKind === "folder";
+    const etiqueta = obtenerTextoTree(li, grupoHijo);
+    const meta = li.dataset.treeMeta || "";
+    const icono = resolverIconoTree(li, esCarpeta, etiqueta);
+    const item = document.createElement("div");
+    const contenido = document.createElement("div");
+    const nombre = document.createElement("span");
+    const iconoNodo = document.createElement("span");
+
+    li.classList.add("im-treeview__node", esCarpeta ? "im-treeview__node--carpeta" : "im-treeview__node--archivo");
+    li.setAttribute("role", "treeitem");
+    li.setAttribute("aria-level", String(profundidad + 1));
+
+    item.className = "im-treeview__item";
+    contenido.className = "im-treeview__contenido";
+    nombre.className = "im-treeview__nombre";
+    nombre.textContent = etiqueta || "Sin nombre";
+    contenido.appendChild(nombre);
+
+    if (meta) {
+      const metaNodo = document.createElement("small");
+      metaNodo.className = "im-treeview__meta";
+      metaNodo.textContent = meta;
+      contenido.appendChild(metaNodo);
+    }
+
+    if (esCarpeta) {
+      const toggle = document.createElement("button");
+      const toggleIcono = document.createElement("span");
+
+      toggle.type = "button";
+      toggle.className = "im-treeview__toggle";
+      toggle.setAttribute("aria-label", `Alternar ${etiqueta || "carpeta"}`);
+      toggleIcono.className = "material-symbols-rounded";
+      toggleIcono.setAttribute("aria-hidden", "true");
+      toggleIcono.textContent = "chevron_right";
+      toggle.appendChild(toggleIcono);
+      item.appendChild(toggle);
+    } else {
+      const espacio = document.createElement("span");
+      espacio.className = "im-treeview__toggle-espacio";
+      espacio.setAttribute("aria-hidden", "true");
+      item.appendChild(espacio);
+    }
+
+    if (selectable) {
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "im-treeview__checkbox";
+      checkbox.setAttribute("aria-label", `Seleccionar ${etiqueta || "elemento"}`);
+      item.appendChild(checkbox);
+      item.dataset.treeInteractivo = "true";
+    }
+
+    iconoNodo.className = "im-treeview__icono";
+    iconoNodo.innerHTML = `<span class="material-symbols-rounded" aria-hidden="true">${icono}</span>`;
+    item.append(iconoNodo, contenido);
+
+    li.textContent = "";
+    li.appendChild(item);
+
+    if (grupoHijo) {
+      grupoHijo.classList.add("im-treeview__group");
+      grupoHijo.setAttribute("role", "group");
+      li.appendChild(grupoHijo);
+      [...grupoHijo.children].forEach((nodoHijo) => {
+        if (nodoHijo.matches("li")) {
+          construirNodoTree(nodoHijo, profundidad + 1, selectable);
+        }
+      });
+
+      const expandidoInicial = li.dataset.treeOpen === "true" || profundidad === 0;
+      definirExpansionTree(li, expandidoInicial);
+
+      item.querySelector(".im-treeview__toggle")?.addEventListener("click", (evento) => {
+        evento.stopPropagation();
+        const expandido = evento.currentTarget.getAttribute("aria-expanded") === "true";
+        definirExpansionTree(li, !expandido);
+      });
+    }
+
+    const checkbox = checkboxTreeDeNodo(li);
+    if (checkbox) {
+      checkbox.addEventListener("change", () => {
+        propagarSeleccionTree(li, checkbox.checked);
+        actualizarEstadoVisualTree(li);
+        actualizarAncestrosTree(li);
+      });
+
+      item.addEventListener("click", (evento) => {
+        if (evento.target.closest("button, input, a")) {
+          return;
+        }
+
+        checkbox.checked = !checkbox.checked;
+        checkbox.indeterminate = false;
+        checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    } else if (esCarpeta) {
+      item.dataset.treeInteractivo = "true";
+      item.addEventListener("click", (evento) => {
+        if (evento.target.closest("button, a")) {
+          return;
+        }
+
+        const toggle = item.querySelector(".im-treeview__toggle");
+        const expandido = toggle?.getAttribute("aria-expanded") === "true";
+        definirExpansionTree(li, !expandido);
+      });
+    }
+
+    actualizarEstadoVisualTree(li);
+  };
+
+  document.querySelectorAll("[data-im-tree]").forEach((tree) => {
+    if (tree.dataset.imTreeReady === "true") {
+      return;
+    }
+
+    tree.dataset.imTreeReady = "true";
+    tree.classList.add("im-treeview");
+    tree.setAttribute("role", "tree");
+    const selectable = tree.dataset.imTreeSelectable !== "false";
+
+    [...tree.children].forEach((nodo) => {
+      if (nodo.matches("li")) {
+        construirNodoTree(nodo, 0, selectable);
+      }
+    });
+  });
+
   const registrosMenusFlotantes = [];
 
   const restaurarPanelMenu = (registro) => {
