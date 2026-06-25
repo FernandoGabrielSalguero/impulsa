@@ -11,7 +11,12 @@ function json_response(array $payload, int $status = 200): void
 function normalize_relative_path(string $path): string
 {
     $path = str_replace("\\", "/", trim($path));
-    return $path === "" ? "." : $path;
+    return $path === "" ? "." : trim($path, "/");
+}
+
+function is_absolute_path(string $path): bool
+{
+    return (bool) preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) || str_starts_with($path, "\\\\");
 }
 
 function should_skip(string $name): bool
@@ -29,21 +34,108 @@ function should_skip(string $name): bool
     return in_array($name, $ignored, true);
 }
 
-function list_available_roots(string $projectRoot): array
+function resolve_workspace_root(string $workspaceInput, string $defaultWorkspace): string|false
 {
-    $entries = scandir($projectRoot);
-    if ($entries === false) {
-        return [["value" => ".", "label" => "Repositorio completo"]];
+    $workspaceInput = trim($workspaceInput);
+
+    if ($workspaceInput === "" || $workspaceInput === ".") {
+        return $defaultWorkspace;
     }
 
-    $roots = [["value" => ".", "label" => "Repositorio completo"]];
+    if (is_absolute_path($workspaceInput)) {
+        return realpath($workspaceInput);
+    }
+
+    return realpath($defaultWorkspace . DIRECTORY_SEPARATOR . $workspaceInput);
+}
+
+function resolve_scope_root(string $scopeInput, string $workspaceRoot): string|false
+{
+    $scope = normalize_relative_path($scopeInput);
+
+    if ($scope === ".") {
+        return $workspaceRoot;
+    }
+
+    return realpath($workspaceRoot . DIRECTORY_SEPARATOR . $scope);
+}
+
+function relative_display_path(string $absolutePath, string $basePath): string
+{
+    if ($absolutePath === $basePath) {
+        return ".";
+    }
+
+    return str_replace("\\", "/", ltrim(substr($absolutePath, strlen($basePath)), "\\/"));
+}
+
+function list_available_workspaces(string $defaultWorkspace): array
+{
+    $parent = dirname($defaultWorkspace);
+    $entries = scandir($parent);
+
+    if ($entries === false) {
+        return [[
+            "value" => ".",
+            "label" => basename($defaultWorkspace) !== "" ? basename($defaultWorkspace) : "."
+        ]];
+    }
+
+    $workspaces = [[
+        "value" => ".",
+        "label" => basename($defaultWorkspace) !== "" ? basename($defaultWorkspace) : "."
+    ]];
 
     foreach ($entries as $entry) {
         if ($entry === "." || $entry === ".." || should_skip($entry)) {
             continue;
         }
 
-        $absolutePath = $projectRoot . DIRECTORY_SEPARATOR . $entry;
+        $absolutePath = $parent . DIRECTORY_SEPARATOR . $entry;
+        if (!is_dir($absolutePath)) {
+            continue;
+        }
+
+        $value = $absolutePath === $defaultWorkspace
+            ? "."
+            : str_replace("\\", "/", ".." . DIRECTORY_SEPARATOR . $entry);
+
+        $workspaces[] = [
+            "value" => $value,
+            "label" => $entry
+        ];
+    }
+
+    usort($workspaces, static function (array $a, array $b): int {
+        if ($a["value"] === ".") {
+            return -1;
+        }
+
+        if ($b["value"] === ".") {
+            return 1;
+        }
+
+        return strcasecmp($a["label"], $b["label"]);
+    });
+
+    return $workspaces;
+}
+
+function list_available_roots(string $workspaceRoot): array
+{
+    $entries = scandir($workspaceRoot);
+    if ($entries === false) {
+        return [["value" => ".", "label" => "Proyecto completo"]];
+    }
+
+    $roots = [["value" => ".", "label" => "Proyecto completo"]];
+
+    foreach ($entries as $entry) {
+        if ($entry === "." || $entry === ".." || should_skip($entry)) {
+            continue;
+        }
+
+        $absolutePath = $workspaceRoot . DIRECTORY_SEPARATOR . $entry;
         if (!is_dir($absolutePath)) {
             continue;
         }
@@ -137,28 +229,40 @@ function build_tree(string $absolutePath, string $relativePath, int $depth, int 
     return $tree;
 }
 
-$projectRoot = realpath(__DIR__ . "/..");
-$root = normalize_relative_path((string) ($_GET["root"] ?? "."));
-$requestedRoot = $root === "." ? $projectRoot : realpath($projectRoot . DIRECTORY_SEPARATOR . $root);
+$defaultWorkspace = realpath(__DIR__ . "/..");
 
-if ($projectRoot === false || $requestedRoot === false || !str_starts_with($requestedRoot, $projectRoot)) {
-    json_response(["error" => "La carpeta base solicitada no es válida."], 400);
+if ($defaultWorkspace === false) {
+    json_response(["error" => "No se pudo resolver el workspace por defecto."], 500);
 }
 
-if (!is_dir($requestedRoot)) {
-    json_response(["error" => "La carpeta base no existe o no es un directorio."], 404);
+$workspaceInput = trim((string) ($_GET["workspace"] ?? "."));
+$scopeInput = (string) ($_GET["root"] ?? ".");
+
+$workspaceRoot = resolve_workspace_root($workspaceInput, $defaultWorkspace);
+
+if ($workspaceRoot === false || !is_dir($workspaceRoot)) {
+    json_response(["error" => "El workspace solicitado no existe o no es válido."], 400);
 }
 
+$requestedRoot = resolve_scope_root($scopeInput, $workspaceRoot);
+
+if ($requestedRoot === false || !is_dir($requestedRoot) || !str_starts_with($requestedRoot, $workspaceRoot)) {
+    json_response(["error" => "La carpeta interna solicitada no es válida para ese workspace."], 400);
+}
+
+$root = relative_display_path($requestedRoot, $workspaceRoot);
 $fileCount = 0;
 $nodeBudget = 2500;
 $tree = build_tree($requestedRoot, $root, 0, 5, $fileCount, $nodeBudget);
-$workspaceName = basename($projectRoot);
 
 json_response([
-    "workspace_name" => $workspaceName !== "" ? $workspaceName : "repo",
+    "workspace_input" => $workspaceInput !== "" ? $workspaceInput : ".",
+    "workspace_root" => str_replace("\\", "/", $workspaceRoot),
+    "workspace_name" => basename($workspaceRoot) !== "" ? basename($workspaceRoot) : "proyecto",
     "root" => $root,
-    "root_label" => $root === "." ? "Repositorio completo" : $root,
+    "root_label" => $root === "." ? "Proyecto completo" : $root,
     "total_files" => $fileCount,
-    "available_roots" => list_available_roots($projectRoot),
+    "available_workspaces" => list_available_workspaces($defaultWorkspace),
+    "available_roots" => list_available_roots($workspaceRoot),
     "tree" => $tree
 ]);

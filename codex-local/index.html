@@ -500,13 +500,14 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
         <div class="brand">
             <span class="eyebrow">Local Coding Assistant</span>
             <h1>Codex Local</h1>
-            <p>Funciona sobre el repositorio actual. Podés cargar el repo completo o cualquier subcarpeta, sin depender de un proyecto fijo.</p>
+            <p>Podés usar esta misma interfaz para abrir distintos proyectos locales y después enfocarte en una carpeta interna puntual si hace falta.</p>
         </div>
 
         <div class="card">
             <h2>Cómo usarlo</h2>
             <ul class="tips">
-                <li>Elegí el alcance: el repo completo (`.`) o una carpeta concreta.</li>
+                <li>Elegí primero el proyecto o workspace local que querés abrir.</li>
+                <li>Después definí el alcance: todo el proyecto (`.`) o una subcarpeta concreta.</li>
                 <li>Cargá el árbol y marcá los archivos que querés usar como contexto.</li>
                 <li>Pedí cambios concretos, refactors, fixes o revisiones sobre ese contexto.</li>
             </ul>
@@ -515,7 +516,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
         <div class="tree-panel">
             <div>
                 <h3>Workspace y árbol</h3>
-                <p class="tree-help">No hace falta instalarlo por cada módulo interno del repo. Cambiás la carpeta a analizar y reutilizás la misma interfaz.</p>
+                <p class="tree-help">No hace falta instalarlo por cada proyecto. Podés cambiar de workspace y reutilizar la misma interfaz.</p>
             </div>
 
             <div class="workspace-summary" id="workspaceSummary">
@@ -526,10 +527,17 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 
             <div class="tree-toolbar">
                 <div class="field">
-                    <label for="projectRoot">Carpeta a analizar</label>
-                    <input id="projectRoot" list="rootSuggestions" value="." placeholder="Ejemplo: ., core, admin/panel">
+                    <label for="workspacePath">Proyecto o workspace</label>
+                    <input id="workspacePath" list="workspaceSuggestions" value="." placeholder="Ejemplo: ., ../RealObject, C:/proyectos/mi-app">
+                    <datalist id="workspaceSuggestions"></datalist>
+                    <p class="field-note">Acepta `.` para este repo, rutas relativas como `../OtroProyecto` o rutas absolutas del sistema.</p>
+                </div>
+
+                <div class="field">
+                    <label for="projectRoot">Carpeta interna a analizar</label>
+                    <input id="projectRoot" list="rootSuggestions" value="." placeholder="Ejemplo: ., src, admin/panel">
                     <datalist id="rootSuggestions"></datalist>
-                    <p class="field-note">Usá `.` para todo el repositorio o elegí una carpeta sugerida. También podés escribir otra ruta relativa si existe.</p>
+                    <p class="field-note">Usá `.` para todo el proyecto abierto o elegí una carpeta sugerida. También podés escribir otra ruta relativa si existe.</p>
                 </div>
 
                 <div class="project-actions">
@@ -538,7 +546,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
             </div>
 
             <div class="tree-scroll" id="treeScroll">
-                <div class="helper">Todavía no cargaste el árbol del workspace.</div>
+                <div class="helper">Todavía no cargaste el árbol de ningún workspace.</div>
             </div>
         </div>
     </aside>
@@ -547,7 +555,7 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
         <div class="topbar">
             <div>
                 <h2>Chat de desarrollo</h2>
-                <p>Adjuntá contexto desde el árbol y trabajemos sobre cualquier parte del repositorio actual.</p>
+                <p>Adjuntá contexto desde el árbol y trabajemos sobre cualquier proyecto local que abras acá.</p>
             </div>
             <div class="status" id="status">Listo para ayudarte</div>
         </div>
@@ -585,7 +593,8 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
 </div>
 
 <script>
-const STORAGE_KEY = "codex-local-project-root";
+const WORKSPACE_STORAGE_KEY = "codex-local-workspace";
+const ROOT_STORAGE_KEY = "codex-local-project-root";
 const chatEl = document.getElementById("chat");
 const promptEl = document.getElementById("prompt");
 const filepathEl = document.getElementById("filepath");
@@ -594,16 +603,22 @@ const statusEl = document.getElementById("status");
 const sendBtn = document.getElementById("sendBtn");
 const clearBtn = document.getElementById("clearBtn");
 const loadTreeBtn = document.getElementById("loadTreeBtn");
+const workspacePathEl = document.getElementById("workspacePath");
 const projectRootEl = document.getElementById("projectRoot");
 const treeScrollEl = document.getElementById("treeScroll");
+const workspaceSuggestionsEl = document.getElementById("workspaceSuggestions");
 const rootSuggestionsEl = document.getElementById("rootSuggestions");
 const workspaceNameEl = document.getElementById("workspaceName");
 const workspaceMetaEl = document.getElementById("workspaceMeta");
 
 const history = [];
 const selectedFiles = new Set();
+let currentWorkspaceInput = ".";
+let currentWorkspaceRoot = "";
+let currentRoot = ".";
 
-projectRootEl.value = localStorage.getItem(STORAGE_KEY) || ".";
+workspacePathEl.value = localStorage.getItem(WORKSPACE_STORAGE_KEY) || ".";
+projectRootEl.value = localStorage.getItem(ROOT_STORAGE_KEY) || ".";
 
 function escapeHtml(text) {
     return text
@@ -685,6 +700,23 @@ function refreshCheckedStates() {
     });
 }
 
+function clearSelectedFiles() {
+    selectedFiles.clear();
+    syncInputWithSelectedFiles();
+    refreshCheckedStates();
+}
+
+function renderWorkspaceSuggestions(workspaces) {
+    workspaceSuggestionsEl.innerHTML = "";
+
+    workspaces.forEach((workspace) => {
+        const option = document.createElement("option");
+        option.value = workspace.value;
+        option.label = workspace.label;
+        workspaceSuggestionsEl.appendChild(option);
+    });
+}
+
 function renderRootSuggestions(roots) {
     rootSuggestionsEl.innerHTML = "";
 
@@ -697,13 +729,14 @@ function renderRootSuggestions(roots) {
 }
 
 function updateWorkspaceSummary(payload) {
-    const workspaceName = payload.workspace_name || "repo";
+    const workspaceName = payload.workspace_name || "proyecto";
+    const workspaceRoot = payload.workspace_root || "";
     const rootLabel = payload.root_label || payload.root || ".";
     const fileCount = Number(payload.total_files || 0);
 
     workspaceNameEl.textContent = workspaceName;
     workspaceMetaEl.textContent =
-        "Vista actual: " + rootLabel + " | " +
+        "Ruta: " + workspaceRoot + " | Vista: " + rootLabel + " | " +
         fileCount + " archivo" + (fileCount === 1 ? "" : "s") + " visibles";
 }
 
@@ -769,11 +802,6 @@ function createTreeNode(node, depth = 0) {
             children.appendChild(createTreeNode(child, depth + 1));
         });
 
-        if (depth === 0) {
-            children.classList.add("open");
-            toggle.textContent = "▾";
-        }
-
         toggle.onclick = () => {
             children.classList.toggle("open");
             toggle.textContent = children.classList.contains("open") ? "▾" : "▸";
@@ -808,19 +836,38 @@ function renderTree(payload) {
 }
 
 async function loadTree() {
+    const workspace = workspacePathEl.value.trim() || ".";
     const root = projectRootEl.value.trim() || ".";
     loadTreeBtn.disabled = true;
     setStatus("Cargando árbol...");
 
     try {
-        const response = await fetch("project-tree.php?root=" + encodeURIComponent(root));
+        const response = await fetch(
+            "project-tree.php?workspace=" + encodeURIComponent(workspace) +
+            "&root=" + encodeURIComponent(root)
+        );
         const data = await response.json();
 
         if (!response.ok || data.error) {
             throw new Error(data.error || "No se pudo cargar el árbol.");
         }
 
-        localStorage.setItem(STORAGE_KEY, root);
+        const workspaceChanged = currentWorkspaceRoot !== "" && currentWorkspaceRoot !== data.workspace_root;
+        const rootChanged = currentRoot !== data.root;
+
+        if (workspaceChanged || rootChanged) {
+            clearSelectedFiles();
+        }
+
+        currentWorkspaceInput = data.workspace_input || workspace;
+        currentWorkspaceRoot = data.workspace_root || "";
+        currentRoot = data.root || ".";
+
+        workspacePathEl.value = currentWorkspaceInput;
+        projectRootEl.value = currentRoot;
+        localStorage.setItem(WORKSPACE_STORAGE_KEY, currentWorkspaceInput);
+        localStorage.setItem(ROOT_STORAGE_KEY, currentRoot);
+        renderWorkspaceSuggestions(Array.isArray(data.available_workspaces) ? data.available_workspaces : []);
         renderRootSuggestions(Array.isArray(data.available_roots) ? data.available_roots : []);
         updateWorkspaceSummary(data);
         renderTree(data);
@@ -836,11 +883,14 @@ async function loadTree() {
     }
 }
 
-async function readContextFiles(files) {
+async function readContextFiles(files, workspace) {
     const contexts = [];
 
     for (const file of files) {
-        const res = await fetch("readfile.php?file=" + encodeURIComponent(file));
+        const res = await fetch(
+            "readfile.php?workspace=" + encodeURIComponent(workspace) +
+            "&file=" + encodeURIComponent(file)
+        );
         const data = await res.json();
 
         if (data.error) {
@@ -859,6 +909,7 @@ async function readContextFiles(files) {
 async function send() {
     const prompt = promptEl.value.trim();
     const files = getFileList();
+    const workspace = workspacePathEl.value.trim() || ".";
     const root = projectRootEl.value.trim() || ".";
 
     if (!prompt) {
@@ -867,20 +918,21 @@ async function send() {
         return;
     }
 
-    appendMessage("user", prompt, files.length ? "Alcance: " + root + " | Contexto: " + files.join(", ") : "Alcance: " + root);
+    const scopeMeta = "Workspace: " + workspace + " | Carpeta: " + root;
+    appendMessage("user", prompt, files.length ? scopeMeta + " | Contexto: " + files.join(", ") : scopeMeta);
 
     sendBtn.disabled = true;
     setStatus("Pensando...");
 
     try {
-        const contextFiles = await readContextFiles(files);
+        const contextFiles = await readContextFiles(files, workspace);
 
         const response = await fetch("api.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 prompt,
-                projectRoot: root,
+                projectRoot: workspace + (root !== "." ? " :: " + root : ""),
                 contextFiles,
                 history
             })
@@ -902,7 +954,7 @@ async function send() {
         const text = json.choices?.[0]?.message?.content || "La respuesta llegó sin contenido.";
         appendMessage("assistant", text, "Asistente");
 
-        history.push({ role: "user", content: "Carpeta base: " + root + "\nPedido: " + prompt });
+        history.push({ role: "user", content: "Workspace: " + workspace + "\nCarpeta interna: " + root + "\nPedido: " + prompt });
         history.push({ role: "assistant", content: text });
 
         promptEl.value = "";
@@ -920,6 +972,13 @@ filepathEl.addEventListener("input", () => {
     syncSelectedFilesFromInput();
     renderAttachments();
     refreshCheckedStates();
+});
+
+workspacePathEl.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        loadTree();
+    }
 });
 
 projectRootEl.addEventListener("keydown", (event) => {
