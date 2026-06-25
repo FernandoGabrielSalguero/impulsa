@@ -4,24 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex Local</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://impulsagroup.com/assets/impulsa_material/css/material.css">
+<script src="https://impulsagroup.com/assets/impulsa_material/js/material.js" defer></script>
+<script src="https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js" defer></script>
 <style>
 :root {
-    --bg: #0b1020;
-    --panel: rgba(10, 16, 32, 0.95);
-    --panel-soft: rgba(255, 255, 255, 0.03);
-    --panel-border: rgba(148, 163, 184, 0.18);
-    --text: #e5eefb;
-    --muted: #9fb0ca;
-    --accent: #71e4c8;
-    --accent-strong: #2dd4bf;
-    --accent-soft: rgba(113, 228, 200, 0.12);
-    --info-soft: rgba(96, 165, 250, 0.12);
-    --danger: #fca5a5;
-    --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-    --radius: 22px;
+    --im-color-principal: #11345d;
+    --im-color-principal-suave: #e8f0fb;
+    --im-color-secundario: #28b8a8;
+    --im-color-fondo: #f3f6fb;
+    --im-color-superficie: #ffffff;
+    --im-color-texto: #142033;
+    --im-color-borde: #d7deea;
 }
-
-* { box-sizing: border-box; }
 
 html,
 body {
@@ -30,217 +28,70 @@ body {
 
 body {
     margin: 0;
-    overflow: hidden;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    color: var(--text);
     background:
-        radial-gradient(circle at top left, rgba(45, 212, 191, 0.16), transparent 30%),
-        radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 28%),
-        linear-gradient(180deg, #070b16 0%, #0b1020 100%);
+        radial-gradient(circle at top left, rgba(17, 52, 93, 0.08), transparent 24%),
+        radial-gradient(circle at top right, rgba(40, 184, 168, 0.08), transparent 22%),
+        var(--im-color-fondo);
 }
 
-.shell {
-    width: min(1500px, calc(100% - 24px));
-    height: calc(100vh - 24px);
-    margin: 12px auto;
+.im-aplicacion {
+    min-height: 100vh;
+}
+
+.im-menu-lateral {
+    gap: 1rem;
+}
+
+.sidebar-stack,
+.tree-panel,
+.field,
+.composer-grid,
+.context-pins,
+.pin-actions {
     display: grid;
-    grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
-    gap: 18px;
+    gap: 1rem;
 }
 
-.sidebar,
-.workspace {
+.sidebar-stack,
+.tree-panel,
+.workspace-main,
+.chat-column,
+.context-column,
+.chat,
+.composer {
     min-height: 0;
-    border: 1px solid var(--panel-border);
-    border-radius: var(--radius);
-    background: var(--panel);
-    backdrop-filter: blur(18px);
-    box-shadow: var(--shadow);
 }
 
-.sidebar {
-    padding: 18px;
+.workspace-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+    gap: 1rem;
+}
+
+.chat-column,
+.context-column {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    gap: 16px;
-    overflow: hidden;
-}
-
-.workspace {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    overflow: hidden;
-}
-
-.brand,
-.tree-panel,
-.viewer-card {
-    background: var(--panel-soft);
-    border: 1px solid rgba(148, 163, 184, 0.14);
-    border-radius: 18px;
-}
-
-.brand {
-    padding: 16px;
-    display: grid;
-    gap: 10px;
-}
-
-.brand h1,
-.topbar h2,
-.tree-panel h3,
-.viewer-head h3,
-.section-head h3 {
-    margin: 0;
-}
-
-.brand p,
-.helper,
-.hint,
-.tree-help,
-.project-meta,
-.field-note,
-.viewer-empty,
-.viewer-file,
-.section-head p,
-.meta {
-    margin: 0;
-    color: var(--muted);
-}
-
-.eyebrow,
-.status,
-.workspace-chip,
-.tech-chip input + span,
-.context-badge {
-    display: inline-flex;
-    width: fit-content;
-    border-radius: 999px;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.eyebrow,
-.status {
-    padding: 6px 10px;
-}
-
-.eyebrow {
-    background: var(--accent-soft);
-    color: var(--accent);
-}
-
-.status {
-    background: var(--accent-soft);
-    color: var(--accent);
-    white-space: nowrap;
-}
-
-.workspace-chip {
-    padding: 6px 10px;
-    background: var(--info-soft);
-    color: #bfdbfe;
-}
-
-.sidebar-stack {
-    min-height: 0;
-    display: grid;
-    grid-template-rows: minmax(0, 1fr);
-    gap: 16px;
+    gap: 1rem;
 }
 
 .tree-panel {
-    min-height: 0;
-    display: grid;
-    gap: 12px;
-    padding: 14px;
-    overflow: hidden;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
 }
 
-.tree-panel {
-    grid-template-rows: auto auto auto minmax(420px, 1fr);
-}
-
-.workspace-summary {
-    display: grid;
-    gap: 8px;
-    padding: 14px;
-    border-radius: 16px;
-    background: rgba(9, 15, 28, 0.72);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-}
-
-.workspace-summary strong {
-    font-size: 16px;
-}
-
-.project-meta,
-.field-note,
-.section-head p {
-    font-size: 12px;
-    line-height: 1.45;
-}
-
-.tree-actions,
-.viewer-actions,
-.actions,
-.buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.actions {
-    justify-content: space-between;
-}
-
-button {
-    border: 0;
-    border-radius: 999px;
-    padding: 10px 15px;
-    font: inherit;
-    cursor: pointer;
-    transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
-}
-
-button:hover { transform: translateY(-1px); }
-button:disabled { opacity: 0.55; cursor: wait; transform: none; }
-
-.primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-    color: #06251f;
-    font-weight: 700;
-}
-
-.secondary {
-    background: rgba(148, 163, 184, 0.12);
-    color: var(--text);
-}
-
-.ghost {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text);
-}
-
-.tree-scroll,
-.modal-code,
-.chat {
+.chat,
+.tree-scroll {
     overflow: auto;
 }
 
-.tree-scroll {
-    min-height: 0;
-    max-height: 100%;
-    height: 100%;
-    padding-right: 4px;
-    padding-top: 4px;
-    border-top: 1px solid rgba(148, 163, 184, 0.08);
+.chat {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.tree-summary {
-    margin-bottom: 10px;
+.tree-scroll {
+    padding-right: 0.25rem;
 }
 
 .tree-list {
@@ -248,638 +99,486 @@ button:disabled { opacity: 0.55; cursor: wait; transform: none; }
     margin: 0;
     padding: 0;
     display: grid;
-    gap: 4px;
+    gap: 0.375rem;
 }
 
 .tree-node {
     display: grid;
-    gap: 6px;
-    min-width: 0;
+    gap: 0.375rem;
 }
 
 .tree-row {
     display: grid;
-    grid-template-columns: 24px 18px minmax(0, 1fr) 44px;
+    grid-template-columns: 2rem 1.25rem minmax(0, 1fr) auto;
+    gap: 0.5rem;
     align-items: start;
-    gap: 8px;
-    padding: 7px 8px;
-    border-radius: 12px;
-    min-width: 0;
-}
-
-.tree-row:hover {
-    background: rgba(148, 163, 184, 0.08);
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(20, 32, 51, 0.06);
 }
 
 .tree-toggle {
-    width: 24px;
-    height: 24px;
+    min-width: 2rem;
+    width: 2rem;
+    height: 2rem;
     padding: 0;
-    border-radius: 8px;
-    background: rgba(148, 163, 184, 0.12);
-    color: var(--text);
 }
 
 .tree-toggle:disabled {
-    opacity: 0.3;
-    cursor: default;
+    opacity: 0.5;
 }
 
 .tree-check,
 .tree-spacer {
-    width: 16px;
-    height: 16px;
-    margin-top: 4px;
+    margin-top: 0.5rem;
+}
+
+.tree-label {
+    display: flex;
+    gap: 0.625rem;
+    align-items: flex-start;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.tree-type {
+    color: var(--im-color-principal);
+    line-height: 1.5;
+}
+
+.tree-name,
+.pin-path,
+.modal-file {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.tree-preview-btn {
+    white-space: nowrap;
 }
 
 .tree-children {
-    margin-left: 12px;
-    padding-left: 12px;
-    border-left: 1px solid rgba(148, 163, 184, 0.14);
     display: none;
+    margin-left: 1rem;
+    padding-left: 1rem;
+    border-left: 1px solid rgba(20, 32, 51, 0.08);
 }
 
 .tree-children.open {
     display: block;
 }
 
-.tree-label {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    min-width: 0;
-    cursor: pointer;
-}
-
-.tree-type {
-    font-size: 13px;
-    opacity: 0.9;
-    line-height: 1.5;
-    flex: 0 0 auto;
-}
-
-.tree-name {
-    min-width: 0;
-    font-size: 14px;
-    line-height: 1.45;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-.tree-preview-btn {
-    padding: 6px 0;
-    font-size: 12px;
-    background: var(--info-soft);
-    color: #dbeafe;
-}
-
-.topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 18px 22px;
-    border-bottom: 1px solid var(--panel-border);
-}
-
-.topbar p {
-    margin: 4px 0 0;
-    color: var(--muted);
-    font-size: 14px;
-}
-
-.workspace-main {
-    min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-}
-
-.chat-column,
-.context-column {
-    min-height: 0;
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-}
-
-.chat-column {
-    border-right: 1px solid var(--panel-border);
-}
-
-.section-head {
-    padding: 16px 22px 10px;
-    display: grid;
-    gap: 6px;
-}
-
-.chat {
-    padding: 8px 22px 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+.helper,
+.field-note,
+.hint,
+.project-meta,
+.meta,
+.modal-file {
+    color: #5f6f88;
+    font-size: 0.875rem;
 }
 
 .empty-state {
     margin: auto;
-    max-width: 620px;
+    max-width: 36rem;
     text-align: center;
-    color: var(--muted);
 }
 
-.empty-state h3 {
-    margin: 0 0 8px;
-    color: var(--text);
-    font-size: 28px;
+.empty-state h3,
+.message p {
+    margin: 0;
 }
 
 .message {
     max-width: 92%;
-    padding: 16px 18px;
-    border-radius: 20px;
-    border: 1px solid rgba(148, 163, 184, 0.14);
+    padding: 1rem 1.125rem;
+    border: 1px solid var(--im-color-borde);
+    border-radius: 1rem;
+    box-shadow: var(--im-sombra-1);
     white-space: pre-wrap;
     word-break: break-word;
-    line-height: 1.55;
+    background: var(--im-color-superficie);
 }
 
 .message.user {
     align-self: flex-end;
-    background: linear-gradient(180deg, rgba(21, 52, 71, 0.98), rgba(14, 37, 53, 0.98));
+    background: #e8f3ff;
+    border-color: #c9dff8;
 }
 
 .message.assistant {
     align-self: flex-start;
-    background: linear-gradient(180deg, rgba(21, 29, 53, 0.98), rgba(15, 23, 42, 0.98));
 }
 
 .message.error {
     align-self: flex-start;
-    background: linear-gradient(180deg, rgba(76, 29, 29, 0.98), rgba(56, 19, 19, 0.98));
+    background: #fff1f1;
+    border-color: #f0c7c7;
+}
+
+.message pre,
+.modal-code {
+    margin: 0.75rem 0 0;
+    padding: 1rem;
+    overflow: auto;
+    border-radius: 0.75rem;
+    background: #0f1728;
+    color: #eef4ff;
+    font: 0.875rem/1.6 Consolas, "Courier New", monospace;
 }
 
 .meta {
-    margin-bottom: 8px;
-    font-size: 12px;
-    letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
     text-transform: uppercase;
-}
-
-.message code,
-.message pre {
-    font-family: Consolas, "Courier New", monospace;
-}
-
-.message pre {
-    margin: 12px 0 0;
-    padding: 14px;
-    overflow-x: auto;
-    border-radius: 14px;
-    background: rgba(2, 6, 23, 0.8);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-}
-
-.composer {
-    padding: 18px 22px 22px;
-    border-top: 1px solid var(--panel-border);
-    background: rgba(7, 11, 22, 0.78);
-}
-
-.composer-grid,
-.field,
-.tech-grid,
-.context-pins {
-    display: grid;
-    gap: 10px;
-}
-
-label {
-    font-size: 13px;
-    color: var(--muted);
-}
-
-textarea {
-    width: 100%;
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    background: rgba(15, 23, 42, 0.88);
-    color: var(--text);
-    border-radius: 16px;
-    padding: 14px 16px;
-    font: inherit;
-    min-height: 116px;
-    max-height: 220px;
-    resize: vertical;
-}
-
-textarea::placeholder {
-    color: #8ca0bf;
-}
-
-.tech-grid {
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-}
-
-.mode-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.tech-chip {
-    position: relative;
-}
-
-.tech-chip input,
-.mode-chip input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.mode-chip {
-    position: relative;
-}
-
-.tech-chip input + span,
-.mode-chip input + span {
-    width: 100%;
-    justify-content: center;
-    padding: 12px 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(148, 163, 184, 0.14);
-    color: var(--text);
-    cursor: pointer;
-    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
-}
-
-.tech-chip input:checked + span,
-.mode-chip input:checked + span {
-    background: var(--accent-soft);
-    border-color: rgba(113, 228, 200, 0.44);
-    color: var(--accent);
-}
-
-.pin-card {
-    padding: 12px;
-    border-radius: 14px;
-    background: rgba(9, 15, 28, 0.62);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    display: grid;
-    gap: 8px;
-}
-
-.pin-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.pin-head strong {
-    font-size: 13px;
-}
-
-.context-badge {
-    padding: 4px 8px;
-    background: var(--accent-soft);
-    color: var(--accent);
-}
-
-.pin-path {
-    font-size: 12px;
-    color: var(--text);
-    overflow-wrap: anywhere;
-}
-
-.pin-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    letter-spacing: 0.04em;
 }
 
 .attachments {
     display: flex;
-    gap: 10px;
     flex-wrap: wrap;
-    min-height: 20px;
-}
-
-.chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 999px;
-    background: var(--info-soft);
-    border: 1px solid rgba(96, 165, 250, 0.24);
-    color: #cfe2ff;
-    font-size: 13px;
+    gap: 0.5rem;
+    min-height: 1.5rem;
 }
 
 .chip button {
-    padding: 0;
+    border: 0;
     background: transparent;
     color: inherit;
-    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
     line-height: 1;
+    font-size: 1rem;
 }
 
-.viewer-error {
-    color: var(--danger);
+#status {
+    white-space: nowrap;
+}
+
+#prompt,
+#cdnImports {
+    min-height: 8rem;
+    resize: vertical;
+}
+
+.composer {
+    padding-top: 0.25rem;
 }
 
 .modal {
-    position: fixed;
-    inset: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    background: rgba(2, 6, 23, 0.72);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-}
-
-.modal.open {
-    display: flex;
+    z-index: 120;
 }
 
 .modal-panel {
-    width: min(1080px, 100%);
-    height: min(82vh, 900px);
+    width: min(1080px, calc(100vw - 2rem));
+    max-height: min(82vh, calc(100vh - 2rem));
+}
+
+.modal-panel.abierto {
     display: grid;
-    grid-template-rows: auto auto minmax(0, 1fr);
-    gap: 14px;
-    padding: 18px;
-    border-radius: 22px;
-    background: rgba(9, 15, 28, 0.98);
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    box-shadow: var(--shadow);
-}
-
-.modal-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 14px;
-}
-
-.modal-head h3 {
-    margin: 0;
-}
-
-.modal-file {
-    margin: 6px 0 0;
-    color: var(--muted);
-    font-size: 13px;
-    overflow-wrap: anywhere;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 
 .modal-actions {
     display: flex;
-    gap: 10px;
     flex-wrap: wrap;
-}
-
-.modal-code {
-    min-height: 0;
-    padding: 16px;
-    border-radius: 16px;
-    background: rgba(2, 6, 23, 0.88);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    font: 13px/1.55 Consolas, "Courier New", monospace;
-    white-space: pre;
+    gap: 0.75rem;
 }
 
 .modal-empty {
     display: grid;
     place-items: center;
-    min-height: 180px;
+    min-height: 12rem;
     text-align: center;
-    color: var(--muted);
-    border-radius: 16px;
-    border: 1px dashed rgba(148, 163, 184, 0.18);
+    color: #5f6f88;
+    border: 1px dashed var(--im-color-borde);
+    border-radius: 0.75rem;
+    padding: 1rem;
 }
 
-@media (max-width: 1220px) {
-    body {
-        overflow: auto;
-    }
+.viewer-error {
+    color: #b42318;
+}
 
-    .shell {
-        height: auto;
-        min-height: calc(100vh - 24px);
-        grid-template-columns: 1fr;
-    }
-
+@media (max-width: 1100px) {
     .workspace-main {
         grid-template-columns: 1fr;
     }
-
-    .chat-column {
-        border-right: 0;
-        border-bottom: 1px solid var(--panel-border);
-    }
 }
 
-@media (max-width: 640px) {
-    .shell {
-        width: min(100%, calc(100% - 12px));
-        margin: 6px auto;
-    }
-
-    .sidebar,
-    .workspace {
-        border-radius: 18px;
-    }
-
-    .topbar,
-    .section-head,
-    .chat,
-    .composer,
-    .sidebar {
-        padding-left: 14px;
-        padding-right: 14px;
-    }
-
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
+@media (max-width: 768px) {
     .message {
         max-width: 100%;
+    }
+
+    .tree-row {
+        grid-template-columns: 2rem 1.25rem minmax(0, 1fr);
+    }
+
+    .tree-preview-btn {
+        grid-column: 3;
+        justify-self: start;
     }
 }
 </style>
 </head>
 <body>
-<div class="shell">
-    <aside class="sidebar">
-        <div class="brand">
-            <span class="eyebrow">Local Coding Assistant</span>
-            <h1>Codex Local</h1>
-            <p>Trabaja siempre sobre el proyecto instalado en este servidor.</p>
+<div class="im-aplicacion" data-menu-colapsado="false">
+    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Panel lateral de Codex Local">
+        <div class="im-marca">
+            <span class="im-marca__isotipo" aria-hidden="true">C</span>
+            <div class="im-marca__texto">
+                <strong>Codex Local</strong>
+                <span>Impulsa Material</span>
+            </div>
         </div>
 
+        <nav class="im-navegacion" aria-label="Navegación interna">
+            <a class="im-nav-item" href="#projectTree">
+                <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">folder_open</span>
+                <span class="im-nav-item__texto">Proyecto</span>
+            </a>
+            <a class="im-nav-item" href="#chatSection">
+                <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">forum</span>
+                <span class="im-nav-item__texto">Chat</span>
+            </a>
+            <a class="im-nav-item" href="#contextSection">
+                <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">layers</span>
+                <span class="im-nav-item__texto">Contexto</span>
+            </a>
+            <a class="im-nav-item" href="#composerSection">
+                <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">edit_square</span>
+                <span class="im-nav-item__texto">Prompt</span>
+            </a>
+        </nav>
+
         <div class="sidebar-stack">
-            <div class="tree-panel">
+            <article class="im-tarjeta">
+                <div class="im-tarjeta__cabecera">
+                    <div>
+                        <p class="im-sobrelinea">Workspace</p>
+                        <h3>Proyecto actual</h3>
+                        <p>Trabaja siempre sobre el proyecto instalado en este servidor.</p>
+                    </div>
+                    <span class="im-chip im-chip--exito">Local</span>
+                </div>
+                <div class="im-chip-lista">
+                    <span class="im-chip">Árbol</span>
+                    <span class="im-chip">Preview</span>
+                    <span class="im-chip">Contexto</span>
+                </div>
+            </article>
+
+            <article class="im-tarjeta tree-panel" id="projectTree">
                 <div>
+                    <p class="im-sobrelinea">Explorador</p>
                     <h3>Árbol del proyecto</h3>
-                    <p class="tree-help">Solo muestra el proyecto actual del servidor.</p>
+                    <p class="helper">Solo muestra el proyecto actual del servidor.</p>
                 </div>
 
-                <div class="workspace-summary">
-                    <span class="workspace-chip">Proyecto actual</span>
-                    <strong id="workspaceName">Detectando...</strong>
-                    <p class="project-meta" id="workspaceMeta">Todavía no se cargó el árbol.</p>
+                <div class="im-tarjeta">
+                    <div class="im-tarjeta__cabecera">
+                        <div>
+                            <span class="im-etiqueta">Proyecto actual</span>
+                            <strong id="workspaceName">Detectando...</strong>
+                            <p class="project-meta" id="workspaceMeta">Todavía no se cargó el árbol.</p>
+                        </div>
+                        <span class="im-chip">Activo</span>
+                    </div>
                 </div>
 
-                <div class="tree-actions">
-                    <button class="ghost" id="loadTreeBtn" type="button">Recargar árbol</button>
-                    <button class="secondary" id="clearSelectionBtn" type="button">Limpiar selección</button>
+                <div class="im-muestra">
+                    <button class="im-boton im-boton--principal" id="loadTreeBtn" type="button">Recargar árbol</button>
+                    <button class="im-boton im-boton--tonal" id="clearSelectionBtn" type="button">Limpiar selección</button>
                 </div>
 
                 <div class="tree-scroll" id="treeScroll">
                     <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
                 </div>
-            </div>
+            </article>
         </div>
     </aside>
 
-    <main class="workspace">
-        <div class="topbar">
-            <div>
-                <h2>Chat de desarrollo</h2>
-                <p>El scroll queda dentro de la app. El chat crece adentro del panel y no en toda la página.</p>
-            </div>
-            <div class="status" id="status">Listo para ayudarte</div>
-        </div>
+    <div class="im-cortina" data-cerrar-menu></div>
 
-        <div class="workspace-main">
-            <section class="chat-column">
-                <div class="section-head">
-                    <h3>Conversación</h3>
-                    <p>Usá archivos seleccionados, contexto de base de datos y referencia visual para orientar mejor la respuesta.</p>
+    <div class="im-contenedor">
+        <header class="im-barra-superior">
+            <div class="im-barra-superior__grupo">
+                <button class="im-boton-icono" type="button" data-alternar-menu aria-label="Alternar menú lateral" aria-expanded="true"></button>
+                <div>
+                    <p class="im-sobrelinea">Asistente local</p>
+                    <h1>Chat de desarrollo sobre tu código</h1>
                 </div>
-                <div class="chat" id="chat">
-                    <div class="empty-state" id="emptyState">
-                        <h3>Trabajemos sobre tu código</h3>
-                        <p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p>
-                    </div>
+            </div>
+            <div class="im-barra-superior__acciones">
+                <span class="im-chip im-chip--exito" id="status">Listo para ayudarte</span>
+            </div>
+        </header>
+
+        <main class="im-contenido">
+            <section class="im-encabezado-seccion">
+                <div>
+                    <p class="im-sobrelinea">Flujo de trabajo</p>
+                    <h2>Codex Local</h2>
+                    <p>Cargá el árbol, inspeccioná archivos, fijá contexto y pedí una estrategia o un prompt final sin salir del proyecto.</p>
+                </div>
+                <div class="im-chip-lista">
+                    <span class="im-chip">Scroll interno</span>
+                    <span class="im-chip">Sin estilos inline</span>
+                    <span class="im-chip">Impulsa Material</span>
                 </div>
             </section>
 
-            <section class="context-column">
-                <div class="section-head">
-                    <h3>Contexto activo</h3>
-                    <p>Acá se ve exactamente qué información extra se envía con cada mensaje.</p>
-                </div>
-                <div class="chat">
-                    <div class="field">
-                        <label>Tecnologías</label>
-                        <div class="tech-grid" id="techGrid">
-                            <label class="tech-chip"><input type="checkbox" value="HTML" checked><span>HTML</span></label>
-                            <label class="tech-chip"><input type="checkbox" value="CSS" checked><span>CSS</span></label>
-                            <label class="tech-chip"><input type="checkbox" value="JavaScript" checked><span>JavaScript</span></label>
-                            <label class="tech-chip"><input type="checkbox" value="PHP" checked><span>PHP</span></label>
-                            <label class="tech-chip"><input type="checkbox" value="Python"><span>Python</span></label>
-                            <label class="tech-chip"><input type="checkbox" value="MySQL" checked><span>MySQL</span></label>
-                        </div>
-                        <p class="field-note">Se envían como preferencia técnica del pedido.</p>
-                    </div>
-
-                    <div class="field">
-                        <label>Contextos fijos</label>
-                        <div class="context-pins">
-                            <div class="pin-card">
-                                <div class="pin-head">
-                                    <strong>Esquema de base</strong>
-                                    <span class="context-badge">DB</span>
-                                </div>
-                                <div class="pin-path" id="dbSchemaPath">Todavía no seleccionaste un archivo `.md` o de esquema.</div>
-                                <div class="pin-actions">
-                                    <button class="secondary" id="clearDbBtn" type="button">Quitar</button>
-                                </div>
+            <div class="workspace-main">
+                <section class="chat-column" id="chatSection">
+                    <article class="im-tarjeta">
+                        <div class="im-tarjeta__cabecera">
+                            <div>
+                                <p class="im-sobrelinea">Conversación</p>
+                                <h3>Historial del chat</h3>
+                                <p>Usá archivos seleccionados, contexto de base y referencia visual para orientar mejor la respuesta.</p>
                             </div>
-
-                            <div class="pin-card">
-                                <div class="pin-head">
-                                    <strong>Fuente de verdad visual</strong>
-                                    <span class="context-badge">UI</span>
-                                </div>
-                                <div class="pin-path" id="cdnPath">Todavía no seleccionaste un archivo visual de referencia.</div>
-                                <div class="pin-actions">
-                                    <button class="secondary" id="clearCdnBtn" type="button">Quitar</button>
-                                </div>
+                            <button class="im-boton im-boton--texto" id="clearBtn" type="button">Limpiar chat</button>
+                        </div>
+                        <div class="chat" id="chat">
+                            <div class="empty-state" id="emptyState">
+                                <h3>Trabajemos sobre tu código</h3>
+                                <p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p>
                             </div>
                         </div>
-                        <p class="field-note">Usá un `index.html`, `.html`, `.css`, `.js` o `.md` local como referencia legible para la IA. Ese archivo explica cómo debe verse y estructurarse la UI.</p>
-                    </div>
+                    </article>
+                </section>
 
-                    <div class="field">
-                        <label for="cdnImports">Links o rutas reales de importación del CDN</label>
-                        <textarea id="cdnImports" placeholder="Ejemplo:
+                <section class="context-column" id="contextSection">
+                    <article class="im-tarjeta">
+                        <div class="im-tarjeta__cabecera">
+                            <div>
+                                <p class="im-sobrelinea">Contexto activo</p>
+                                <h3>Señales que viajan con cada pedido</h3>
+                                <p>Acá se ve exactamente qué información extra se envía con cada mensaje.</p>
+                            </div>
+                            <span class="im-chip">Adjuntos</span>
+                        </div>
+
+                        <div class="field">
+                            <label>Tecnologías</label>
+                            <div class="im-chip-lista" id="techGrid">
+                                <label class="im-checkbox"><input type="checkbox" value="HTML" checked><span>HTML</span></label>
+                                <label class="im-checkbox"><input type="checkbox" value="CSS" checked><span>CSS</span></label>
+                                <label class="im-checkbox"><input type="checkbox" value="JavaScript" checked><span>JavaScript</span></label>
+                                <label class="im-checkbox"><input type="checkbox" value="PHP" checked><span>PHP</span></label>
+                                <label class="im-checkbox"><input type="checkbox" value="Python"><span>Python</span></label>
+                                <label class="im-checkbox"><input type="checkbox" value="MySQL" checked><span>MySQL</span></label>
+                            </div>
+                            <p class="field-note">Se envían como preferencia técnica del pedido.</p>
+                        </div>
+
+                        <div class="field">
+                            <label>Contextos fijos</label>
+                            <div class="context-pins">
+                                <article class="im-tarjeta pin-card">
+                                    <div class="im-tarjeta__cabecera">
+                                        <div>
+                                            <h3>Esquema de base</h3>
+                                            <p class="pin-path" id="dbSchemaPath">Todavía no seleccionaste un archivo `.md` o de esquema.</p>
+                                        </div>
+                                        <span class="im-chip">DB</span>
+                                    </div>
+                                    <div class="pin-actions">
+                                        <button class="im-boton im-boton--tonal" id="clearDbBtn" type="button">Quitar</button>
+                                    </div>
+                                </article>
+
+                                <article class="im-tarjeta pin-card">
+                                    <div class="im-tarjeta__cabecera">
+                                        <div>
+                                            <h3>Fuente de verdad visual</h3>
+                                            <p class="pin-path" id="cdnPath">Todavía no seleccionaste un archivo visual de referencia.</p>
+                                        </div>
+                                        <span class="im-chip">UI</span>
+                                    </div>
+                                    <div class="pin-actions">
+                                        <button class="im-boton im-boton--tonal" id="clearCdnBtn" type="button">Quitar</button>
+                                    </div>
+                                </article>
+                            </div>
+                            <p class="field-note">Usá un `index.html`, `.html`, `.css`, `.js` o `.md` local como referencia legible para la IA.</p>
+                        </div>
+
+                        <div class="field">
+                            <label class="im-campo im-campo-material im-campo--ancho">
+                                <span>Links o rutas reales de importación del CDN</span>
+                                <textarea id="cdnImports" placeholder="Ejemplo:
 https://cdn.tu-dominio.com/ui/index.css
 https://cdn.tu-dominio.com/ui/index.js
 /assets/cdn/ui.css
-/assets/cdn/ui.js"></textarea>
-                        <p class="field-note">Acá podés pegar URLs web o rutas locales del proyecto. Se envían como la forma real en que tus proyectos consumen estilos y JS.</p>
-                    </div>
+/assets/cdn/ui.js" data-im-placeholder></textarea>
+                            </label>
+                            <p class="field-note">Podés pegar URLs web o rutas locales del proyecto. Se envían como la forma real en que tus proyectos consumen estilos y JS.</p>
+                        </div>
 
-                    <div class="field">
-                        <label>Archivos adjuntos</label>
-                        <div class="attachments" id="attachments"></div>
-                        <p class="field-note">Estos son los archivos normales seleccionados desde el árbol o desde el visor.</p>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div class="composer">
-            <div class="composer-grid">
-                <div class="field">
-                    <label>Modo del asistente</label>
-                    <div class="mode-grid" id="assistantModeGrid">
-                        <label class="mode-chip"><input type="radio" name="assistantMode" value="plan" checked><span>Planificar</span></label>
-                        <label class="mode-chip"><input type="radio" name="assistantMode" value="prompt"><span>Generar prompt</span></label>
-                    </div>
-                    <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA.</p>
-                </div>
-
-                <div class="field">
-                    <label for="prompt">Tu pedido</label>
-                    <textarea id="prompt" placeholder="Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria."></textarea>
-                </div>
-
-                <div class="actions">
-                    <div class="hint">Enter para enviar. Shift + Enter para salto de línea.</div>
-                    <div class="buttons">
-                        <button class="secondary" id="clearBtn" type="button">Limpiar chat</button>
-                        <button class="primary" id="sendBtn" type="button">Enviar</button>
-                    </div>
-                </div>
+                        <div class="field">
+                            <label>Archivos adjuntos</label>
+                            <div class="attachments" id="attachments"></div>
+                            <p class="field-note">Estos son los archivos normales seleccionados desde el árbol o desde el visor.</p>
+                        </div>
+                    </article>
+                </section>
             </div>
-        </div>
-    </main>
+
+            <section id="composerSection" class="composer">
+                <article class="im-tarjeta">
+                    <div class="im-tarjeta__cabecera">
+                        <div>
+                            <p class="im-sobrelinea">Pedido</p>
+                            <h3>Armá el contexto y enviá</h3>
+                            <p>Enter para enviar. Shift + Enter para salto de línea.</p>
+                        </div>
+                        <div class="im-chip-lista" id="assistantModeGrid">
+                            <label class="im-radio"><input type="radio" name="assistantMode" value="plan" checked><span>Planificar</span></label>
+                            <label class="im-radio"><input type="radio" name="assistantMode" value="prompt"><span>Generar prompt</span></label>
+                        </div>
+                    </div>
+
+                    <div class="composer-grid">
+                        <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA.</p>
+
+                        <label class="im-campo im-campo-material im-campo--ancho">
+                            <span>Tu pedido</span>
+                            <textarea id="prompt" placeholder="Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria." data-im-placeholder></textarea>
+                        </label>
+
+                        <div class="im-muestra">
+                            <button class="im-boton im-boton--tonal" id="sendBtn" type="button">Planificar</button>
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
 </div>
 
-<div class="modal" id="fileModal" aria-hidden="true">
-    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="fileModalTitle">
-        <div class="modal-head">
+<div class="im-modal-cortina modal" id="fileModal" aria-hidden="true">
+    <div class="im-dialog modal-panel" id="fileModalDialog" role="dialog" aria-modal="true" aria-labelledby="fileModalTitle">
+        <div class="im-dialog__cabecera">
             <div>
                 <h3 id="fileModalTitle">Vista de archivo</h3>
                 <p class="modal-file" id="modalFilePath">Ningún archivo abierto</p>
             </div>
-            <button class="secondary" id="closeModalBtn" type="button">Cerrar</button>
+            <button class="im-boton-icono material-symbols-rounded" id="closeModalBtn" type="button" aria-label="Cerrar dialog">close</button>
         </div>
 
-        <div class="modal-actions">
-            <button class="secondary" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo</button>
-            <button class="secondary" id="markDbBtn" type="button" disabled>Usar como DB</button>
-            <button class="secondary" id="markCdnBtn" type="button" disabled>Usar como verdad visual</button>
+        <div class="im-dialog__contenido">
+            <div class="modal-actions">
+                <button class="im-boton im-boton--principal" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo</button>
+                <button class="im-boton im-boton--tonal" id="markDbBtn" type="button" disabled>Usar como DB</button>
+                <button class="im-boton im-boton--tonal" id="markCdnBtn" type="button" disabled>Usar como verdad visual</button>
+            </div>
+            <div class="modal-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
+            <pre class="modal-code" id="viewerCode" hidden></pre>
         </div>
 
-        <div class="modal-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
-        <pre class="modal-code" id="viewerCode" hidden></pre>
+        <div class="im-dialog__acciones">
+            <button class="im-boton im-boton--texto" id="closeModalFooterBtn" type="button">Cerrar</button>
+        </div>
     </div>
 </div>
 
@@ -897,7 +596,9 @@ const treeScrollEl = document.getElementById("treeScroll");
 const workspaceNameEl = document.getElementById("workspaceName");
 const workspaceMetaEl = document.getElementById("workspaceMeta");
 const fileModalEl = document.getElementById("fileModal");
+const fileModalDialogEl = document.getElementById("fileModalDialog");
 const closeModalBtn = document.getElementById("closeModalBtn");
+const closeModalFooterBtn = document.getElementById("closeModalFooterBtn");
 const viewerFileEl = document.getElementById("modalFilePath");
 const viewerEmptyEl = document.getElementById("viewerEmpty");
 const viewerCodeEl = document.getElementById("viewerCode");
@@ -981,11 +682,12 @@ function renderAttachments() {
 
     Array.from(selectedFiles).forEach((file) => {
         const chip = document.createElement("span");
-        chip.className = "chip";
+        chip.className = "im-chip chip";
         chip.innerHTML = "<span>" + escapeHtml(file) + "</span>";
 
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
+        removeBtn.setAttribute("aria-label", "Quitar archivo adjunto");
         removeBtn.textContent = "×";
         removeBtn.onclick = () => {
             selectedFiles.delete(file);
@@ -1038,12 +740,14 @@ function updateWorkspaceSummary(payload) {
 }
 
 function openFileModal() {
-    fileModalEl.classList.add("open");
+    fileModalEl.classList.add("abierto");
+    fileModalDialogEl.classList.add("abierto");
     fileModalEl.setAttribute("aria-hidden", "false");
 }
 
 function closeFileModal() {
-    fileModalEl.classList.remove("open");
+    fileModalEl.classList.remove("abierto");
+    fileModalDialogEl.classList.remove("abierto");
     fileModalEl.setAttribute("aria-hidden", "true");
 }
 
@@ -1114,9 +818,10 @@ function createTreeNode(node) {
 
     const toggle = document.createElement("button");
     toggle.type = "button";
-    toggle.className = "tree-toggle";
-    toggle.textContent = node.type === "dir" && node.children && node.children.length ? "▸" : "•";
+    toggle.className = "tree-toggle im-boton-icono material-symbols-rounded";
+    toggle.textContent = node.type === "dir" && node.children && node.children.length ? "chevron_right" : "fiber_manual_record";
     toggle.disabled = !(node.type === "dir" && node.children && node.children.length);
+    toggle.setAttribute("aria-label", node.type === "dir" ? "Expandir carpeta" : "Archivo");
     row.appendChild(toggle);
 
     if (node.type === "file") {
@@ -1124,6 +829,7 @@ function createTreeNode(node) {
         checkbox.type = "checkbox";
         checkbox.className = "tree-check";
         checkbox.setAttribute("data-file-path", node.path);
+        checkbox.setAttribute("aria-label", "Adjuntar " + node.name);
         checkbox.checked = selectedFiles.has(node.path);
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
@@ -1144,7 +850,7 @@ function createTreeNode(node) {
     label.className = "tree-label";
     label.title = node.path || node.name;
     label.innerHTML =
-        '<span class="tree-type">' + (node.type === "dir" ? "📁" : "📄") + '</span>' +
+        '<span class="tree-type material-symbols-rounded" aria-hidden="true">' + (node.type === "dir" ? "folder" : "description") + "</span>" +
         '<span class="tree-name">' + escapeHtml(node.name) + "</span>";
 
     if (node.type === "file") {
@@ -1156,12 +862,10 @@ function createTreeNode(node) {
     if (node.type === "file") {
         const previewBtn = document.createElement("button");
         previewBtn.type = "button";
-        previewBtn.className = "tree-preview-btn";
+        previewBtn.className = "tree-preview-btn im-boton im-boton--texto";
         previewBtn.textContent = "Ver";
         previewBtn.addEventListener("click", () => previewFile(node.path));
         row.appendChild(previewBtn);
-    } else {
-        row.appendChild(document.createElement("span"));
     }
 
     item.appendChild(row);
@@ -1176,7 +880,7 @@ function createTreeNode(node) {
 
         toggle.addEventListener("click", () => {
             children.classList.toggle("open");
-            toggle.textContent = children.classList.contains("open") ? "▾" : "▸";
+            toggle.textContent = children.classList.contains("open") ? "expand_more" : "chevron_right";
         });
 
         item.appendChild(children);
@@ -1410,6 +1114,7 @@ assistantModeGridEl.addEventListener("change", () => {
     applyAssistantMode(getAssistantMode());
 });
 closeModalBtn.addEventListener("click", closeFileModal);
+closeModalFooterBtn.addEventListener("click", closeFileModal);
 fileModalEl.addEventListener("click", (event) => {
     if (event.target === fileModalEl) {
         closeFileModal();
