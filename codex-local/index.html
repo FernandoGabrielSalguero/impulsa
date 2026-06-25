@@ -50,7 +50,7 @@ body {
 
 .tree-panel,
 .workspace-main,
-.workspace-panels,
+.center-column,
 .chat-column,
 .context-column,
 .chat,
@@ -60,14 +60,14 @@ body {
 
 .workspace-main {
     display: grid;
-    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr) minmax(320px, 380px);
     align-items: start;
     gap: 1rem;
 }
 
-.workspace-panels {
+.center-column {
     display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+    grid-template-rows: minmax(0, 1fr) auto;
     gap: 1rem;
 }
 
@@ -83,6 +83,12 @@ body {
     position: sticky;
     top: calc(var(--im-barra-alto) + 1rem);
     max-height: calc(100vh - var(--im-barra-alto) - 2rem);
+}
+
+.chat-column > .im-tarjeta,
+.context-column > .im-tarjeta,
+.center-column > .composer > .im-tarjeta {
+    height: 100%;
 }
 
 .chat,
@@ -267,7 +273,7 @@ body {
 }
 
 .composer {
-    padding-top: 0.25rem;
+    padding-top: 0;
 }
 
 .modal {
@@ -306,9 +312,12 @@ body {
 }
 
 @media (max-width: 1100px) {
-    .workspace-main,
-    .workspace-panels {
+    .workspace-main {
         grid-template-columns: 1fr;
+    }
+
+    .center-column {
+        grid-template-rows: auto auto;
     }
 
     .tree-panel {
@@ -394,7 +403,7 @@ body {
                     </div>
                 </article>
 
-                <div class="workspace-panels">
+                <div class="center-column">
                     <section class="chat-column" id="chatSection">
                         <article class="im-tarjeta">
                             <div class="im-tarjeta__cabecera">
@@ -414,7 +423,38 @@ body {
                         </article>
                     </section>
 
-                    <section class="context-column" id="contextSection">
+                    <section id="composerSection" class="composer">
+                        <article class="im-tarjeta">
+                            <div class="im-tarjeta__cabecera">
+                                <div>
+                                    <p class="im-sobrelinea">Pedido</p>
+                                    <h3>Armá el contexto y enviá</h3>
+                                    <p>Enter para enviar. Shift + Enter para salto de línea.</p>
+                                </div>
+                                <div class="im-chip-lista" id="assistantModeGrid">
+                                    <label class="im-radio"><input type="radio" name="assistantMode" value="plan" checked><span>Planificar</span></label>
+                                    <label class="im-radio"><input type="radio" name="assistantMode" value="prompt"><span>Generar prompt</span></label>
+                                    <label class="im-radio"><input type="radio" name="assistantMode" value="plan-code"><span>Planificar - prompt y código</span></label>
+                                </div>
+                            </div>
+
+                            <div class="composer-grid">
+                                <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA. `Planificar - prompt y código` devuelve archivo, fragmento exacto a buscar y reemplazo listo para copiar.</p>
+
+                                <label class="im-campo im-campo-material im-campo--ancho">
+                                    <span>Tu pedido</span>
+                                    <textarea id="prompt" placeholder="Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria." data-im-placeholder></textarea>
+                                </label>
+
+                                <div class="im-muestra">
+                                    <button class="im-boton im-boton--tonal" id="sendBtn" type="button">Planificar</button>
+                                </div>
+                            </div>
+                        </article>
+                    </section>
+                </div>
+
+                <section class="context-column" id="contextSection">
                         <article class="im-tarjeta">
                             <div class="im-tarjeta__cabecera">
                                 <div>
@@ -488,39 +528,8 @@ https://cdn.tu-dominio.com/ui/index.js
                                 <p class="field-note">Estos son los archivos normales seleccionados desde el árbol o desde el visor.</p>
                             </div>
                         </article>
-                    </section>
-                </div>
+                </section>
             </div>
-
-            <section id="composerSection" class="composer">
-                <article class="im-tarjeta">
-                    <div class="im-tarjeta__cabecera">
-                        <div>
-                            <p class="im-sobrelinea">Pedido</p>
-                            <h3>Armá el contexto y enviá</h3>
-                            <p>Enter para enviar. Shift + Enter para salto de línea.</p>
-                        </div>
-                        <div class="im-chip-lista" id="assistantModeGrid">
-                            <label class="im-radio"><input type="radio" name="assistantMode" value="plan" checked><span>Planificar</span></label>
-                            <label class="im-radio"><input type="radio" name="assistantMode" value="prompt"><span>Generar prompt</span></label>
-                            <label class="im-radio"><input type="radio" name="assistantMode" value="plan-code"><span>Planificar - prompt y código</span></label>
-                        </div>
-                    </div>
-
-                    <div class="composer-grid">
-                        <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA. `Planificar - prompt y código` devuelve archivo, fragmento exacto a buscar y reemplazo listo para copiar.</p>
-
-                        <label class="im-campo im-campo-material im-campo--ancho">
-                            <span>Tu pedido</span>
-                            <textarea id="prompt" placeholder="Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria." data-im-placeholder></textarea>
-                        </label>
-
-                        <div class="im-muestra">
-                            <button class="im-boton im-boton--tonal" id="sendBtn" type="button">Planificar</button>
-                        </div>
-                    </div>
-                </article>
-            </section>
         </main>
     </div>
 </div>
