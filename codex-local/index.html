@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codex Local</title>
+<style>
+:root {
+    --bg: #0b1020;
+    --panel: rgba(10, 16, 32, 0.9);
+    --panel-border: rgba(148, 163, 184, 0.18);
+    --text: #e5eefb;
+    --muted: #9fb0ca;
+    --accent: #71e4c8;
+    --accent-strong: #2dd4bf;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    --radius: 22px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(circle at top left, rgba(45, 212, 191, 0.16), transparent 30%),
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 28%),
+        linear-gradient(180deg, #070b16 0%, #0b1020 100%);
+}
+
+.shell {
+    width: min(1380px, calc(100% - 32px));
+    margin: 24px auto;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 18px;
+}
+
+.sidebar,
+.workspace {
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    background: var(--panel);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow);
+}
+
+.sidebar {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: calc(100vh - 48px);
+}
+
+.brand h1,
+.topbar h2,
+.card h2,
+.tree-panel h3 {
+    margin: 0;
+}
+
+.brand {
+    display: grid;
+    gap: 8px;
+}
+
+.eyebrow,
+.status {
+    display: inline-flex;
+    width: fit-content;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.eyebrow {
+    background: rgba(113, 228, 200, 0.12);
+    color: var(--accent);
+}
+
+.brand p,
+.helper,
+.hint,
+.tree-help,
+.meta {
+    margin: 0;
+    color: var(--muted);
+}
+
+.card,
+.tree-panel {
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.tips {
+    margin: 10px 0 0;
+    padding-left: 18px;
+}
+
+.tips li {
+    margin-bottom: 6px;
+    color: var(--muted);
+}
+
+.tree-panel {
+    display: grid;
+    gap: 12px;
+    min-height: 0;
+    flex: 1;
+}
+
+.tree-toolbar,
+.composer-grid,
+.field,
+.project-actions {
+    display: grid;
+    gap: 10px;
+}
+
+label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+textarea,
+input {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(15, 23, 42, 0.88);
+    color: var(--text);
+    border-radius: 16px;
+    padding: 14px 16px;
+    font: inherit;
+}
+
+textarea {
+    min-height: 132px;
+    resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #8ca0bf;
+}
+
+.tree-scroll {
+    overflow: auto;
+    min-height: 280px;
+    max-height: 520px;
+    padding-right: 4px;
+}
+
+.tree-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.tree-node {
+    display: grid;
+    gap: 6px;
+}
+
+.tree-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 12px;
+}
+
+.tree-row:hover {
+    background: rgba(148, 163, 184, 0.08);
+}
+
+.tree-toggle {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    padding: 0;
+    border: 0;
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.tree-toggle:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.tree-children {
+    margin-left: 18px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(148, 163, 184, 0.14);
+    display: none;
+}
+
+.tree-children.open {
+    display: block;
+}
+
+.tree-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    cursor: pointer;
+}
+
+.tree-type {
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+.tree-name {
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.workspace {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: calc(100vh - 48px);
+    overflow: hidden;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.topbar p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.status {
+    background: rgba(45, 212, 191, 0.12);
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.chat {
+    padding: 24px 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.empty-state {
+    margin: auto;
+    max-width: 680px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.empty-state h3 {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 28px;
+}
+
+.message {
+    max-width: 88%;
+    padding: 16px 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.55;
+}
+
+.message.user {
+    align-self: flex-end;
+    background: linear-gradient(180deg, rgba(21, 52, 71, 0.98), rgba(14, 37, 53, 0.98));
+}
+
+.message.assistant {
+    align-self: flex-start;
+    background: linear-gradient(180deg, rgba(21, 29, 53, 0.98), rgba(15, 23, 42, 0.98));
+}
+
+.message.error {
+    align-self: flex-start;
+    background: linear-gradient(180deg, rgba(76, 29, 29, 0.98), rgba(56, 19, 19, 0.98));
+}
+
+.meta {
+    margin-bottom: 8px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.message code,
+.message pre {
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.message pre {
+    margin: 12px 0 0;
+    padding: 14px;
+    overflow-x: auto;
+    border-radius: 14px;
+    background: rgba(2, 6, 23, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.composer {
+    padding: 18px 22px 22px;
+    border-top: 1px solid var(--panel-border);
+    background: rgba(7, 11, 22, 0.72);
+}
+
+.actions,
+.buttons,
+.attachments {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.actions {
+    align-items: center;
+    justify-content: space-between;
+}
+
+.attachments {
+    min-height: 20px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(96, 165, 250, 0.12);
+    border: 1px solid rgba(96, 165, 250, 0.24);
+    color: #cfe2ff;
+    font-size: 13px;
+}
+
+button {
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+}
+
+button:hover { transform: translateY(-1px); }
+button:disabled { opacity: 0.55; cursor: wait; transform: none; }
+
+.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+    color: #06251f;
+    font-weight: 700;
+}
+
+.secondary {
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text);
+}
+
+.ghost {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+}
+
+@media (max-width: 1100px) {
+    .shell {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar,
+    .workspace {
+        min-height: auto;
+    }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="eyebrow">Local Coding Assistant</span>
+            <h1>Codex Local</h1>
+            <p>Elegí un proyecto, seleccioná archivos desde el árbol y pedile código, refactors, fixes u optimizaciones con contexto real.</p>
+        </div>
+
+        <div class="card">
+            <h2>Cómo usarlo</h2>
+            <ul class="tips">
+                <li>Definí una carpeta base del proyecto, por ejemplo `.` o `core`.</li>
+                <li>Cargá el árbol y marcá los archivos relevantes.</li>
+                <li>Pedile cambios concretos usando esos archivos como contexto.</li>
+            </ul>
+        </div>
+
+        <div class="tree-panel">
+            <div>
+                <h3>Proyecto y árbol</h3>
+                <p class="tree-help">Podés trabajar sobre una carpeta específica del repo y adjuntar archivos sin escribir rutas a mano.</p>
+            </div>
+
+            <div class="tree-toolbar">
+                <div class="field">
+                    <label for="projectRoot">Carpeta base del proyecto</label>
+                    <input id="projectRoot" value="." placeholder="Ejemplo: ., core, admin/panel">
+                </div>
+
+                <div class="project-actions">
+                    <button class="ghost" id="loadTreeBtn" type="button">Cargar árbol</button>
+                </div>
+            </div>
+
+            <div class="tree-scroll" id="treeScroll">
+                <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="workspace">
+        <div class="topbar">
+            <div>
+                <h2>Chat de desarrollo</h2>
+                <p>Usá el árbol para adjuntar contexto y hablar sobre un proyecto específico.</p>
+            </div>
+            <div class="status" id="status">Listo para ayudarte</div>
+        </div>
+
+        <div class="chat" id="chat">
+            <div class="empty-state" id="emptyState">
+                <h3>Trabajemos sobre tu proyecto</h3>
+                <p>Cargá el árbol, seleccioná archivos y pedime funciones, fixes, mejoras o una estrategia de implementación para esa parte del sistema.</p>
+            </div>
+        </div>
+
+        <div class="composer">
+            <div class="composer-grid">
+                <div class="field">
+                    <label for="prompt">Tu pedido</label>
+                    <textarea id="prompt" placeholder="Ejemplo: sobre estos archivos, generame una función para validar el formulario y mostrame cómo integrarla."></textarea>
+                </div>
+
+                <div class="field">
+                    <label for="filepath">Archivos adjuntos</label>
+                    <input id="filepath" placeholder="También podés escribir rutas manualmente, separadas por coma.">
+                    <div class="attachments" id="attachments"></div>
+                </div>
+
+                <div class="actions">
+                    <div class="hint">Enter para enviar. Shift + Enter para salto de línea.</div>
+                    <div class="buttons">
+                        <button class="secondary" id="clearBtn" type="button">Limpiar chat</button>
+                        <button class="primary" id="sendBtn" type="button">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+const chatEl = document.getElementById("chat");
+const promptEl = document.getElementById("prompt");
+const filepathEl = document.getElementById("filepath");
+const attachmentsEl = document.getElementById("attachments");
+const statusEl = document.getElementById("status");
+const sendBtn = document.getElementById("sendBtn");
+const clearBtn = document.getElementById("clearBtn");
+const loadTreeBtn = document.getElementById("loadTreeBtn");
+const projectRootEl = document.getElementById("projectRoot");
+const treeScrollEl = document.getElementById("treeScroll");
+
+const history = [];
+const selectedFiles = new Set();
+
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function renderContent(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>").replace(/\n/g, "<br>");
+}
+
+function setStatus(text) {
+    statusEl.textContent = text;
+}
+
+function getFileList() {
+    return filepathEl.value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
+
+function syncInputWithSelectedFiles() {
+    filepathEl.value = Array.from(selectedFiles).join(", ");
+    renderAttachments();
+}
+
+function syncSelectedFilesFromInput() {
+    selectedFiles.clear();
+    getFileList().forEach((file) => selectedFiles.add(file));
+}
+
+function renderAttachments() {
+    const files = getFileList();
+    attachmentsEl.innerHTML = "";
+
+    files.forEach((file) => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.innerHTML = "<span>" + escapeHtml(file) + "</span>";
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "×";
+        removeBtn.onclick = () => {
+            selectedFiles.delete(file);
+            syncInputWithSelectedFiles();
+            refreshCheckedStates();
+        };
+
+        chip.appendChild(removeBtn);
+        attachmentsEl.appendChild(chip);
+    });
+}
+
+function appendMessage(role, text, meta = "") {
+    const emptyState = document.getElementById("emptyState");
+    if (emptyState) {
+        emptyState.remove();
+    }
+
+    const article = document.createElement("article");
+    article.className = "message " + role;
+    article.innerHTML =
+        (meta ? '<div class="meta">' + escapeHtml(meta) + "</div>" : "") +
+        '<div class="content">' + renderContent(text) + "</div>";
+
+    chatEl.appendChild(article);
+    chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function refreshCheckedStates() {
+    document.querySelectorAll("[data-file-path]").forEach((checkbox) => {
+        checkbox.checked = selectedFiles.has(checkbox.getAttribute("data-file-path"));
+    });
+}
+
+function createTreeNode(node) {
+    const item = document.createElement("li");
+    item.className = "tree-node";
+
+    const row = document.createElement("div");
+    row.className = "tree-row";
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "tree-toggle";
+    toggle.textContent = node.type === "dir" && node.children && node.children.length ? "▸" : "•";
+    toggle.disabled = !(node.type === "dir" && node.children && node.children.length);
+    row.appendChild(toggle);
+
+    if (node.type === "file") {
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.setAttribute("data-file-path", node.path);
+        checkbox.checked = selectedFiles.has(node.path);
+        checkbox.onchange = () => {
+            if (checkbox.checked) {
+                selectedFiles.add(node.path);
+            } else {
+                selectedFiles.delete(node.path);
+            }
+            syncInputWithSelectedFiles();
+        };
+        row.appendChild(checkbox);
+    } else {
+        const spacer = document.createElement("span");
+        spacer.style.width = "16px";
+        row.appendChild(spacer);
+    }
+
+    const label = document.createElement("div");
+    label.className = "tree-label";
+    label.innerHTML =
+        '<span class="tree-type">' + (node.type === "dir" ? "📁" : "📄") + '</span>' +
+        '<span class="tree-name">' + escapeHtml(node.name) + "</span>";
+    row.appendChild(label);
+
+    item.appendChild(row);
+
+    if (node.type === "dir" && node.children && node.children.length) {
+        const children = document.createElement("ul");
+        children.className = "tree-list tree-children";
+
+        node.children.forEach((child) => {
+            children.appendChild(createTreeNode(child));
+        });
+
+        toggle.onclick = () => {
+            children.classList.toggle("open");
+            toggle.textContent = children.classList.contains("open") ? "▾" : "▸";
+        };
+
+        item.appendChild(children);
+    }
+
+    return item;
+}
+
+function renderTree(payload) {
+    treeScrollEl.innerHTML = "";
+
+    const summary = document.createElement("div");
+    summary.className = "helper";
+    summary.textContent = "Proyecto cargado: " + payload.root + " | " + payload.total_files + " archivos visibles";
+    treeScrollEl.appendChild(summary);
+
+    if (!payload.tree || !payload.tree.length) {
+        const empty = document.createElement("div");
+        empty.className = "helper";
+        empty.textContent = "No se encontraron archivos para mostrar.";
+        treeScrollEl.appendChild(empty);
+        return;
+    }
+
+    const list = document.createElement("ul");
+    list.className = "tree-list";
+    payload.tree.forEach((node) => list.appendChild(createTreeNode(node)));
+    treeScrollEl.appendChild(list);
+}
+
+async function loadTree() {
+    const root = projectRootEl.value.trim() || ".";
+    loadTreeBtn.disabled = true;
+    setStatus("Cargando árbol...");
+
+    try {
+        const response = await fetch("project-tree.php?root=" + encodeURIComponent(root));
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            throw new Error(data.error || "No se pudo cargar el árbol.");
+        }
+
+        renderTree(data);
+        setStatus("Árbol cargado");
+        refreshCheckedStates();
+    } catch (error) {
+        treeScrollEl.innerHTML = '<div class="helper">' + escapeHtml(error.message) + "</div>";
+        setStatus("No se pudo cargar el árbol");
+        console.error(error);
+    } finally {
+        loadTreeBtn.disabled = false;
+    }
+}
+
+async function readContextFiles(files) {
+    const contexts = [];
+
+    for (const file of files) {
+        const res = await fetch("readfile.php?file=" + encodeURIComponent(file));
+        const data = await res.json();
+
+        if (data.error) {
+            throw new Error("No se pudo leer " + file + ": " + data.error);
+        }
+
+        contexts.push({
+            path: data.file,
+            content: data.content
+        });
+    }
+
+    return contexts;
+}
+
+async function send() {
+    const prompt = promptEl.value.trim();
+    const files = getFileList();
+    const root = projectRootEl.value.trim() || ".";
+
+    if (!prompt) {
+        setStatus("Escribí un pedido para continuar");
+        promptEl.focus();
+        return;
+    }
+
+    appendMessage("user", prompt, files.length ? "Proyecto: " + root + " | Contexto: " + files.join(", ") : "Proyecto: " + root);
+
+    sendBtn.disabled = true;
+    setStatus("Pensando...");
+
+    try {
+        const contextFiles = await readContextFiles(files);
+
+        const response = await fetch("api.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                prompt,
+                projectRoot: root,
+                contextFiles,
+                history
+            })
+        });
+
+        const rawText = await response.text();
+        let json;
+
+        try {
+            json = JSON.parse(rawText);
+        } catch (parseError) {
+            throw new Error("api.php no devolvió JSON válido. Respuesta: " + rawText);
+        }
+
+        if (!response.ok || json.error) {
+            throw new Error(json.error || "La API devolvió un error.");
+        }
+
+        const text = json.choices?.[0]?.message?.content || "La respuesta llegó sin contenido.";
+        appendMessage("assistant", text, "Asistente");
+
+        history.push({ role: "user", content: "Proyecto: " + root + "\nPedido: " + prompt });
+        history.push({ role: "assistant", content: text });
+
+        promptEl.value = "";
+        setStatus("Listo para seguir");
+    } catch (error) {
+        appendMessage("error", error.message, "Error");
+        setStatus("Hubo un problema");
+        console.error(error);
+    } finally {
+        sendBtn.disabled = false;
+    }
+}
+
+filepathEl.addEventListener("input", () => {
+    syncSelectedFilesFromInput();
+    renderAttachments();
+    refreshCheckedStates();
+});
+
+promptEl.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        send();
+    }
+});
+
+sendBtn.addEventListener("click", send);
+loadTreeBtn.addEventListener("click", loadTree);
+clearBtn.addEventListener("click", () => {
+    history.length = 0;
+    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu proyecto</h3><p>Cargá el árbol, seleccioná archivos y pedime funciones, fixes, mejoras o una estrategia de implementación para esa parte del sistema.</p></div>';
+    setStatus("Chat limpio");
+});
+
+renderAttachments();
+loadTree();
+</script>
+</body>
+</html>
