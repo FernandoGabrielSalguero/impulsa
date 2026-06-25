@@ -477,17 +477,29 @@ textarea::placeholder {
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
 }
 
+.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
 .tech-chip {
     position: relative;
 }
 
-.tech-chip input {
+.tech-chip input,
+.mode-chip input {
     position: absolute;
     opacity: 0;
     pointer-events: none;
 }
 
-.tech-chip input + span {
+.mode-chip {
+    position: relative;
+}
+
+.tech-chip input + span,
+.mode-chip input + span {
     width: 100%;
     justify-content: center;
     padding: 12px 14px;
@@ -498,7 +510,8 @@ textarea::placeholder {
     transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
-.tech-chip input:checked + span {
+.tech-chip input:checked + span,
+.mode-chip input:checked + span {
     background: var(--accent-soft);
     border-color: rgba(113, 228, 200, 0.44);
     color: var(--accent);
@@ -824,6 +837,15 @@ https://cdn.tu-dominio.com/ui/index.js
         <div class="composer">
             <div class="composer-grid">
                 <div class="field">
+                    <label>Modo del asistente</label>
+                    <div class="mode-grid" id="assistantModeGrid">
+                        <label class="mode-chip"><input type="radio" name="assistantMode" value="plan" checked><span>Planificar</span></label>
+                        <label class="mode-chip"><input type="radio" name="assistantMode" value="prompt"><span>Generar prompt</span></label>
+                    </div>
+                    <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA.</p>
+                </div>
+
+                <div class="field">
                     <label for="prompt">Tu pedido</label>
                     <textarea id="prompt" placeholder="Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria."></textarea>
                 </div>
@@ -862,6 +884,7 @@ https://cdn.tu-dominio.com/ui/index.js
 </div>
 
 <script>
+const ASSISTANT_MODE_STORAGE_KEY = "codex-local-assistant-mode";
 const chatEl = document.getElementById("chat");
 const promptEl = document.getElementById("prompt");
 const attachmentsEl = document.getElementById("attachments");
@@ -887,12 +910,39 @@ const dbSchemaPathEl = document.getElementById("dbSchemaPath");
 const cdnPathEl = document.getElementById("cdnPath");
 const cdnImportsEl = document.getElementById("cdnImports");
 const techGridEl = document.getElementById("techGrid");
+const assistantModeGridEl = document.getElementById("assistantModeGrid");
+const assistantModeHelpEl = document.getElementById("assistantModeHelp");
 
 const history = [];
 const selectedFiles = new Set();
 let currentPreviewFile = "";
 let pinnedDbSchema = "";
 let pinnedCdnReference = "";
+
+function getAssistantMode() {
+    return assistantModeGridEl.querySelector('input[name="assistantMode"]:checked')?.value || "plan";
+}
+
+function applyAssistantMode(mode) {
+    const selectedMode = mode === "prompt" ? "prompt" : "plan";
+    const targetInput = assistantModeGridEl.querySelector('input[value="' + selectedMode + '"]');
+
+    if (targetInput) {
+        targetInput.checked = true;
+    }
+
+    if (selectedMode === "prompt") {
+        promptEl.placeholder = "Ejemplo: con este contexto, armame un prompt quirúrgico para que Codex implemente el nuevo módulo respetando la base, la UI y los imports reales del CDN.";
+        assistantModeHelpEl.textContent = "`Generar prompt` crea un prompt final, exacto y listo para pegar en Codex u otra IA.";
+        sendBtn.textContent = "Generar prompt";
+    } else {
+        promptEl.placeholder = "Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria.";
+        assistantModeHelpEl.textContent = "`Planificar` te devuelve una estrategia de implementación clara, con pasos, riesgos y archivos probables a tocar.";
+        sendBtn.textContent = "Planificar";
+    }
+
+    localStorage.setItem(ASSISTANT_MODE_STORAGE_KEY, selectedMode);
+}
 
 function escapeHtml(text) {
     return text
@@ -1223,6 +1273,7 @@ async function send() {
     const files = Array.from(selectedFiles);
     const technologies = getSelectedTechnologies();
     const cdnImports = cdnImportsEl.value.trim();
+    const assistantMode = getAssistantMode();
 
     if (!prompt) {
         setStatus("Escribí un pedido para continuar");
@@ -1249,6 +1300,7 @@ async function send() {
     if (cdnImports) {
         metaParts.push("Imports CDN: definidos");
     }
+    metaParts.push("Modo: " + (assistantMode === "prompt" ? "Generar prompt" : "Planificar"));
 
     appendMessage("user", promptSnapshot, metaParts.join(" | "));
 
@@ -1266,6 +1318,7 @@ async function send() {
                 projectRoot: ".",
                 technologies,
                 cdnImports,
+                assistantMode,
                 contextFiles,
                 history
             })
@@ -1295,6 +1348,7 @@ async function send() {
                 "\nEsquema DB: " + (pinnedDbSchema || "sin contexto fijo") +
                 "\nFuente de verdad visual: " + (pinnedCdnReference || "sin contexto fijo") +
                 "\nImports reales CDN: " + (cdnImports || "sin imports definidos") +
+                "\nModo: " + (assistantMode === "prompt" ? "generar prompt" : "planificar") +
                 "\nPedido: " + promptSnapshot
         });
         history.push({ role: "assistant", content: text });
@@ -1352,6 +1406,9 @@ clearCdnBtn.addEventListener("click", () => {
     pinnedCdnReference = "";
     updatePinnedViews();
 });
+assistantModeGridEl.addEventListener("change", () => {
+    applyAssistantMode(getAssistantMode());
+});
 closeModalBtn.addEventListener("click", closeFileModal);
 fileModalEl.addEventListener("click", (event) => {
     if (event.target === fileModalEl) {
@@ -1367,6 +1424,7 @@ clearBtn.addEventListener("click", () => {
 renderAttachments();
 updatePinnedViews();
 resetViewer();
+applyAssistantMode(localStorage.getItem(ASSISTANT_MODE_STORAGE_KEY) || "plan");
 loadTree();
 </script>
 </body>

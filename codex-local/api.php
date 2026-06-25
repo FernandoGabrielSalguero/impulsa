@@ -94,6 +94,7 @@ $contextFiles = $input["contextFiles"] ?? [];
 $history = $input["history"] ?? [];
 $technologies = $input["technologies"] ?? [];
 $cdnImports = trim((string) ($input["cdnImports"] ?? ""));
+$assistantMode = trim((string) ($input["assistantMode"] ?? "plan"));
 
 if ($prompt === "") {
     json_response([
@@ -166,6 +167,18 @@ if ($cdnImports !== "") {
     $messages[] = [
         "role" => "user",
         "content" => "Origen real del CDN y rutas de importación a respetar:\n" . $cdnImports
+    ];
+}
+
+if ($assistantMode === "prompt") {
+    $messages[] = [
+        "role" => "user",
+        "content" => "Modo de trabajo activo: generar un prompt final para Codex u otra IA. Devolvé un prompt limpio, exacto y quirúrgico, listo para pegar. Debe incluir objetivo, contexto, archivos relevantes, restricciones, criterios de calidad, criterio de terminación y cualquier aclaración mínima necesaria. Evitá relleno y explicaciones fuera del prompt salvo una nota muy corta si fuera indispensable."
+    ];
+} else {
+    $messages[] = [
+        "role" => "user",
+        "content" => "Modo de trabajo activo: planificar una implementación. Devolvé una estrategia clara, ordenada y accionable, priorizando pasos, riesgos, dependencias, archivos probables a tocar y validaciones."
     ];
 }
 
