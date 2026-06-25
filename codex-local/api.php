@@ -175,6 +175,11 @@ if ($assistantMode === "prompt") {
         "role" => "user",
         "content" => "Modo de trabajo activo: generar un prompt final para Codex u otra IA. Devolvé un prompt limpio, exacto y quirúrgico, listo para pegar. Debe incluir objetivo, contexto, archivos relevantes, restricciones, criterios de calidad, criterio de terminación y cualquier aclaración mínima necesaria. Evitá relleno y explicaciones fuera del prompt salvo una nota muy corta si fuera indispensable."
     ];
+} elseif ($assistantMode === "plan-code") {
+    $messages[] = [
+        "role" => "user",
+        "content" => "Modo de trabajo activo: planificar, generar prompt y dar código listo para reemplazo manual. Primero devolvé una estrategia breve y concreta. Después devolvé un prompt final listo para pegar en Codex u otra IA. Después devolvé bloques exactos de reemplazo manual con este formato por cada cambio: Archivo: ruta/completa.ext, Buscar este fragmento:, bloque de código exacto actual, Reemplazar por:, bloque de código nuevo exacto. Si hace falta crear un archivo, usá Archivo nuevo: ruta/completa.ext y luego Contenido:. No devuelvas diff unificado. No resumas el código. Priorizá precisión literal para copiar y pegar."
+    ];
 } else {
     $messages[] = [
         "role" => "user",

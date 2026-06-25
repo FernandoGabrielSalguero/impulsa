@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -38,11 +38,6 @@ body {
     min-height: 100vh;
 }
 
-.im-menu-lateral {
-    gap: 1rem;
-}
-
-.sidebar-stack,
 .tree-panel,
 .field,
 .composer-grid,
@@ -52,9 +47,9 @@ body {
     gap: 1rem;
 }
 
-.sidebar-stack,
 .tree-panel,
 .workspace-main,
+.workspace-panels,
 .chat-column,
 .context-column,
 .chat,
@@ -63,6 +58,11 @@ body {
 }
 
 .workspace-main {
+    display: grid;
+    gap: 1rem;
+}
+
+.workspace-panels {
     display: grid;
     grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
     gap: 1rem;
@@ -299,7 +299,7 @@ body {
 }
 
 @media (max-width: 1100px) {
-    .workspace-main {
+    .workspace-panels {
         grid-template-columns: 1fr;
     }
 }
@@ -322,87 +322,9 @@ body {
 </head>
 <body>
 <div class="im-aplicacion" data-menu-colapsado="false">
-    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Panel lateral de Codex Local">
-        <div class="im-marca">
-            <span class="im-marca__isotipo" aria-hidden="true">C</span>
-            <div class="im-marca__texto">
-                <strong>Codex Local</strong>
-                <span>Impulsa Material</span>
-            </div>
-        </div>
-
-        <nav class="im-navegacion" aria-label="Navegación interna">
-            <a class="im-nav-item" href="#projectTree">
-                <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">folder_open</span>
-                <span class="im-nav-item__texto">Proyecto</span>
-            </a>
-            <a class="im-nav-item" href="#chatSection">
-                <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">forum</span>
-                <span class="im-nav-item__texto">Chat</span>
-            </a>
-            <a class="im-nav-item" href="#contextSection">
-                <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">layers</span>
-                <span class="im-nav-item__texto">Contexto</span>
-            </a>
-            <a class="im-nav-item" href="#composerSection">
-                <span class="im-nav-item__icono material-symbols-rounded" aria-hidden="true">edit_square</span>
-                <span class="im-nav-item__texto">Prompt</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-stack">
-            <article class="im-tarjeta">
-                <div class="im-tarjeta__cabecera">
-                    <div>
-                        <p class="im-sobrelinea">Workspace</p>
-                        <h3>Proyecto actual</h3>
-                        <p>Trabaja siempre sobre el proyecto instalado en este servidor.</p>
-                    </div>
-                    <span class="im-chip im-chip--exito">Local</span>
-                </div>
-                <div class="im-chip-lista">
-                    <span class="im-chip">Árbol</span>
-                    <span class="im-chip">Preview</span>
-                    <span class="im-chip">Contexto</span>
-                </div>
-            </article>
-
-            <article class="im-tarjeta tree-panel" id="projectTree">
-                <div>
-                    <p class="im-sobrelinea">Explorador</p>
-                    <h3>Árbol del proyecto</h3>
-                    <p class="helper">Solo muestra el proyecto actual del servidor.</p>
-                </div>
-
-                <div class="im-tarjeta">
-                    <div class="im-tarjeta__cabecera">
-                        <div>
-                            <span class="im-etiqueta">Proyecto actual</span>
-                            <strong id="workspaceName">Detectando...</strong>
-                            <p class="project-meta" id="workspaceMeta">Todavía no se cargó el árbol.</p>
-                        </div>
-                        <span class="im-chip">Activo</span>
-                    </div>
-                </div>
-
-                <div class="im-muestra">
-                    <button class="im-boton im-boton--principal" id="loadTreeBtn" type="button">Recargar árbol</button>
-                    <button class="im-boton im-boton--tonal" id="clearSelectionBtn" type="button">Limpiar selección</button>
-                </div>
-
-                <div class="tree-scroll" id="treeScroll">
-                    <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
-                </div>
-            </article>
-        </div>
-    </aside>
-
-    <div class="im-cortina" data-cerrar-menu></div>
-
     <div class="im-contenedor">
         <header class="im-barra-superior">
             <div class="im-barra-superior__grupo">
-                <button class="im-boton-icono" type="button" data-alternar-menu aria-label="Alternar menú lateral" aria-expanded="true"></button>
                 <div>
                     <p class="im-sobrelinea">Asistente local</p>
                     <h1>Chat de desarrollo sobre tu código</h1>
@@ -428,100 +350,133 @@ body {
             </section>
 
             <div class="workspace-main">
-                <section class="chat-column" id="chatSection">
-                    <article class="im-tarjeta">
+                <article class="im-tarjeta tree-panel" id="projectTree">
+                    <div class="im-tarjeta__cabecera">
+                        <div>
+                            <p class="im-sobrelinea">Workspace</p>
+                            <h3>Árbol del proyecto</h3>
+                            <p class="helper">Solo muestra el proyecto actual del servidor y te permite fijar contexto rápido.</p>
+                        </div>
+                        <span class="im-chip im-chip--exito">Local</span>
+                    </div>
+
+                    <div class="im-tarjeta">
                         <div class="im-tarjeta__cabecera">
                             <div>
-                                <p class="im-sobrelinea">Conversación</p>
-                                <h3>Historial del chat</h3>
-                                <p>Usá archivos seleccionados, contexto de base y referencia visual para orientar mejor la respuesta.</p>
+                                <span class="im-etiqueta">Proyecto actual</span>
+                                <strong id="workspaceName">Detectando...</strong>
+                                <p class="project-meta" id="workspaceMeta">Todavía no se cargó el árbol.</p>
                             </div>
-                            <button class="im-boton im-boton--texto" id="clearBtn" type="button">Limpiar chat</button>
+                            <span class="im-chip">Activo</span>
                         </div>
-                        <div class="chat" id="chat">
-                            <div class="empty-state" id="emptyState">
-                                <h3>Trabajemos sobre tu código</h3>
-                                <p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p>
-                            </div>
-                        </div>
-                    </article>
-                </section>
+                    </div>
 
-                <section class="context-column" id="contextSection">
-                    <article class="im-tarjeta">
-                        <div class="im-tarjeta__cabecera">
-                            <div>
-                                <p class="im-sobrelinea">Contexto activo</p>
-                                <h3>Señales que viajan con cada pedido</h3>
-                                <p>Acá se ve exactamente qué información extra se envía con cada mensaje.</p>
-                            </div>
-                            <span class="im-chip">Adjuntos</span>
-                        </div>
+                    <div class="im-muestra">
+                        <button class="im-boton im-boton--principal" id="loadTreeBtn" type="button">Recargar árbol</button>
+                        <button class="im-boton im-boton--tonal" id="clearSelectionBtn" type="button">Limpiar selección</button>
+                    </div>
 
-                        <div class="field">
-                            <label>Tecnologías</label>
-                            <div class="im-chip-lista" id="techGrid">
-                                <label class="im-checkbox"><input type="checkbox" value="HTML" checked><span>HTML</span></label>
-                                <label class="im-checkbox"><input type="checkbox" value="CSS" checked><span>CSS</span></label>
-                                <label class="im-checkbox"><input type="checkbox" value="JavaScript" checked><span>JavaScript</span></label>
-                                <label class="im-checkbox"><input type="checkbox" value="PHP" checked><span>PHP</span></label>
-                                <label class="im-checkbox"><input type="checkbox" value="Python"><span>Python</span></label>
-                                <label class="im-checkbox"><input type="checkbox" value="MySQL" checked><span>MySQL</span></label>
-                            </div>
-                            <p class="field-note">Se envían como preferencia técnica del pedido.</p>
-                        </div>
+                    <div class="tree-scroll" id="treeScroll">
+                        <div class="helper">Todavía no cargaste el árbol del proyecto.</div>
+                    </div>
+                </article>
 
-                        <div class="field">
-                            <label>Contextos fijos</label>
-                            <div class="context-pins">
-                                <article class="im-tarjeta pin-card">
-                                    <div class="im-tarjeta__cabecera">
-                                        <div>
-                                            <h3>Esquema de base</h3>
-                                            <p class="pin-path" id="dbSchemaPath">Todavía no seleccionaste un archivo `.md` o de esquema.</p>
+                <div class="workspace-panels">
+                    <section class="chat-column" id="chatSection">
+                        <article class="im-tarjeta">
+                            <div class="im-tarjeta__cabecera">
+                                <div>
+                                    <p class="im-sobrelinea">Conversación</p>
+                                    <h3>Historial del chat</h3>
+                                    <p>Usá archivos seleccionados, contexto de base y referencia visual para orientar mejor la respuesta.</p>
+                                </div>
+                                <button class="im-boton im-boton--texto" id="clearBtn" type="button">Limpiar chat</button>
+                            </div>
+                            <div class="chat" id="chat">
+                                <div class="empty-state" id="emptyState">
+                                    <h3>Trabajemos sobre tu código</h3>
+                                    <p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p>
+                                </div>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section class="context-column" id="contextSection">
+                        <article class="im-tarjeta">
+                            <div class="im-tarjeta__cabecera">
+                                <div>
+                                    <p class="im-sobrelinea">Contexto activo</p>
+                                    <h3>Señales que viajan con cada pedido</h3>
+                                    <p>Acá se ve exactamente qué información extra se envía con cada mensaje.</p>
+                                </div>
+                                <span class="im-chip">Adjuntos</span>
+                            </div>
+
+                            <div class="field">
+                                <label>Tecnologías</label>
+                                <div class="im-chip-lista" id="techGrid">
+                                    <label class="im-checkbox"><input type="checkbox" value="HTML" checked><span>HTML</span></label>
+                                    <label class="im-checkbox"><input type="checkbox" value="CSS" checked><span>CSS</span></label>
+                                    <label class="im-checkbox"><input type="checkbox" value="JavaScript" checked><span>JavaScript</span></label>
+                                    <label class="im-checkbox"><input type="checkbox" value="PHP" checked><span>PHP</span></label>
+                                    <label class="im-checkbox"><input type="checkbox" value="Python"><span>Python</span></label>
+                                    <label class="im-checkbox"><input type="checkbox" value="MySQL" checked><span>MySQL</span></label>
+                                </div>
+                                <p class="field-note">Se envían como preferencia técnica del pedido.</p>
+                            </div>
+
+                            <div class="field">
+                                <label>Contextos fijos</label>
+                                <div class="context-pins">
+                                    <article class="im-tarjeta pin-card">
+                                        <div class="im-tarjeta__cabecera">
+                                            <div>
+                                                <h3>Esquema de base</h3>
+                                                <p class="pin-path" id="dbSchemaPath">Todavía no seleccionaste un archivo `.md` o de esquema.</p>
+                                            </div>
+                                            <span class="im-chip">DB</span>
                                         </div>
-                                        <span class="im-chip">DB</span>
-                                    </div>
-                                    <div class="pin-actions">
-                                        <button class="im-boton im-boton--tonal" id="clearDbBtn" type="button">Quitar</button>
-                                    </div>
-                                </article>
-
-                                <article class="im-tarjeta pin-card">
-                                    <div class="im-tarjeta__cabecera">
-                                        <div>
-                                            <h3>Fuente de verdad visual</h3>
-                                            <p class="pin-path" id="cdnPath">Todavía no seleccionaste un archivo visual de referencia.</p>
+                                        <div class="pin-actions">
+                                            <button class="im-boton im-boton--tonal" id="clearDbBtn" type="button">Quitar</button>
                                         </div>
-                                        <span class="im-chip">UI</span>
-                                    </div>
-                                    <div class="pin-actions">
-                                        <button class="im-boton im-boton--tonal" id="clearCdnBtn" type="button">Quitar</button>
-                                    </div>
-                                </article>
-                            </div>
-                            <p class="field-note">Usá un `index.html`, `.html`, `.css`, `.js` o `.md` local como referencia legible para la IA.</p>
-                        </div>
+                                    </article>
 
-                        <div class="field">
-                            <label class="im-campo im-campo-material im-campo--ancho">
-                                <span>Links o rutas reales de importación del CDN</span>
-                                <textarea id="cdnImports" placeholder="Ejemplo:
+                                    <article class="im-tarjeta pin-card">
+                                        <div class="im-tarjeta__cabecera">
+                                            <div>
+                                                <h3>Fuente de verdad visual</h3>
+                                                <p class="pin-path" id="cdnPath">Todavía no seleccionaste un archivo visual de referencia.</p>
+                                            </div>
+                                            <span class="im-chip">UI</span>
+                                        </div>
+                                        <div class="pin-actions">
+                                            <button class="im-boton im-boton--tonal" id="clearCdnBtn" type="button">Quitar</button>
+                                        </div>
+                                    </article>
+                                </div>
+                                <p class="field-note">Usá un `index.html`, `.html`, `.css`, `.js` o `.md` local como referencia legible para la IA.</p>
+                            </div>
+
+                            <div class="field">
+                                <label class="im-campo im-campo-material im-campo--ancho">
+                                    <span>Links o rutas reales de importación del CDN</span>
+                                    <textarea id="cdnImports" placeholder="Ejemplo:
 https://cdn.tu-dominio.com/ui/index.css
 https://cdn.tu-dominio.com/ui/index.js
 /assets/cdn/ui.css
 /assets/cdn/ui.js" data-im-placeholder></textarea>
-                            </label>
-                            <p class="field-note">Podés pegar URLs web o rutas locales del proyecto. Se envían como la forma real en que tus proyectos consumen estilos y JS.</p>
-                        </div>
+                                </label>
+                                <p class="field-note">Podés pegar URLs web o rutas locales del proyecto. Se envían como la forma real en que tus proyectos consumen estilos y JS.</p>
+                            </div>
 
-                        <div class="field">
-                            <label>Archivos adjuntos</label>
-                            <div class="attachments" id="attachments"></div>
-                            <p class="field-note">Estos son los archivos normales seleccionados desde el árbol o desde el visor.</p>
-                        </div>
-                    </article>
-                </section>
+                            <div class="field">
+                                <label>Archivos adjuntos</label>
+                                <div class="attachments" id="attachments"></div>
+                                <p class="field-note">Estos son los archivos normales seleccionados desde el árbol o desde el visor.</p>
+                            </div>
+                        </article>
+                    </section>
+                </div>
             </div>
 
             <section id="composerSection" class="composer">
@@ -535,11 +490,12 @@ https://cdn.tu-dominio.com/ui/index.js
                         <div class="im-chip-lista" id="assistantModeGrid">
                             <label class="im-radio"><input type="radio" name="assistantMode" value="plan" checked><span>Planificar</span></label>
                             <label class="im-radio"><input type="radio" name="assistantMode" value="prompt"><span>Generar prompt</span></label>
+                            <label class="im-radio"><input type="radio" name="assistantMode" value="plan-code"><span>Planificar - prompt y código</span></label>
                         </div>
                     </div>
 
                     <div class="composer-grid">
-                        <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA.</p>
+                        <p class="field-note" id="assistantModeHelp">`Planificar` te devuelve una estrategia de implementación. `Generar prompt` arma un prompt limpio y quirúrgico listo para pegar en Codex u otra IA. `Planificar - prompt y código` devuelve archivo, fragmento exacto a buscar y reemplazo listo para copiar.</p>
 
                         <label class="im-campo im-campo-material im-campo--ancho">
                             <span>Tu pedido</span>
@@ -561,7 +517,7 @@ https://cdn.tu-dominio.com/ui/index.js
         <div class="im-dialog__cabecera">
             <div>
                 <h3 id="fileModalTitle">Vista de archivo</h3>
-                <p class="modal-file" id="modalFilePath">Ningún archivo abierto</p>
+                <p class="modal-file" id="modalFilePath">NingÃºn archivo abierto</p>
             </div>
             <button class="im-boton-icono material-symbols-rounded" id="closeModalBtn" type="button" aria-label="Cerrar dialog">close</button>
         </div>
@@ -572,7 +528,7 @@ https://cdn.tu-dominio.com/ui/index.js
                 <button class="im-boton im-boton--tonal" id="markDbBtn" type="button" disabled>Usar como DB</button>
                 <button class="im-boton im-boton--tonal" id="markCdnBtn" type="button" disabled>Usar como verdad visual</button>
             </div>
-            <div class="modal-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
+            <div class="modal-empty" id="viewerEmpty">ElegÃ­ un archivo del Ã¡rbol para ver su contenido acÃ¡.</div>
             <pre class="modal-code" id="viewerCode" hidden></pre>
         </div>
 
@@ -625,7 +581,7 @@ function getAssistantMode() {
 }
 
 function applyAssistantMode(mode) {
-    const selectedMode = mode === "prompt" ? "prompt" : "plan";
+    const selectedMode = mode === "prompt" || mode === "plan-code" ? mode : "plan";
     const targetInput = assistantModeGridEl.querySelector('input[value="' + selectedMode + '"]');
 
     if (targetInput) {
@@ -636,6 +592,10 @@ function applyAssistantMode(mode) {
         promptEl.placeholder = "Ejemplo: con este contexto, armame un prompt quirúrgico para que Codex implemente el nuevo módulo respetando la base, la UI y los imports reales del CDN.";
         assistantModeHelpEl.textContent = "`Generar prompt` crea un prompt final, exacto y listo para pegar en Codex u otra IA.";
         sendBtn.textContent = "Generar prompt";
+    } else if (selectedMode === "plan-code") {
+        promptEl.placeholder = "Ejemplo: analizá estos archivos y devolveme el plan junto con los bloques exactos a buscar y reemplazar, indicando archivo por archivo.";
+        assistantModeHelpEl.textContent = "`Planificar - prompt y código` devuelve una estrategia breve y luego bloques exactos con archivo, fragmento actual y reemplazo listo para copiar.";
+        sendBtn.textContent = "Planificar + código";
     } else {
         promptEl.placeholder = "Ejemplo: con este esquema de base y este index de referencia, ajustá la vista para que use la misma estructura visual y proponé la consulta SQL necesaria.";
         assistantModeHelpEl.textContent = "`Planificar` te devuelve una estrategia de implementación clara, con pasos, riesgos y archivos probables a tocar.";
@@ -668,15 +628,15 @@ function getSelectedTechnologies() {
 }
 
 function updatePinnedViews() {
-    dbSchemaPathEl.textContent = pinnedDbSchema || "Todavía no seleccionaste un archivo `.md` o de esquema.";
-    cdnPathEl.textContent = pinnedCdnReference || "Todavía no seleccionaste un archivo visual de referencia.";
+    dbSchemaPathEl.textContent = pinnedDbSchema || "TodavÃ­a no seleccionaste un archivo `.md` o de esquema.";
+    cdnPathEl.textContent = pinnedCdnReference || "TodavÃ­a no seleccionaste un archivo visual de referencia.";
 }
 
 function renderAttachments() {
     attachmentsEl.innerHTML = "";
 
     if (!selectedFiles.size) {
-        attachmentsEl.innerHTML = '<div class="helper">Todavía no seleccionaste archivos.</div>';
+        attachmentsEl.innerHTML = '<div class="helper">TodavÃ­a no seleccionaste archivos.</div>';
         return;
     }
 
@@ -688,7 +648,7 @@ function renderAttachments() {
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.setAttribute("aria-label", "Quitar archivo adjunto");
-        removeBtn.textContent = "×";
+        removeBtn.textContent = "Ã—";
         removeBtn.onclick = () => {
             selectedFiles.delete(file);
             renderAttachments();
@@ -751,9 +711,9 @@ function closeFileModal() {
     fileModalEl.setAttribute("aria-hidden", "true");
 }
 
-function resetViewer(message = "Elegí un archivo del árbol para ver su contenido acá.") {
+function resetViewer(message = "ElegÃ­ un archivo del Ã¡rbol para ver su contenido acÃ¡.") {
     currentPreviewFile = "";
-    viewerFileEl.textContent = "Ningún archivo abierto";
+    viewerFileEl.textContent = "NingÃºn archivo abierto";
     viewerEmptyEl.textContent = message;
     viewerEmptyEl.hidden = false;
     viewerCodeEl.hidden = true;
@@ -775,7 +735,7 @@ async function previewFile(path) {
     openFileModal();
     viewerFileEl.textContent = path;
     viewerEmptyEl.hidden = false;
-    viewerEmptyEl.textContent = "Cargando código...";
+    viewerEmptyEl.textContent = "Cargando cÃ³digo...";
     viewerCodeEl.hidden = true;
     attachPreviewBtn.disabled = true;
     markDbBtn.disabled = true;
@@ -913,26 +873,26 @@ function renderTree(payload) {
 
 async function loadTree() {
     loadTreeBtn.disabled = true;
-    setStatus("Cargando árbol...");
+    setStatus("Cargando Ã¡rbol...");
 
     try {
         const response = await fetch("project-tree.php");
         const data = await response.json();
 
         if (!response.ok || data.error) {
-            throw new Error(data.error || "No se pudo cargar el árbol.");
+            throw new Error(data.error || "No se pudo cargar el Ã¡rbol.");
         }
 
         updateWorkspaceSummary(data);
         renderTree(data);
         refreshCheckedStates();
         resetViewer();
-        setStatus("Árbol cargado");
+        setStatus("Ãrbol cargado");
     } catch (error) {
         treeScrollEl.innerHTML = '<div class="helper">' + escapeHtml(error.message) + "</div>";
         workspaceMetaEl.textContent = error.message;
-        resetViewer("No se pudo abrir el visor porque el árbol falló al cargar.");
-        setStatus("No se pudo cargar el árbol");
+        resetViewer("No se pudo abrir el visor porque el Ã¡rbol fallÃ³ al cargar.");
+        setStatus("No se pudo cargar el Ã¡rbol");
         console.error(error);
     } finally {
         loadTreeBtn.disabled = false;
@@ -980,7 +940,7 @@ async function send() {
     const assistantMode = getAssistantMode();
 
     if (!prompt) {
-        setStatus("Escribí un pedido para continuar");
+        setStatus("EscribÃ­ un pedido para continuar");
         promptEl.focus();
         return;
     }
@@ -990,7 +950,7 @@ async function send() {
 
     const metaParts = [];
     if (technologies.length) {
-        metaParts.push("Tecnologías: " + technologies.join(", "));
+        metaParts.push("TecnologÃ­as: " + technologies.join(", "));
     }
     if (files.length) {
         metaParts.push("Archivos: " + files.join(", "));
@@ -1004,7 +964,7 @@ async function send() {
     if (cdnImports) {
         metaParts.push("Imports CDN: definidos");
     }
-    metaParts.push("Modo: " + (assistantMode === "prompt" ? "Generar prompt" : "Planificar"));
+    metaParts.push("Modo: " + (assistantMode === "prompt" ? "Generar prompt" : assistantMode === "plan-code" ? "Planificar - prompt y código" : "Planificar"));
 
     appendMessage("user", promptSnapshot, metaParts.join(" | "));
 
@@ -1034,25 +994,25 @@ async function send() {
         try {
             json = JSON.parse(rawText);
         } catch (parseError) {
-            throw new Error("api.php no devolvió JSON válido. Respuesta: " + rawText);
+            throw new Error("api.php no devolviÃ³ JSON vÃ¡lido. Respuesta: " + rawText);
         }
 
         if (!response.ok || json.error) {
-            throw new Error(json.error || "La API devolvió un error.");
+            throw new Error(json.error || "La API devolviÃ³ un error.");
         }
 
-        const text = json.choices?.[0]?.message?.content || "La respuesta llegó sin contenido.";
+        const text = json.choices?.[0]?.message?.content || "La respuesta llegÃ³ sin contenido.";
         appendMessage("assistant", text, "Asistente");
 
         history.push({
             role: "user",
             content:
-                "Tecnologías: " + (technologies.length ? technologies.join(", ") : "sin preferencia") +
+                "TecnologÃ­as: " + (technologies.length ? technologies.join(", ") : "sin preferencia") +
                 "\nArchivos: " + (files.length ? files.join(", ") : "sin adjuntos") +
                 "\nEsquema DB: " + (pinnedDbSchema || "sin contexto fijo") +
                 "\nFuente de verdad visual: " + (pinnedCdnReference || "sin contexto fijo") +
                 "\nImports reales CDN: " + (cdnImports || "sin imports definidos") +
-                "\nModo: " + (assistantMode === "prompt" ? "generar prompt" : "planificar") +
+                "\nModo: " + (assistantMode === "prompt" ? "generar prompt" : assistantMode === "plan-code" ? "planificar con prompt y código" : "planificar") +
                 "\nPedido: " + promptSnapshot
         });
         history.push({ role: "assistant", content: text });
@@ -1122,7 +1082,7 @@ fileModalEl.addEventListener("click", (event) => {
 });
 clearBtn.addEventListener("click", () => {
     history.length = 0;
-    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu código</h3><p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p></div>';
+    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu cÃ³digo</h3><p>CargÃ¡ el Ã¡rbol, previsualizÃ¡ archivos y pedime funciones, fixes, mejoras o una estrategia de implementaciÃ³n.</p></div>';
     setStatus("Chat limpio");
 });
 

@@ -5,10 +5,7 @@
   const enlaces = document.querySelectorAll("[data-seccion]");
   const paneles = document.querySelectorAll("[data-panel]");
   const consultaMovil = window.matchMedia("(max-width: 760px)");
-
-  if (!aplicacion || !botonMenu) {
-    return;
-  }
+  const tieneMenuDocumento = Boolean(aplicacion && botonMenu && paneles.length);
 
   const esMovil = () => consultaMovil.matches;
 
@@ -52,48 +49,50 @@
     }
   };
 
-  botonMenu.addEventListener("click", alternarMenu);
-  cortina?.addEventListener("click", cerrarMenuMovil);
+  if (tieneMenuDocumento) {
+    botonMenu.addEventListener("click", alternarMenu);
+    cortina?.addEventListener("click", cerrarMenuMovil);
 
-  enlaces.forEach((enlace) => {
-    enlace.addEventListener("click", (evento) => {
-      const id = enlace.dataset.seccion;
-      if (!id) {
+    enlaces.forEach((enlace) => {
+      enlace.addEventListener("click", (evento) => {
+        const id = enlace.dataset.seccion;
+        if (!id) {
+          return;
+        }
+
+        evento.preventDefault();
+        history.replaceState(null, "", `#${id}`);
+        mostrarPanel(id);
+      });
+    });
+
+    window.addEventListener("keydown", (evento) => {
+      if (evento.key === "Escape" && esMovil()) {
+        cerrarMenuMovil();
+      }
+    });
+
+    consultaMovil.addEventListener("change", () => {
+      if (esMovil()) {
+        cerrarMenuMovil();
         return;
       }
 
-      evento.preventDefault();
-      history.replaceState(null, "", `#${id}`);
-      mostrarPanel(id);
+      aplicacion.dataset.menuMovil = "cerrado";
+      botonMenu.setAttribute("aria-expanded", String(aplicacion.dataset.menuColapsado !== "true"));
     });
-  });
 
-  window.addEventListener("keydown", (evento) => {
-    if (evento.key === "Escape" && esMovil()) {
-      cerrarMenuMovil();
-    }
-  });
+    const hashInicial = window.location.hash.replace("#", "");
+    const panelActivoInicial = document.querySelector("[data-panel].activa")?.dataset.panel;
+    const primerPanel = paneles[0]?.dataset.panel;
+    const seccionInicial = hashInicial || panelActivoInicial || primerPanel || "dashboard";
+    const existeSeccion = [...paneles].some((panel) => panel.dataset.panel === seccionInicial);
+    const seccionFallback = panelActivoInicial || primerPanel || "dashboard";
 
-  consultaMovil.addEventListener("change", () => {
+    mostrarPanel(existeSeccion ? seccionInicial : seccionFallback);
     if (esMovil()) {
       cerrarMenuMovil();
-      return;
     }
-
-    aplicacion.dataset.menuMovil = "cerrado";
-    botonMenu.setAttribute("aria-expanded", String(aplicacion.dataset.menuColapsado !== "true"));
-  });
-
-  const hashInicial = window.location.hash.replace("#", "");
-  const panelActivoInicial = document.querySelector("[data-panel].activa")?.dataset.panel;
-  const primerPanel = paneles[0]?.dataset.panel;
-  const seccionInicial = hashInicial || panelActivoInicial || primerPanel || "dashboard";
-  const existeSeccion = [...paneles].some((panel) => panel.dataset.panel === seccionInicial);
-  const seccionFallback = panelActivoInicial || primerPanel || "dashboard";
-
-  mostrarPanel(existeSeccion ? seccionInicial : seccionFallback);
-  if (esMovil()) {
-    cerrarMenuMovil();
   }
 
   const crearNodo = (html) => {
