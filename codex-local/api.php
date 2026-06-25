@@ -93,6 +93,7 @@ $projectRoot = trim((string) ($input["projectRoot"] ?? "."));
 $contextFiles = $input["contextFiles"] ?? [];
 $history = $input["history"] ?? [];
 $technologies = $input["technologies"] ?? [];
+$cdnImports = trim((string) ($input["cdnImports"] ?? ""));
 
 if ($prompt === "") {
     json_response([
@@ -159,6 +160,13 @@ if (is_array($technologies)) {
             "content" => "Tecnologías prioritarias para este trabajo: " . implode(", ", $selectedTechnologies)
         ];
     }
+}
+
+if ($cdnImports !== "") {
+    $messages[] = [
+        "role" => "user",
+        "content" => "Origen real del CDN y rutas de importación a respetar:\n" . $cdnImports
+    ];
 }
 
 $messages[] = [

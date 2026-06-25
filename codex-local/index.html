@@ -790,16 +790,26 @@ textarea::placeholder {
 
                             <div class="pin-card">
                                 <div class="pin-head">
-                                    <strong>Referencia visual / CDN</strong>
+                                    <strong>Fuente de verdad visual</strong>
                                     <span class="context-badge">UI</span>
                                 </div>
-                                <div class="pin-path" id="cdnPath">Todavía no seleccionaste un archivo de referencia visual.</div>
+                                <div class="pin-path" id="cdnPath">Todavía no seleccionaste un archivo visual de referencia.</div>
                                 <div class="pin-actions">
                                     <button class="secondary" id="clearCdnBtn" type="button">Quitar</button>
                                 </div>
                             </div>
                         </div>
-                        <p class="field-note">Mi recomendación: usar la copia local del CDN o un `index.html` representativo. Es más cómodo y confiable que pegar links.</p>
+                        <p class="field-note">Usá un `index.html`, `.html`, `.css`, `.js` o `.md` local como referencia legible para la IA. Ese archivo explica cómo debe verse y estructurarse la UI.</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="cdnImports">Links o rutas reales de importación del CDN</label>
+                        <textarea id="cdnImports" placeholder="Ejemplo:
+https://cdn.tu-dominio.com/ui/index.css
+https://cdn.tu-dominio.com/ui/index.js
+/assets/cdn/ui.css
+/assets/cdn/ui.js"></textarea>
+                        <p class="field-note">Acá podés pegar URLs web o rutas locales del proyecto. Se envían como la forma real en que tus proyectos consumen estilos y JS.</p>
                     </div>
 
                     <div class="field">
@@ -843,7 +853,7 @@ textarea::placeholder {
         <div class="modal-actions">
             <button class="secondary" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo</button>
             <button class="secondary" id="markDbBtn" type="button" disabled>Usar como DB</button>
-            <button class="secondary" id="markCdnBtn" type="button" disabled>Usar como CDN/UI</button>
+            <button class="secondary" id="markCdnBtn" type="button" disabled>Usar como verdad visual</button>
         </div>
 
         <div class="modal-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
@@ -875,6 +885,7 @@ const clearDbBtn = document.getElementById("clearDbBtn");
 const clearCdnBtn = document.getElementById("clearCdnBtn");
 const dbSchemaPathEl = document.getElementById("dbSchemaPath");
 const cdnPathEl = document.getElementById("cdnPath");
+const cdnImportsEl = document.getElementById("cdnImports");
 const techGridEl = document.getElementById("techGrid");
 
 const history = [];
@@ -907,7 +918,7 @@ function getSelectedTechnologies() {
 
 function updatePinnedViews() {
     dbSchemaPathEl.textContent = pinnedDbSchema || "Todavía no seleccionaste un archivo `.md` o de esquema.";
-    cdnPathEl.textContent = pinnedCdnReference || "Todavía no seleccionaste un archivo de referencia visual.";
+    cdnPathEl.textContent = pinnedCdnReference || "Todavía no seleccionaste un archivo visual de referencia.";
 }
 
 function renderAttachments() {
@@ -1201,7 +1212,7 @@ async function readContextFiles(files) {
     }
 
     if (pinnedCdnReference) {
-        contexts.push(await loadFileContext(pinnedCdnReference, "Referencia visual / CDN local"));
+        contexts.push(await loadFileContext(pinnedCdnReference, "Fuente de verdad visual del sistema"));
     }
 
     return contexts;
@@ -1211,6 +1222,7 @@ async function send() {
     const prompt = promptEl.value.trim();
     const files = Array.from(selectedFiles);
     const technologies = getSelectedTechnologies();
+    const cdnImports = cdnImportsEl.value.trim();
 
     if (!prompt) {
         setStatus("Escribí un pedido para continuar");
@@ -1232,7 +1244,10 @@ async function send() {
         metaParts.push("DB: " + pinnedDbSchema);
     }
     if (pinnedCdnReference) {
-        metaParts.push("UI/CDN: " + pinnedCdnReference);
+        metaParts.push("Fuente visual: " + pinnedCdnReference);
+    }
+    if (cdnImports) {
+        metaParts.push("Imports CDN: definidos");
     }
 
     appendMessage("user", promptSnapshot, metaParts.join(" | "));
@@ -1250,6 +1265,7 @@ async function send() {
                 prompt: promptSnapshot,
                 projectRoot: ".",
                 technologies,
+                cdnImports,
                 contextFiles,
                 history
             })
@@ -1277,7 +1293,8 @@ async function send() {
                 "Tecnologías: " + (technologies.length ? technologies.join(", ") : "sin preferencia") +
                 "\nArchivos: " + (files.length ? files.join(", ") : "sin adjuntos") +
                 "\nEsquema DB: " + (pinnedDbSchema || "sin contexto fijo") +
-                "\nReferencia visual: " + (pinnedCdnReference || "sin contexto fijo") +
+                "\nFuente de verdad visual: " + (pinnedCdnReference || "sin contexto fijo") +
+                "\nImports reales CDN: " + (cdnImports || "sin imports definidos") +
                 "\nPedido: " + promptSnapshot
         });
         history.push({ role: "assistant", content: text });
