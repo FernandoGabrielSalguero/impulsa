@@ -285,6 +285,24 @@ body {
     min-height: 1.5rem;
 }
 
+.chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 100%;
+}
+
+.chip-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .chip button {
     border: 0;
     background: transparent;
@@ -293,6 +311,78 @@ body {
     padding: 0;
     line-height: 1;
     font-size: 1rem;
+}
+
+.selection-strip {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
+    border: 1px dashed var(--im-color-borde);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.selection-strip[hidden] {
+    display: none;
+}
+
+.selection-strip__header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.selection-strip__title {
+    font-weight: 600;
+    color: var(--im-color-texto);
+}
+
+.selection-strip__meta {
+    color: #5f6f88;
+    font-size: 0.875rem;
+}
+
+.message-content {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.message-text {
+    white-space: pre-wrap;
+}
+
+.response-code {
+    display: grid;
+    gap: 0.625rem;
+    margin-top: 0.25rem;
+}
+
+.response-code__header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.response-code__title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #d7e6ff;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.response-copy {
+    align-self: start;
+}
+
+.response-copy.is-copied {
+    border-color: #90d5b8;
+    background: #e9f8ef;
+    color: #175c33;
 }
 
 #status {
@@ -473,7 +563,16 @@ body {
                                 <div class="im-muestra">
                                 <button class="im-boton im-boton--tonal" id="sendBtn" type="button">Planificar</button>
                             </div>
-                            <div class="attachments" id="composerAttachments"></div>
+                            <div class="selection-strip" id="selectionStrip" hidden>
+                                <div class="selection-strip__header">
+                                    <div>
+                                        <div class="selection-strip__title">Archivos seleccionados</div>
+                                        <div class="selection-strip__meta" id="selectionStripMeta">0 archivos adjuntos al pedido</div>
+                                    </div>
+                                    <button class="im-boton im-boton--texto" id="clearSelectionInlineBtn" type="button">Vaciar</button>
+                                </div>
+                                <div class="chip-list" id="composerAttachments"></div>
+                            </div>
                         </div>
                         </article>
                     </section>
@@ -548,9 +647,8 @@ https://cdn.tu-dominio.com/ui/index.js
                             </div>
 
                             <div class="field">
-                                <label>Archivos adjuntos</label>
-                                <div class="attachments" id="attachments"></div>
-                                <p class="field-note">Estos son los archivos normales seleccionados desde el árbol o desde el visor.</p>
+                                <label>Archivos seleccionados</label>
+                                <p class="field-note">Los archivos activos se muestran como chips debajo del pedido, para que el contexto visible quede donde trabajás.</p>
                             </div>
                         </article>
                 </section>
@@ -574,6 +672,7 @@ https://cdn.tu-dominio.com/ui/index.js
                 <button class="im-boton im-boton--principal" id="attachPreviewBtn" type="button" disabled>Adjuntar archivo</button>
                 <button class="im-boton im-boton--tonal" id="markDbBtn" type="button" disabled>Usar como DB</button>
                 <button class="im-boton im-boton--tonal" id="markCdnBtn" type="button" disabled>Usar como verdad visual</button>
+                <button class="im-boton im-boton--texto" id="copyPreviewBtn" type="button" disabled>Copiar código</button>
             </div>
             <div class="modal-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
             <pre class="modal-code" id="viewerCode" hidden></pre>
@@ -608,6 +707,7 @@ const viewerCodeEl = document.getElementById("viewerCode");
 const attachPreviewBtn = document.getElementById("attachPreviewBtn");
 const markDbBtn = document.getElementById("markDbBtn");
 const markCdnBtn = document.getElementById("markCdnBtn");
+const copyPreviewBtn = document.getElementById("copyPreviewBtn");
 const clearDbBtn = document.getElementById("clearDbBtn");
 const clearCdnBtn = document.getElementById("clearCdnBtn");
 const dbSchemaPathEl = document.getElementById("dbSchemaPath");
@@ -616,6 +716,10 @@ const cdnImportsEl = document.getElementById("cdnImports");
 const techGridEl = document.getElementById("techGrid");
 const assistantModeGridEl = document.getElementById("assistantModeGrid");
 const assistantModeHelpEl = document.getElementById("assistantModeHelp");
+const composerAttachmentsEl = document.getElementById("composerAttachments");
+const selectionStripEl = document.getElementById("selectionStrip");
+const selectionStripMetaEl = document.getElementById("selectionStripMeta");
+const clearSelectionInlineBtn = document.getElementById("clearSelectionInlineBtn");
 
 const history = [];
 const selectedFiles = new Set();
@@ -653,7 +757,7 @@ function applyAssistantMode(mode) {
 }
 
 function escapeHtml(text) {
-    return text
+    return String(text)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -661,9 +765,65 @@ function escapeHtml(text) {
         .replace(/'/g, "&#039;");
 }
 
-function renderContent(text) {
-    const escaped = escapeHtml(text);
-    return escaped.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>").replace(/\n/g, "<br>");
+function slugifyLabel(text) {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "codigo";
+}
+
+function formatParagraphBlock(lines) {
+    return '<div class="message-text">' + escapeHtml(lines.join("\n")) + "</div>";
+}
+
+function renderMessageContent(text) {
+    const normalized = String(text).replace(/\r\n/g, "\n");
+    const blocks = normalized.split("```");
+    const htmlParts = [];
+    let codeBlockIndex = 0;
+
+    blocks.forEach((block, index) => {
+        if (index % 2 === 0) {
+            const lines = block.split("\n");
+            let buffer = [];
+
+            lines.forEach((line) => {
+                if (line.trim() === "") {
+                    if (buffer.length) {
+                        htmlParts.push(formatParagraphBlock(buffer));
+                        buffer = [];
+                    }
+                    return;
+                }
+
+                buffer.push(line);
+            });
+
+            if (buffer.length) {
+                htmlParts.push(formatParagraphBlock(buffer));
+            }
+            return;
+        }
+
+        const codeMatch = block.match(/^([^\n]*)\n?([\s\S]*)$/);
+        const rawHeader = (codeMatch?.[1] || "").trim();
+        const rawCode = (codeMatch?.[2] || "").replace(/\n$/, "");
+        const label = rawHeader ? "Código " + rawHeader : "Código";
+        const copyId = "code-block-" + codeBlockIndex + "-" + slugifyLabel(label);
+
+        htmlParts.push(
+            '<section class="response-code">' +
+                '<div class="response-code__header">' +
+                    '<span class="response-code__title">' + escapeHtml(label) + '</span>' +
+                    '<button class="im-boton im-boton--tonal response-copy" type="button" data-copy-target="' + copyId + '">Copiar código</button>' +
+                "</div>" +
+                '<pre id="' + copyId + '"><code>' + escapeHtml(rawCode) + "</code></pre>" +
+            "</section>"
+        );
+        codeBlockIndex++;
+    });
+
+    return '<div class="message-content">' + htmlParts.join("") + "</div>";
 }
 
 function setStatus(text) {
@@ -679,40 +839,17 @@ function updatePinnedViews() {
     cdnPathEl.textContent = pinnedCdnReference || "Todavía no seleccionaste un archivo visual de referencia.";
 }
 
-function renderAttachments() {
-    attachmentsEl.innerHTML = "";
-
-    if (!selectedFiles.size) {
-        attachmentsEl.innerHTML = '<div class="helper">Todavía no seleccionaste archivos.</div>';
-        return;
-    }
-
-    Array.from(selectedFiles).forEach((file) => {
-        const chip = document.createElement("span");
-        chip.className = "im-chip chip";
-        chip.innerHTML = "<span>" + escapeHtml(file) + "</span>";
-
-        const removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.setAttribute("aria-label", "Quitar archivo adjunto");
-        removeBtn.textContent = "×";
-        removeBtn.onclick = () => {
-            selectedFiles.delete(file);
-            renderAttachments();
-            renderComposerAttachments();
-            refreshCheckedStates();
-        };
-
-        chip.appendChild(removeBtn);
-        attachmentsEl.appendChild(chip);
-    });
+function removeSelectedFile(file) {
+    selectedFiles.delete(file);
+    renderAttachments();
+    renderComposerAttachments();
+    refreshCheckedStates();
 }
 
 function renderComposerAttachments() {
-    const composerAttachmentsEl = document.getElementById("composerAttachments");
-    if (!composerAttachmentsEl) return;
-
     composerAttachmentsEl.innerHTML = "";
+    selectionStripMetaEl.textContent = selectedFiles.size + " archivo" + (selectedFiles.size === 1 ? "" : "s") + " adjunto" + (selectedFiles.size === 1 ? "" : "s") + " al pedido";
+    selectionStripEl.hidden = !selectedFiles.size;
 
     if (!selectedFiles.size) {
         return;
@@ -721,22 +858,27 @@ function renderComposerAttachments() {
     Array.from(selectedFiles).forEach((file) => {
         const chip = document.createElement("span");
         chip.className = "im-chip chip";
-        chip.innerHTML = "<span>" + escapeHtml(file) + "</span>";
+        chip.innerHTML = '<span class="chip-label">' + escapeHtml(file) + "</span>";
 
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.setAttribute("aria-label", "Quitar archivo adjunto");
         removeBtn.textContent = "×";
-        removeBtn.onclick = () => {
-            selectedFiles.delete(file);
-            renderAttachments();
-            renderComposerAttachments();
-            refreshCheckedStates();
-        };
+        removeBtn.onclick = () => removeSelectedFile(file);
 
         chip.appendChild(removeBtn);
         composerAttachmentsEl.appendChild(chip);
     });
+}
+
+function renderAttachments() {
+    if (!attachmentsEl) {
+        return;
+    }
+
+    attachmentsEl.innerHTML = selectedFiles.size
+        ? '<span class="helper">Gestioná los archivos activos desde los chips del pedido.</span>'
+        : '<span class="helper">Todavía no seleccionaste archivos.</span>';
 }
 
 function appendMessage(role, text, meta = "") {
@@ -749,10 +891,28 @@ function appendMessage(role, text, meta = "") {
     article.className = "message " + role;
     article.innerHTML =
         (meta ? '<div class="meta">' + escapeHtml(meta) + "</div>" : "") +
-        '<div class="content">' + renderContent(text) + "</div>";
+        '<div class="content">' + renderMessageContent(text) + "</div>";
 
     chatEl.appendChild(article);
     chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+async function copyText(text, trigger) {
+    try {
+        await navigator.clipboard.writeText(text);
+        if (trigger) {
+            const original = trigger.textContent;
+            trigger.textContent = "Copiado";
+            trigger.classList.add("is-copied");
+            window.setTimeout(() => {
+                trigger.textContent = original;
+                trigger.classList.remove("is-copied");
+            }, 1500);
+        }
+    } catch (error) {
+        console.error(error);
+        setStatus("No se pudo copiar al portapapeles");
+    }
 }
 
 function refreshCheckedStates() {
@@ -801,6 +961,7 @@ function resetViewer(message = "Elegí un archivo del árbol para ver su conteni
     attachPreviewBtn.disabled = true;
     markDbBtn.disabled = true;
     markCdnBtn.disabled = true;
+    copyPreviewBtn.disabled = true;
 }
 
 function canUseAsDb(path) {
@@ -820,6 +981,7 @@ async function previewFile(path) {
     attachPreviewBtn.disabled = true;
     markDbBtn.disabled = true;
     markCdnBtn.disabled = true;
+    copyPreviewBtn.disabled = true;
 
     try {
         const res = await fetch("readfile.php?file=" + encodeURIComponent(path));
@@ -837,6 +999,7 @@ async function previewFile(path) {
         attachPreviewBtn.disabled = false;
         markDbBtn.disabled = !canUseAsDb(data.file);
         markCdnBtn.disabled = !canUseAsCdn(data.file);
+        copyPreviewBtn.disabled = false;
     } catch (error) {
         currentPreviewFile = "";
         viewerCodeEl.hidden = true;
@@ -846,6 +1009,7 @@ async function previewFile(path) {
         attachPreviewBtn.disabled = true;
         markDbBtn.disabled = true;
         markCdnBtn.disabled = true;
+        copyPreviewBtn.disabled = true;
     }
 }
 
@@ -879,7 +1043,7 @@ function createTreeNode(node) {
         checkbox.setAttribute("data-file-path", node.path);
         checkbox.setAttribute("aria-label", "Adjuntar " + node.name);
         checkbox.checked = selectedFiles.has(node.path);
-checkbox.addEventListener("change", () => {
+        checkbox.addEventListener("change", () => {
             if (checkbox.checked) {
                 selectedFiles.add(node.path);
             } else {
@@ -1004,21 +1168,27 @@ async function loadFileContext(file, label) {
 }
 
 async function readContextFiles(files) {
-    const contexts = [];
+    const entries = [];
+    const seen = new Set();
 
-    for (const file of files) {
-        contexts.push(await loadFileContext(file, ""));
+    files.forEach((file) => {
+        if (!seen.has(file)) {
+            seen.add(file);
+            entries.push({ file, label: "" });
+        }
+    });
+
+    if (pinnedDbSchema && !seen.has(pinnedDbSchema)) {
+        seen.add(pinnedDbSchema);
+        entries.push({ file: pinnedDbSchema, label: "Esquema de base de datos" });
     }
 
-    if (pinnedDbSchema) {
-        contexts.push(await loadFileContext(pinnedDbSchema, "Esquema de base de datos"));
+    if (pinnedCdnReference && !seen.has(pinnedCdnReference)) {
+        seen.add(pinnedCdnReference);
+        entries.push({ file: pinnedCdnReference, label: "Fuente de verdad visual del sistema" });
     }
 
-    if (pinnedCdnReference) {
-        contexts.push(await loadFileContext(pinnedCdnReference, "Fuente de verdad visual del sistema"));
-    }
-
-    return contexts;
+    return Promise.all(entries.map((entry) => loadFileContext(entry.file, entry.label)));
 }
 
 async function send() {
@@ -1152,6 +1322,9 @@ markCdnBtn.addEventListener("click", () => {
     pinnedCdnReference = currentPreviewFile;
     updatePinnedViews();
 });
+copyPreviewBtn.addEventListener("click", () => {
+    copyText(viewerCodeEl.textContent || "", copyPreviewBtn);
+});
 clearDbBtn.addEventListener("click", () => {
     pinnedDbSchema = "";
     updatePinnedViews();
@@ -1170,11 +1343,23 @@ fileModalEl.addEventListener("click", (event) => {
         closeFileModal();
     }
 });
+chatEl.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-copy-target]");
+    if (!trigger) {
+        return;
+    }
+
+    const targetId = trigger.getAttribute("data-copy-target") || "";
+    const targetEl = targetId ? document.getElementById(targetId) : null;
+    const code = targetEl ? targetEl.textContent || "" : "";
+    copyText(code, trigger);
+});
 clearBtn.addEventListener("click", () => {
     history.length = 0;
     chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu código</h3><p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p></div>';
     setStatus("Chat limpio");
 });
+clearSelectionInlineBtn.addEventListener("click", clearSelectedFiles);
 
 renderAttachments();
 renderComposerAttachments();
