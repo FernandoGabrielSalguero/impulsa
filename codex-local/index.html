@@ -39,6 +39,16 @@ body {
     min-height: 100vh;
 }
 
+.im-contenedor,
+.im-contenido {
+    width: 100%;
+    max-width: none;
+}
+
+.im-contenido {
+    padding-inline: clamp(1rem, 2vw, 1.5rem);
+}
+
 .tree-panel,
 .field,
 .composer-grid,
@@ -539,7 +549,7 @@ https://cdn.tu-dominio.com/ui/index.js
         <div class="im-dialog__cabecera">
             <div>
                 <h3 id="fileModalTitle">Vista de archivo</h3>
-                <p class="modal-file" id="modalFilePath">NingÃºn archivo abierto</p>
+                <p class="modal-file" id="modalFilePath">Ningún archivo abierto</p>
             </div>
             <button class="im-boton-icono material-symbols-rounded" id="closeModalBtn" type="button" aria-label="Cerrar dialog">close</button>
         </div>
@@ -550,7 +560,7 @@ https://cdn.tu-dominio.com/ui/index.js
                 <button class="im-boton im-boton--tonal" id="markDbBtn" type="button" disabled>Usar como DB</button>
                 <button class="im-boton im-boton--tonal" id="markCdnBtn" type="button" disabled>Usar como verdad visual</button>
             </div>
-            <div class="modal-empty" id="viewerEmpty">ElegÃ­ un archivo del Ã¡rbol para ver su contenido acÃ¡.</div>
+            <div class="modal-empty" id="viewerEmpty">Elegí un archivo del árbol para ver su contenido acá.</div>
             <pre class="modal-code" id="viewerCode" hidden></pre>
         </div>
 
@@ -650,15 +660,15 @@ function getSelectedTechnologies() {
 }
 
 function updatePinnedViews() {
-    dbSchemaPathEl.textContent = pinnedDbSchema || "TodavÃ­a no seleccionaste un archivo `.md` o de esquema.";
-    cdnPathEl.textContent = pinnedCdnReference || "TodavÃ­a no seleccionaste un archivo visual de referencia.";
+    dbSchemaPathEl.textContent = pinnedDbSchema || "Todavía no seleccionaste un archivo `.md` o de esquema.";
+    cdnPathEl.textContent = pinnedCdnReference || "Todavía no seleccionaste un archivo visual de referencia.";
 }
 
 function renderAttachments() {
     attachmentsEl.innerHTML = "";
 
     if (!selectedFiles.size) {
-        attachmentsEl.innerHTML = '<div class="helper">TodavÃ­a no seleccionaste archivos.</div>';
+        attachmentsEl.innerHTML = '<div class="helper">Todavía no seleccionaste archivos.</div>';
         return;
     }
 
@@ -670,7 +680,7 @@ function renderAttachments() {
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.setAttribute("aria-label", "Quitar archivo adjunto");
-        removeBtn.textContent = "Ã—";
+        removeBtn.textContent = "×";
         removeBtn.onclick = () => {
             selectedFiles.delete(file);
             renderAttachments();
@@ -733,9 +743,9 @@ function closeFileModal() {
     fileModalEl.setAttribute("aria-hidden", "true");
 }
 
-function resetViewer(message = "ElegÃ­ un archivo del Ã¡rbol para ver su contenido acÃ¡.") {
+function resetViewer(message = "Elegí un archivo del árbol para ver su contenido acá.") {
     currentPreviewFile = "";
-    viewerFileEl.textContent = "NingÃºn archivo abierto";
+    viewerFileEl.textContent = "Ningún archivo abierto";
     viewerEmptyEl.textContent = message;
     viewerEmptyEl.hidden = false;
     viewerCodeEl.hidden = true;
@@ -757,7 +767,7 @@ async function previewFile(path) {
     openFileModal();
     viewerFileEl.textContent = path;
     viewerEmptyEl.hidden = false;
-    viewerEmptyEl.textContent = "Cargando cÃ³digo...";
+    viewerEmptyEl.textContent = "Cargando código...";
     viewerCodeEl.hidden = true;
     attachPreviewBtn.disabled = true;
     markDbBtn.disabled = true;
@@ -895,26 +905,26 @@ function renderTree(payload) {
 
 async function loadTree() {
     loadTreeBtn.disabled = true;
-    setStatus("Cargando Ã¡rbol...");
+    setStatus("Cargando árbol...");
 
     try {
         const response = await fetch("project-tree.php");
         const data = await response.json();
 
         if (!response.ok || data.error) {
-            throw new Error(data.error || "No se pudo cargar el Ã¡rbol.");
+            throw new Error(data.error || "No se pudo cargar el árbol.");
         }
 
         updateWorkspaceSummary(data);
         renderTree(data);
         refreshCheckedStates();
         resetViewer();
-        setStatus("Ãrbol cargado");
+        setStatus("Árbol cargado");
     } catch (error) {
         treeScrollEl.innerHTML = '<div class="helper">' + escapeHtml(error.message) + "</div>";
         workspaceMetaEl.textContent = error.message;
-        resetViewer("No se pudo abrir el visor porque el Ã¡rbol fallÃ³ al cargar.");
-        setStatus("No se pudo cargar el Ã¡rbol");
+        resetViewer("No se pudo abrir el visor porque el árbol falló al cargar.");
+        setStatus("No se pudo cargar el árbol");
         console.error(error);
     } finally {
         loadTreeBtn.disabled = false;
@@ -962,7 +972,7 @@ async function send() {
     const assistantMode = getAssistantMode();
 
     if (!prompt) {
-        setStatus("EscribÃ­ un pedido para continuar");
+        setStatus("Escribí un pedido para continuar");
         promptEl.focus();
         return;
     }
@@ -972,7 +982,7 @@ async function send() {
 
     const metaParts = [];
     if (technologies.length) {
-        metaParts.push("TecnologÃ­as: " + technologies.join(", "));
+        metaParts.push("Tecnologías: " + technologies.join(", "));
     }
     if (files.length) {
         metaParts.push("Archivos: " + files.join(", "));
@@ -1016,20 +1026,20 @@ async function send() {
         try {
             json = JSON.parse(rawText);
         } catch (parseError) {
-            throw new Error("api.php no devolviÃ³ JSON vÃ¡lido. Respuesta: " + rawText);
+            throw new Error("api.php no devolvió JSON válido. Respuesta: " + rawText);
         }
 
         if (!response.ok || json.error) {
-            throw new Error(json.error || "La API devolviÃ³ un error.");
+            throw new Error(json.error || "La API devolvió un error.");
         }
 
-        const text = json.choices?.[0]?.message?.content || "La respuesta llegÃ³ sin contenido.";
+        const text = json.choices?.[0]?.message?.content || "La respuesta llegó sin contenido.";
         appendMessage("assistant", text, "Asistente");
 
         history.push({
             role: "user",
             content:
-                "TecnologÃ­as: " + (technologies.length ? technologies.join(", ") : "sin preferencia") +
+                "Tecnologías: " + (technologies.length ? technologies.join(", ") : "sin preferencia") +
                 "\nArchivos: " + (files.length ? files.join(", ") : "sin adjuntos") +
                 "\nEsquema DB: " + (pinnedDbSchema || "sin contexto fijo") +
                 "\nFuente de verdad visual: " + (pinnedCdnReference || "sin contexto fijo") +
@@ -1104,7 +1114,7 @@ fileModalEl.addEventListener("click", (event) => {
 });
 clearBtn.addEventListener("click", () => {
     history.length = 0;
-    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu cÃ³digo</h3><p>CargÃ¡ el Ã¡rbol, previsualizÃ¡ archivos y pedime funciones, fixes, mejoras o una estrategia de implementaciÃ³n.</p></div>';
+    chatEl.innerHTML = '<div class="empty-state" id="emptyState"><h3>Trabajemos sobre tu código</h3><p>Cargá el árbol, previsualizá archivos y pedime funciones, fixes, mejoras o una estrategia de implementación.</p></div>';
     setStatus("Chat limpio");
 });
 
