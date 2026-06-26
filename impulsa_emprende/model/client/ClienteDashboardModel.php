@@ -188,11 +188,12 @@ class ClienteDashboardModel
                     pp.title AS phase_title
              FROM project_deliverables pd
              INNER JOIN projects p ON p.id = pd.project_id
-             LEFT JOIN project_phases pp ON pp.id = pd.phase_id
+             INNER JOIN project_phases pp ON pp.id = pd.phase_id
+                                        AND pp.project_id = pd.project_id
              WHERE p.client_user_id = :user_id
                AND p.client_visible = 1
                AND pd.client_visible = 1
-             ORDER BY pd.project_id ASC, pd.due_date IS NULL ASC, pd.due_date ASC, pd.id ASC'
+             ORDER BY pd.project_id ASC, pd.phase_id ASC, pd.due_date IS NULL ASC, pd.due_date ASC, pd.id ASC'
         );
         $stmt->execute(['user_id' => $userId]);
 

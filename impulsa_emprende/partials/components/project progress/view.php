@@ -78,6 +78,33 @@ if (!function_exists('projectProgressTipoObjetivo')) {
     }
 }
 
+if (!function_exists('projectProgressPercent')) {
+    function projectProgressPercent(array $fases, array $objetivos): int
+    {
+        if ($objetivos !== []) {
+            $totalObjetivos = count($objetivos);
+            $objetivosEntregados = count(array_filter(
+                $objetivos,
+                static fn (array $objetivo): bool => ($objetivo['status'] ?? '') === 'delivered'
+            ));
+
+            return (int) round(($objetivosEntregados / $totalObjetivos) * 100);
+        }
+
+        if ($fases !== []) {
+            $totalFases = count($fases);
+            $fasesFinalizadas = count(array_filter(
+                $fases,
+                static fn (array $fase): bool => ($fase['status'] ?? '') === 'done'
+            ));
+
+            return (int) round(($fasesFinalizadas / $totalFases) * 100);
+        }
+
+        return 0;
+    }
+}
+
 $renderAvance = static function () use (
     $proyectosAvance,
     $fasesPorProyectoAvance,
@@ -94,6 +121,7 @@ $renderAvance = static function () use (
         $fases = $fasesPorProyectoAvance[$projectId] ?? [];
         $objetivos = $objetivosPorProyectoAvance[$projectId] ?? [];
         $contratoProyecto = $contratosPorProyectoAvance[$projectId] ?? null;
+        $avanceCalculado = projectProgressPercent($fases, $objetivos);
         $objetivosCompletados = count(array_filter($objetivos, static fn (array $objetivo): bool => ($objetivo['status'] ?? '') === 'delivered'));
         [$estadoTexto, $estadoClase] = projectProgressEstadoProyecto($proyecto['status'] ?? '');
         ?>
@@ -106,12 +134,12 @@ $renderAvance = static function () use (
             </div>
             <div class="im-cliente-avance__metricas">
               <span class="im-chip <?= projectProgressH($estadoClase) ?>"><?= projectProgressH($estadoTexto) ?></span>
-              <span class="im-chip"><?= (int) ($proyecto['progress_percent'] ?? 0) ?>% avance</span>
-              <span class="im-chip"><?= (int) ($proyecto['fases_total'] ?? 0) ?> fases</span>
+              <span class="im-chip"><?= $avanceCalculado ?>% avance</span>
+              <span class="im-chip"><?= count($fases) ?> fases</span>
               <span class="im-chip"><?= $objetivosCompletados ?> / <?= count($objetivos) ?> objetivos entregados</span>
             </div>
           </div>
-          <progress class="im-cliente-avance__barra" max="100" value="<?= (int) ($proyecto['progress_percent'] ?? 0) ?>"> <?= (int) ($proyecto['progress_percent'] ?? 0) ?>% </progress>
+          <progress class="im-cliente-avance__barra" max="100" value="<?= $avanceCalculado ?>"> <?= $avanceCalculado ?>% </progress>
           <div class="im-cliente-avance__meta">
             <span>Entrega objetivo: <?= projectProgressFecha($proyecto['target_delivery_date'] ?? '') ?></span>
             <span><?= count($fases) ?> fases visibles</span>

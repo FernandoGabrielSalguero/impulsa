@@ -98,15 +98,27 @@ $tipoObjetivo = static function (?string $tipo): string {
 
     .im-cliente-contrato-modal {
       width: min(880px, calc(100vw - 2rem));
+      max-height: min(860px, calc(100vh - 2rem));
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .im-cliente-contrato-modal form {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
     }
 
     .im-cliente-contrato-modal .im-dialog__contenido {
+      min-height: 0;
       display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
       gap: 1rem;
+      overflow: auto;
     }
 
     .im-cliente-contrato-contenido {
-      max-height: min(60vh, 720px);
+      min-height: 0;
+      max-height: none;
       overflow: auto;
       padding: 1rem;
       border-radius: 16px;
@@ -300,6 +312,7 @@ $tipoObjetivo = static function (?string $tipo): string {
           if (!contenido.innerHTML.trim()) {
             contenido.textContent = contrato.contract_text || 'No hay contenido disponible para este contrato.';
           }
+          contenido.scrollTop = 0;
           botonConfirmar.disabled = Number(contrato.is_signed || 0) === 1;
           alternar(true);
         });
