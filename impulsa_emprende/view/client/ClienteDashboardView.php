@@ -267,7 +267,7 @@ $tipoObjetivo = static function (?string $tipo): string {
       </div>
       <footer class="im-dialog__acciones">
         <button class="im-boton im-boton--texto" type="button" data-cerrar-contrato-cliente>Cerrar</button>
-        <button class="im-boton im-boton--principal" type="submit" data-cliente-contrato-confirmar>Confirmar firma</button>
+        <button class="im-boton im-boton--principal" type="submit" data-cliente-contrato-confirmar>Firmar contrato</button>
       </footer>
     </form>
   </section>
@@ -307,10 +307,10 @@ $tipoObjetivo = static function (?string $tipo): string {
 
           campoId.value = contrato.id || '';
           proyecto.textContent = contrato.project_name || 'Proyecto';
-          estado.textContent = `Contrato ${contrato.contract_name || ''} listo para firma. Esta accion no se puede deshacer desde tu cuenta.`;
+          estado.textContent = `Contrato ${contrato.contract_name || ''} listo para firma.`;
           contenido.innerHTML = contrato.contract_html || '';
           if (!contenido.innerHTML.trim()) {
-            contenido.textContent = contrato.contract_text || 'No hay contenido disponible para este contrato.';
+            contenido.textContent = contrato.contract_text || 'No hay contenido disponible para este proyecto.';
           }
           contenido.scrollTop = 0;
           botonConfirmar.disabled = Number(contrato.is_signed || 0) === 1;

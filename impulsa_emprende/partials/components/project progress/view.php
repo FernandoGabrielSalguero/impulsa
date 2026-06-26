@@ -221,7 +221,7 @@ $renderAvance = static function () use (
                     type="button"
                     data-abrir-contrato-cliente="<?= (int) ($contratoProyecto['id'] ?? 0) ?>"
                   >
-                    Firmar contrato
+                    Ver contrato
                   </button>
                 <?php endif; ?>
               </div>
