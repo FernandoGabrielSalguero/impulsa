@@ -506,6 +506,25 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
       }));
     };
 
+    const insertPlainTextIntoQuill = (text) => {
+      if (!quill) {
+        return;
+      }
+
+      const normalizedText = String(text ?? '').replace(/\r\n?/g, '\n');
+      const selection = quill.getSelection(true) || {
+        index: quill.getLength(),
+        length: 0
+      };
+
+      if (selection.length > 0) {
+        quill.deleteText(selection.index, selection.length, 'user');
+      }
+
+      quill.insertText(selection.index, normalizedText, 'user');
+      quill.setSelection(selection.index + normalizedText.length, 0, 'silent');
+    };
+
     const initQuill = () => {
       if (!editorNode || !hiddenHtml || typeof Quill === 'undefined' || quill) {
         return;
@@ -563,6 +582,16 @@ $apiBlogInitialItem = $apiBlogCurrent !== [] ? [
 
       quill.on('text-change', () => {
         hiddenHtml.value = quill.root.innerHTML;
+      });
+
+      quill.root.addEventListener('paste', (event) => {
+        const clipboardData = event.clipboardData || window.clipboardData;
+        if (!clipboardData) {
+          return;
+        }
+
+        event.preventDefault();
+        insertPlainTextIntoQuill(clipboardData.getData('text/plain'));
       });
     };
 
