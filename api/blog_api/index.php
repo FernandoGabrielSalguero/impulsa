@@ -59,7 +59,10 @@ if ($metodo === 'GET' && isset($_GET['media_item_id'], $_GET['media_type'], $_GE
     header('Content-Type: ' . $mimeType);
     header('Content-Length: ' . (string) filesize($absolutePath));
     header('Content-Disposition: ' . $disposition . '; filename="' . addslashes($downloadName) . '"');
-    header('Cache-Control: public, max-age=3600');
+    // Evita que navegadores o proxies reciclen una portada de otro post.
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
 
     readfile($absolutePath);
     exit;

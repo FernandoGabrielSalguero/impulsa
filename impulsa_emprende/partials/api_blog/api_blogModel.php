@@ -276,27 +276,53 @@ private function mapearRegistroParaApiPublica(array $row, int $integrationId): a
     $mapped = $row;
     $itemId = (int) ($row['id'] ?? 0);
     $baseUrl = $this->obtenerBasePublica();
+    $publicKey = $this->obtenerPublicKeyPorIntegracion($integrationId);
 
     $mapped['cover_image_path_url'] = null;
     $mapped['attachment_path_url'] = null;
 
     if ($itemId > 0 && trim((string) ($row['cover_image_path'] ?? '')) !== '') {
-        $mapped['cover_image_path_url'] = rtrim($baseUrl, '/') . '/api/blog_api/index.php?' . http_build_query([
-            'public_key' => $this->obtenerPublicKeyPorIntegracion($integrationId),
-            'media_item_id' => $itemId,
-            'media_type' => 'cover',
-        ]);
+        $mapped['cover_image_path_url'] = $this->construirUrlMediaPublica(
+            $baseUrl,
+            $publicKey,
+            $itemId,
+            'cover',
+            (string) ($row['cover_image_path'] ?? ''),
+            (string) ($row['updated_at'] ?? $row['created_at'] ?? '')
+        );
     }
 
     if ($itemId > 0 && trim((string) ($row['attachment_path'] ?? '')) !== '') {
-        $mapped['attachment_path_url'] = rtrim($baseUrl, '/') . '/api/blog_api/index.php?' . http_build_query([
-            'public_key' => $this->obtenerPublicKeyPorIntegracion($integrationId),
-            'media_item_id' => $itemId,
-            'media_type' => 'attachment',
-        ]);
+        $mapped['attachment_path_url'] = $this->construirUrlMediaPublica(
+            $baseUrl,
+            $publicKey,
+            $itemId,
+            'attachment',
+            (string) ($row['attachment_path'] ?? ''),
+            (string) ($row['updated_at'] ?? $row['created_at'] ?? '')
+        );
     }
 
     return $mapped;
+}
+
+private function construirUrlMediaPublica(
+    string $baseUrl,
+    string $publicKey,
+    int $itemId,
+    string $mediaType,
+    string $storedPath,
+    string $updatedAt
+): string {
+    $version = substr(sha1($storedPath . '|' . $updatedAt . '|' . $itemId . '|' . $mediaType), 0, 12);
+
+    return rtrim($baseUrl, '/') . '/api/blog_api/index.php?' . http_build_query([
+        'public_key' => $publicKey,
+        'media_item_id' => $itemId,
+        'media_type' => $mediaType,
+        'file' => basename(str_replace('\\', '/', $storedPath)),
+        'v' => $version,
+    ]);
 }
 
 private function obtenerPublicKeyPorIntegracion(int $integrationId): string
