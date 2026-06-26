@@ -22,7 +22,8 @@ class AdminProyectManagerModel
                     pd.status, pd.due_date, pd.delivered_at, pd.client_visible,
                     pp.title AS phase_title
              FROM project_deliverables pd
-             LEFT JOIN project_phases pp ON pp.id = pd.phase_id
+             INNER JOIN project_phases pp ON pp.id = pd.phase_id
+                                        AND pp.project_id = pd.project_id
              ORDER BY pd.project_id ASC, pd.phase_id ASC, pd.due_date IS NULL ASC, pd.due_date ASC, pd.id ASC'
         );
     }
@@ -82,7 +83,8 @@ class AdminProyectManagerModel
                     pd.status, pd.due_date, pd.delivered_at, pd.client_visible,
                     pp.title AS phase_title
              FROM project_deliverables pd
-             LEFT JOIN project_phases pp ON pp.id = pd.phase_id
+             INNER JOIN project_phases pp ON pp.id = pd.phase_id
+                                        AND pp.project_id = pd.project_id
              WHERE pd.project_id = :project_id
              ORDER BY pd.phase_id ASC, pd.due_date IS NULL ASC, pd.due_date ASC, pd.id ASC'
         );
@@ -177,10 +179,12 @@ class AdminProyectManagerModel
         $fases = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $stmt = $this->pdo->prepare(
-            'SELECT id, phase_id, status, due_date
-             FROM project_deliverables
-             WHERE project_id = :project_id
-             ORDER BY due_date IS NULL ASC, due_date ASC, id ASC'
+            'SELECT pd.id, pd.phase_id, pd.status, pd.due_date
+             FROM project_deliverables pd
+             INNER JOIN project_phases pp ON pp.id = pd.phase_id
+                                        AND pp.project_id = pd.project_id
+             WHERE pd.project_id = :project_id
+             ORDER BY pd.due_date IS NULL ASC, pd.due_date ASC, pd.id ASC'
         );
         $stmt->execute(['project_id' => $projectId]);
         $objetivos = $stmt->fetchAll(PDO::FETCH_ASSOC);

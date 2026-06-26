@@ -30,6 +30,29 @@ $claseEstadoProyecto = static function (?string $estado): string {
         'cancelled' => 'im-chip--estado-cancelado',
     ][$estado ?? ''] ?? 'im-chip--estado-borrador';
 };
+$calcularAvanceProyecto = static function (array $fases, array $objetivos): int {
+    if ($objetivos !== []) {
+        $totalObjetivos = count($objetivos);
+        $objetivosEntregados = count(array_filter(
+            $objetivos,
+            static fn (array $objetivo): bool => ($objetivo['status'] ?? '') === 'delivered'
+        ));
+
+        return (int) round(($objetivosEntregados / $totalObjetivos) * 100);
+    }
+
+    if ($fases !== []) {
+        $totalFases = count($fases);
+        $fasesFinalizadas = count(array_filter(
+            $fases,
+            static fn (array $fase): bool => ($fase['status'] ?? '') === 'done'
+        ));
+
+        return (int) round(($fasesFinalizadas / $totalFases) * 100);
+    }
+
+    return 0;
+};
 ?>
 <!doctype html>
 <html lang="es">
@@ -238,6 +261,7 @@ $claseEstadoProyecto = static function (?string $estado): string {
                         $fases = $fasesPorProyecto[$projectId] ?? [];
                         $objetivos = $objetivosPorProyecto[$projectId] ?? [];
                         $contrato = $contratosPorProyecto[$projectId] ?? null;
+                        $avanceCalculado = $calcularAvanceProyecto($fases, $objetivos);
                       ?>
                       <tr data-pm-proyecto-row="<?= $projectId ?>">
                         <td><?= $projectId ?></td>
@@ -250,7 +274,7 @@ $claseEstadoProyecto = static function (?string $estado): string {
                           <br><small><?= $h($proyecto['client_email'] ?? '') ?></small>
                         </td>
                         <td data-pm-tabla-estado><span class="im-chip <?= $h($claseEstadoProyecto($proyecto['status'] ?? '')) ?>"><?= $h($estadoProyecto($proyecto['status'] ?? '')) ?></span></td>
-                        <td data-pm-tabla-avance><?= (int) ($proyecto['progress_percent'] ?? 0) ?>%</td>
+                        <td data-pm-tabla-avance><?= $avanceCalculado ?>%</td>
                         <td data-pm-tabla-fases><?= count($fases) ?></td>
                         <td data-pm-tabla-objetivos><?= count($objetivos) ?></td>
                         <td>
