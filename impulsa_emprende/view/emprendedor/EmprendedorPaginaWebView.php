@@ -1,7 +1,9 @@
 <?php
 $usuarioCorreo = $usuarioCorreo ?? '';
 $usuarioInicial = $usuarioInicial ?? '?';
-$usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Cliente';
+$usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
+$usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Emprendedor';
+$emprendedorActivePage = 'pagina_web';
 $paginaWebEstadoDefinicion = $paginaWebEstadoDefinicion ?? ['mision' => false, 'vision' => false, 'buyer' => false];
 $paginaWebDefinicionCompleta = $paginaWebDefinicionCompleta ?? false;
 $paginaWebSolicitud = $paginaWebSolicitud ?? [];
@@ -38,6 +40,7 @@ if (!function_exists('paginaWebFecha')) {
   <link rel="stylesheet" href="/assets/impulsa_material/css/material.css?v=icons-local-1">
   <?php require __DIR__ . '/../../partials/components/project progress/styles.php'; ?>
   <style>
+    .im-marca__isotipo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
     .im-encabezado-seccion__acciones {
       display: flex;
       align-items: center;
@@ -48,49 +51,7 @@ if (!function_exists('paginaWebFecha')) {
 </head>
 <body>
   <div class="im-aplicacion" data-menu-colapsado="false">
-    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
-      <div class="im-marca">
-        <span class="im-marca__isotipo" aria-hidden="true"><?= paginaWebH($usuarioInicial) ?></span>
-        <div class="im-marca__texto">
-          <strong><?= paginaWebH($usuarioMarcaNombre) ?></strong>
-          <span>Emprendedor</span>
-        </div>
-      </div>
-      <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php">
-          <span class="material-symbols-rounded" aria-hidden="true">dashboard</span>
-          <span class="im-nav-item__texto">Dashboard</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php">
-          <span class="material-symbols-rounded" aria-hidden="true">psychology</span>
-          <span class="im-nav-item__texto">Definicion</span>
-        </a>
-        <a class="im-nav-item activo" href="/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php">
-          <span class="material-symbols-rounded" aria-hidden="true">web</span>
-          <span class="im-nav-item__texto">Pagina web</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorMetricasController.php">
-          <span class="material-symbols-rounded" aria-hidden="true">monitoring</span>
-          <span class="im-nav-item__texto">Metricas</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorMarketingController.php">
-          <span class="material-symbols-rounded" aria-hidden="true">campaign</span>
-          <span class="im-nav-item__texto">Marketing</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorChatbotController.php">
-          <span class="material-symbols-rounded" aria-hidden="true">forum</span>
-          <span class="im-nav-item__texto">Chatbot</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorBlogController.php">
-          <span class="material-symbols-rounded" aria-hidden="true">article</span>
-          <span class="im-nav-item__texto">Blog</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/emprendedor/EmprendedorProductController.php">
-          <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
-          <span class="im-nav-item__texto">Productos</span>
-        </a>
-      </nav>
-    </aside>
+    <?php $h = 'paginaWebH'; require __DIR__ . '/EmprendedorMenu.php'; ?>
 
     <div class="im-cortina" data-cerrar-menu></div>
 
