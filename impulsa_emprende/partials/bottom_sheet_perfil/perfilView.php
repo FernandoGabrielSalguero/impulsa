@@ -88,7 +88,6 @@ if (!function_exists('perfilCampo')) {
 <script>
   window.__impulsaSesion = <?= json_encode($perfilSesionDebug, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
   window.__impulsaPerfilSnackbar = <?= json_encode($perfilSnackbar, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-  console.log('Sesion Impulsa', window.__impulsaSesion);
 
   (() => {
     const sheet = document.getElementById('bottom-sheet-perfil');

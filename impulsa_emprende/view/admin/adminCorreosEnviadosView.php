@@ -395,8 +395,33 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
       };
       const iframeHtml = modal.querySelector('[data-correo-detalle-html]');
       const contenidoTexto = modal.querySelector('[data-correo-detalle-contenido]');
-      const htmlTieneContenidoVisible = (html) => {
+      const sanitizarHtmlCorreo = (html) => {
         const valor = String(html || '').trim();
+        if (valor === '') {
+          return '';
+        }
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(valor, 'text/html');
+        doc.querySelectorAll('script, noscript, template, iframe, object, embed, form').forEach((node) => node.remove());
+        doc.querySelectorAll('*').forEach((node) => {
+          Array.from(node.attributes).forEach((attr) => {
+            const nombre = attr.name.toLowerCase();
+            const valorAttr = attr.value.trim().toLowerCase();
+            if (nombre.startsWith('on')) {
+              node.removeAttribute(attr.name);
+              return;
+            }
+            if ((nombre === 'href' || nombre === 'src' || nombre === 'xlink:href') && valorAttr.startsWith('javascript:')) {
+              node.removeAttribute(attr.name);
+            }
+          });
+        });
+
+        return doc.documentElement.outerHTML;
+      };
+      const htmlTieneContenidoVisible = (html) => {
+        const valor = sanitizarHtmlCorreo(html);
         if (valor === '') {
           return false;
         }
@@ -423,7 +448,8 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
         setText('[data-correo-detalle-contenido]', contenido, 'No hay contenido disponible para este correo.');
       };
       const mostrarContenidoHtml = (html, contenidoFallback) => {
-        if (!iframeHtml || !contenidoTexto || !htmlTieneContenidoVisible(html)) {
+        const htmlSeguro = sanitizarHtmlCorreo(html);
+        if (!iframeHtml || !contenidoTexto || !htmlTieneContenidoVisible(htmlSeguro)) {
           mostrarContenidoTexto(contenidoFallback);
           return;
         }
@@ -442,7 +468,7 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
             mostrarContenidoTexto(contenidoFallback);
           }
         };
-        iframeHtml.srcdoc = String(html);
+        iframeHtml.srcdoc = htmlSeguro;
       };
 
       document.addEventListener('click', (evento) => {
