@@ -293,7 +293,7 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
   </div>
 
   <div class="im-modal-cortina" data-cerrar-correo-detalle></div>
-  <section class="im-dialog im-correos-modal" role="dialog" aria-modal="true" aria-labelledby="correo-detalle-titulo" aria-hidden="true" data-modal-correo-detalle>
+  <section class="im-dialog im-correos-modal" role="dialog" aria-modal="true" aria-labelledby="correo-detalle-titulo" aria-hidden="true" tabindex="-1" data-modal-correo-detalle>
     <header class="im-dialog__cabecera">
       <div>
         <p class="im-sobrelinea">Detalle del envio</p>
@@ -349,10 +349,42 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
         return;
       }
 
+      let ultimoDisparadorModal = null;
+      const focoInicialModal = modal.querySelector('[data-cerrar-correo-detalle]');
+      if ('inert' in modal) {
+        modal.inert = true;
+      }
+
       const alternarModal = (abrir) => {
+        if (!abrir) {
+          const elementoActivo = document.activeElement;
+          if (elementoActivo instanceof HTMLElement && modal.contains(elementoActivo)) {
+            elementoActivo.blur();
+          }
+        }
+
         modal.classList.toggle('abierto', abrir);
         cortina.classList.toggle('abierto', abrir);
         modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+
+        if ('inert' in modal) {
+          modal.inert = !abrir;
+        }
+
+        if (abrir) {
+          window.requestAnimationFrame(() => {
+            if (focoInicialModal instanceof HTMLElement) {
+              focoInicialModal.focus();
+              return;
+            }
+            modal.focus();
+          });
+          return;
+        }
+
+        if (ultimoDisparadorModal instanceof HTMLElement) {
+          window.requestAnimationFrame(() => ultimoDisparadorModal.focus());
+        }
       };
 
       const setText = (selector, value, fallback = '-') => {
@@ -367,6 +399,7 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
       document.addEventListener('click', (evento) => {
         const botonVer = evento.target.closest('[data-ver-correo]');
         if (botonVer) {
+          ultimoDisparadorModal = botonVer instanceof HTMLElement ? botonVer : null;
           const raw = botonVer.getAttribute('data-ver-correo') || '';
           let data = null;
 
