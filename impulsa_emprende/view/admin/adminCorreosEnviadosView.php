@@ -66,19 +66,21 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
     .im-alerta--exito { background: color-mix(in srgb, var(--im-color-exito) 14%, var(--im-color-superficie)); color: var(--im-color-exito); }
     .im-correos-filtros { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)) auto auto; gap: .85rem; align-items: end; }
     .im-correos-filtros__acciones { display: flex; gap: .65rem; flex-wrap: wrap; }
-    .im-correos-modal { width: min(960px, calc(100vw - 2rem)); max-height: min(860px, calc(100vh - 2rem)); grid-template-rows: auto minmax(0, 1fr) auto; }
+    .im-correos-modal { width: min(1120px, calc(100vw - 2rem)); max-height: min(900px, calc(100vh - 2rem)); grid-template-rows: auto minmax(0, 1fr) auto; }
     .im-correos-modal .im-dialog__contenido { min-height: 0; overflow: auto; display: grid; gap: 1rem; }
     .im-correos-detalle-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: .85rem; }
     .im-correos-detalle-dato { padding: .85rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-chico); background: var(--im-color-superficie); }
     .im-correos-detalle-dato span { display: block; color: var(--im-color-texto-suave); font-size: .82rem; }
     .im-correos-detalle-dato strong { display: block; margin-top: .2rem; word-break: break-word; }
     .im-correos-contenido { margin: 0; padding: 1rem; border: 1px solid var(--im-color-borde); border-radius: var(--im-radio-chico); background: color-mix(in srgb, var(--im-color-superficie-2) 55%, var(--im-color-superficie)); color: var(--im-color-texto); white-space: pre-wrap; word-break: break-word; }
+    .im-correos-contenido--visor { width: 100%; min-height: 480px; height: min(62vh, 720px); padding: 0; background: #fff; overflow: auto; resize: vertical; }
     .im-correos-paginacion { display: flex; justify-content: space-between; gap: 1rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; }
     .im-correos-paginacion__acciones { display: flex; gap: .65rem; flex-wrap: wrap; }
     .im-correos-toolbar { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
     @media (max-width: 980px) {
       .im-correos-filtros,
       .im-correos-detalle-grid { grid-template-columns: 1fr; }
+      .im-correos-contenido--visor { min-height: 360px; height: min(56vh, 560px); }
     }
   </style>
 </head>
@@ -314,8 +316,8 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
       </div>
       <div>
         <h4>Contenido</h4>
-        <iframe class="im-correos-contenido" title="Vista HTML del correo" sandbox data-correo-detalle-html hidden></iframe>
-        <pre class="im-correos-contenido" data-correo-detalle-contenido>-</pre>
+        <iframe class="im-correos-contenido im-correos-contenido--visor" title="Vista HTML del correo" sandbox data-correo-detalle-html hidden></iframe>
+        <pre class="im-correos-contenido im-correos-contenido--visor" data-correo-detalle-contenido>-</pre>
       </div>
       <div>
         <h4>Meta</h4>
