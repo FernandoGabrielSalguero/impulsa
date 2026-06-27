@@ -234,7 +234,7 @@ contact_nombre	varchar(150)	NO
 contact_whatsapp	varchar(50)	YES			
 contact_email	varchar(150)	YES			
 contact_description	text	YES			
-contact_consultation	varchar(255)	YES			
+contact_consultation	varchar(1000)	YES			
 state	enum('recibido','cancelado','aprobado')	NO		recibido	
 created_at	timestamp	NO		current_timestamp()	
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
@@ -761,6 +761,16 @@ avatar_path	varchar(255)	YES
 fecha_nacimiento	date	YES			
 created_at	timestamp	NO		current_timestamp()	
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: user_menu_view
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	MUL		
+menu_key	varchar(100)	NO			
+created_at	timestamp	YES		current_timestamp()	
+updated_at	timestamp	YES		current_timestamp()	on update current_timestamp()
 
 🔗 Relaciones:
 Columna user_auth_id referencia a user_auth.id
