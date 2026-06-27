@@ -10,6 +10,7 @@ $estado = $estado ?? '';
 $totalUsuarios = count($usuarios);
 $h = static fn ($valor): string => htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 $toJson = static fn ($valor): string => htmlspecialchars((string) json_encode($valor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
+$toScriptJson = static fn ($valor): string => (string) json_encode($valor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $mensajesEstado = [
     'usuario_eliminado' => ['tipo' => 'exito', 'texto' => 'Usuario eliminado correctamente.'],
     'usuario_error_eliminar' => ['tipo' => 'error', 'texto' => 'No se pudo eliminar el usuario. Revisa las relaciones asociadas e intenta nuevamente.'],
@@ -671,7 +672,7 @@ $formatearPaginaInicio = static function (?string $pagina) use ($mapaPaginasInic
   <script src="../../../assets/impulsa_material/js/material.js"></script>
   <script>
     (() => {
-      const feedback = <?= $mensajeEstado ? $toJson($mensajeEstado) : 'null' ?>;
+      const feedback = <?= $mensajeEstado ? $toScriptJson($mensajeEstado) : 'null' ?>;
       if (!feedback) {
         return;
       }
@@ -710,7 +711,7 @@ $formatearPaginaInicio = static function (?string $pagina) use ($mapaPaginasInic
     })();
 
     (() => {
-      const pageLabels = <?= $toJson($mapaPaginasInicio) ?>;
+      const pageLabels = <?= $toScriptJson($mapaPaginasInicio) ?>;
       const input = document.querySelector('[data-buscar-usuarios]');
       const tbody = document.querySelector('[data-tabla-usuarios]');
       const mensaje = document.querySelector('[data-usuarios-mensaje]');
