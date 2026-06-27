@@ -316,7 +316,7 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
       </div>
       <div>
         <h4>Contenido</h4>
-        <iframe class="im-correos-contenido im-correos-contenido--visor" title="Vista HTML del correo" sandbox data-correo-detalle-html hidden></iframe>
+        <iframe class="im-correos-contenido im-correos-contenido--visor" title="Vista HTML del correo" sandbox="allow-same-origin" referrerpolicy="no-referrer" data-correo-detalle-html hidden></iframe>
         <pre class="im-correos-contenido im-correos-contenido--visor" data-correo-detalle-contenido>-</pre>
       </div>
       <div>
@@ -395,6 +395,55 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
       };
       const iframeHtml = modal.querySelector('[data-correo-detalle-html]');
       const contenidoTexto = modal.querySelector('[data-correo-detalle-contenido]');
+      const htmlTieneContenidoVisible = (html) => {
+        const valor = String(html || '').trim();
+        if (valor === '') {
+          return false;
+        }
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(valor, 'text/html');
+        doc.querySelectorAll('script, style, noscript, template, meta, link, title, head').forEach((node) => node.remove());
+        const texto = (doc.body?.textContent || '').replace(/\s+/g, ' ').trim();
+
+        if (texto !== '') {
+          return true;
+        }
+
+        return Boolean(doc.body?.querySelector('img, table, a, button, svg, section, article, .card, .wrap, .container'));
+      };
+      const mostrarContenidoTexto = (contenido) => {
+        if (iframeHtml) {
+          iframeHtml.hidden = true;
+          iframeHtml.removeAttribute('srcdoc');
+        }
+        if (contenidoTexto) {
+          contenidoTexto.hidden = false;
+        }
+        setText('[data-correo-detalle-contenido]', contenido, 'No hay contenido disponible para este correo.');
+      };
+      const mostrarContenidoHtml = (html, contenidoFallback) => {
+        if (!iframeHtml || !contenidoTexto || !htmlTieneContenidoVisible(html)) {
+          mostrarContenidoTexto(contenidoFallback);
+          return;
+        }
+
+        contenidoTexto.hidden = true;
+        iframeHtml.hidden = false;
+        iframeHtml.onload = () => {
+          try {
+            const doc = iframeHtml.contentDocument;
+            const texto = (doc?.body?.textContent || '').replace(/\s+/g, ' ').trim();
+            const tieneElementosVisibles = Boolean(doc?.body?.querySelector('img, table, a, button, svg, section, article, .card, .wrap, .container'));
+            if (texto === '' && !tieneElementosVisibles) {
+              mostrarContenidoTexto(contenidoFallback);
+            }
+          } catch (error) {
+            mostrarContenidoTexto(contenidoFallback);
+          }
+        };
+        iframeHtml.srcdoc = String(html);
+      };
 
       document.addEventListener('click', (evento) => {
         const botonVer = evento.target.closest('[data-ver-correo]');
@@ -417,20 +466,7 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
           setText('[data-correo-detalle-usuario]', data.usuario_relacionado);
           setText('[data-correo-detalle-error]', data.error, 'Sin error registrado');
           setText('[data-correo-detalle-asunto]', data.asunto);
-          if (iframeHtml && contenidoTexto && data.contenido_html) {
-            iframeHtml.hidden = false;
-            contenidoTexto.hidden = true;
-            iframeHtml.srcdoc = String(data.contenido_html);
-          } else {
-            if (iframeHtml) {
-              iframeHtml.hidden = true;
-              iframeHtml.removeAttribute('srcdoc');
-            }
-            if (contenidoTexto) {
-              contenidoTexto.hidden = false;
-            }
-            setText('[data-correo-detalle-contenido]', data.contenido, 'No hay contenido disponible para este correo.');
-          }
+          mostrarContenidoHtml(data.contenido_html, data.contenido);
           setText('[data-correo-detalle-meta]', data.meta, 'Sin metadata adicional.');
           alternarModal(true);
           return;
