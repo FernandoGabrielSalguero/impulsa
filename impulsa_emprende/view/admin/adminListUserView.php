@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../partials/components/admin/GestorDeMenu/admin_gestorMenuModel.php';
+
 $usuarioCorreo = $usuarioCorreo ?? '';
 $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
@@ -41,6 +43,25 @@ $formatearFecha = static function (?string $fecha): string {
     }
 
     return date('d/m/Y H:i', strtotime($fecha));
+};
+$catalogoMenusPorRol = adminGestorMenuCatalogoPorRol();
+$mapaPaginasInicio = [];
+foreach ($catalogoMenusPorRol as $itemsRol) {
+    foreach ($itemsRol as $itemMenu) {
+        $href = (string) ($itemMenu['href'] ?? '');
+        $label = (string) ($itemMenu['label'] ?? '');
+        if ($href !== '' && $label !== '') {
+            $mapaPaginasInicio[$href] = $label;
+        }
+    }
+}
+$formatearPaginaInicio = static function (?string $pagina) use ($mapaPaginasInicio): string {
+    $pagina = trim((string) $pagina);
+    if ($pagina === '') {
+        return '-';
+    }
+
+    return $mapaPaginasInicio[$pagina] ?? $pagina;
 };
 ?>
 <!doctype html>
@@ -88,6 +109,15 @@ $formatearFecha = static function (?string $fecha): string {
     .im-alerta--error {
       background: #fdecec;
       color: #ba1a1a;
+    }
+
+    .im-snackbar[data-estado="error"] {
+      background: #ba1a1a;
+      color: #fff;
+    }
+
+    .im-snackbar[data-estado="error"] button {
+      color: #fff;
     }
 
     .im-usuario-modal {
@@ -342,12 +372,6 @@ $formatearFecha = static function (?string $fecha): string {
             </div>
           </div>
 
-          <?php if ($mensajeEstado): ?>
-            <div class="im-alerta im-alerta--<?= $h($mensajeEstado['tipo']) ?>" role="status">
-              <?= $h($mensajeEstado['texto']) ?>
-            </div>
-          <?php endif; ?>
-
           <?php if ($totalUsuarios > 0): ?>
             <article class="im-tabla-tareas__tarjeta">
               <div class="im-tabla-tareas__cabecera">
@@ -417,7 +441,7 @@ $formatearFecha = static function (?string $fecha): string {
                           <?php endif; ?>
                         </td>
                         <td><?= htmlspecialchars((string) ($usuarioListado['whatsapp'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
-                        <td><?= htmlspecialchars((string) ($usuarioListado['pagina_inicio'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars($formatearPaginaInicio($usuarioListado['pagina_inicio'] ?? null), ENT_QUOTES, 'UTF-8') ?></td>
                         <td>
                           <?php if ($tipoUsuario === 'externo'): ?>
                             <span class="im-chip im-chip--exito">Externo</span>
@@ -647,6 +671,27 @@ $formatearFecha = static function (?string $fecha): string {
   <script src="../../../assets/impulsa_material/js/material.js"></script>
   <script>
     (() => {
+      const feedback = <?= $mensajeEstado ? $toJson($mensajeEstado) : 'null' ?>;
+      if (!feedback) {
+        return;
+      }
+
+      const snackbar = document.querySelector('.im-snackbar');
+      const texto = snackbar?.querySelector('span');
+      if (!snackbar || !texto) {
+        return;
+      }
+
+      snackbar.dataset.estado = feedback.tipo === 'error' ? 'error' : 'ok';
+      texto.textContent = feedback.texto || '';
+      snackbar.classList.add('abierto');
+      window.clearTimeout(window.__impulsaUsuariosSnackbarTimer);
+      window.__impulsaUsuariosSnackbarTimer = window.setTimeout(() => {
+        snackbar.classList.remove('abierto');
+      }, 4200);
+    })();
+
+    (() => {
       const sheet = document.querySelector('[data-alta-usuario-sheet]');
       const cortina = document.querySelector('[data-cerrar-alta-usuario].im-bottom-sheet-cortina');
       const alternar = (abrir) => {
@@ -665,6 +710,7 @@ $formatearFecha = static function (?string $fecha): string {
     })();
 
     (() => {
+      const pageLabels = <?= $toJson($mapaPaginasInicio) ?>;
       const input = document.querySelector('[data-buscar-usuarios]');
       const tbody = document.querySelector('[data-tabla-usuarios]');
       const mensaje = document.querySelector('[data-usuarios-mensaje]');
@@ -702,6 +748,15 @@ $formatearFecha = static function (?string $fecha): string {
           hour: '2-digit',
           minute: '2-digit',
         }).format(date);
+      };
+
+      const formatearPaginaInicio = (pagina) => {
+        const value = String(pagina || '').trim();
+        if (!value) {
+          return '-';
+        }
+
+        return pageLabels[value] || value;
       };
 
       const renderAccionesUsuario = (usuario, nombreVisible, correoLogin) => `
@@ -758,7 +813,7 @@ $formatearFecha = static function (?string $fecha): string {
             <td><span class="im-chip">${escapeHtml(formatearRol(usuario.rol))}</span></td>
             <td>${escapeHtml(correoLogin)}${contactoHtml}<br><span class="im-chip ${verificado ? 'im-chip--exito' : 'im-chip--alerta'}">${verificado ? 'Verificado' : 'Pendiente'}</span></td>
             <td>${escapeHtml(usuario.whatsapp || '-')}</td>
-            <td>${escapeHtml(usuario.pagina_inicio || '-')}</td>
+            <td>${escapeHtml(formatearPaginaInicio(usuario.pagina_inicio))}</td>
             <td><span class="im-chip ${tipoUsuario === 'externo' ? 'im-chip--exito' : ''}">${escapeHtml(tipoUsuario === 'externo' ? 'Externo' : 'Interno')}</span></td>
             <td>${escapeHtml(formatearFecha(usuario.created_at))}</td>
             <td class="im-tabla-tareas__acciones">${renderAccionesUsuario(usuario, nombreVisible, correoLogin)}</td>
