@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../../partials/components/admin/GestorDeMenu/admin_gestorMenuModel.php';
+
 $h = isset($h) && is_callable($h)
     ? $h
     : static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -11,14 +13,11 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Cliente';
 $clienteActivePage = (string) ($clienteActivePage ?? 'dashboard');
 
-$clienteMenuItems = [
-    ['key' => 'dashboard', 'href' => '/impulsa_emprende/controller/client/ClienteDashboardController.php', 'icon' => 'dashboard', 'label' => 'Dashboard'],
-    ['key' => 'metricas', 'href' => '/impulsa_emprende/controller/client/ClienteMetricasController.php', 'icon' => 'monitoring', 'label' => 'Metricas'],
-    ['key' => 'marketing', 'href' => '/impulsa_emprende/controller/client/ClienteMarketingController.php', 'icon' => 'campaign', 'label' => 'Marketing'],
-    ['key' => 'chatbot', 'href' => '/impulsa_emprende/controller/client/ClienteChatbotController.php', 'icon' => 'forum', 'label' => 'Chatbot'],
-    ['key' => 'blog', 'href' => '/impulsa_emprende/controller/client/ClienteBlogController.php', 'icon' => 'article', 'label' => 'Blog'],
-    ['key' => 'productos', 'href' => '/impulsa_emprende/controller/client/ClienteProductController.php', 'icon' => 'inventory_2', 'label' => 'Productos'],
-];
+$clienteMenuItems = adminGestorMenuCatalogoBase('impulsa_cliente');
+if (isset($pdo, $usuario['id'])) {
+    $menuConfig = adminGestorMenuObtenerConfiguracionUsuario($pdo, (int) $usuario['id'], 'impulsa_cliente');
+    $clienteMenuItems = $menuConfig['visible_items'] ?? $clienteMenuItems;
+}
 ?>
 <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
   <div class="im-marca">

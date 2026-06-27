@@ -24,6 +24,10 @@ $mensajesEstado = [
     'usuario_tipo_invalido' => ['tipo' => 'error', 'texto' => 'El tipo de usuario seleccionado no es valido.'],
     'usuario_fecha_invalida' => ['tipo' => 'error', 'texto' => 'La fecha de nacimiento no es valida.'],
     'usuario_error_crear' => ['tipo' => 'error', 'texto' => 'No se pudo crear el usuario.'],
+    'menu_usuario_actualizado' => ['tipo' => 'exito', 'texto' => 'Menu de usuario actualizado correctamente.'],
+    'menu_usuario_error_guardar' => ['tipo' => 'error', 'texto' => 'No se pudo guardar el menu de usuario.'],
+    'menu_usuario_rol_invalido' => ['tipo' => 'error', 'texto' => 'El rol seleccionado no admite configuracion de menu.'],
+    'menu_usuario_id_invalido' => ['tipo' => 'error', 'texto' => 'El usuario seleccionado no es valido para configurar el menu.'],
 ];
 $mensajeEstado = $mensajesEstado[$estado] ?? null;
 $rolesAltaUsuario = ['impulsa_administrador', 'impulsa_colaborador', 'impulsa_emprendedor', 'impulsa_usuario', 'impulsa_marketing', 'impulsa_cliente'];
@@ -124,6 +128,66 @@ $formatearFecha = static function (?string $fecha): string {
       position: relative;
       z-index: 1;
       background: var(--im-color-superficie);
+    }
+
+    .im-usuario-menu-modal {
+      width: min(680px, calc(100vw - 2rem));
+      max-height: min(760px, calc(100vh - 2rem));
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .im-usuario-menu-modal form {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .im-usuario-menu-modal .im-dialog__contenido {
+      display: grid;
+      gap: 1rem;
+      min-height: 0;
+      overflow: auto;
+      padding-bottom: 1rem;
+    }
+
+    .im-usuario-menu-seccion {
+      display: grid;
+      gap: .85rem;
+      padding: 1rem;
+      border: 1px solid var(--im-color-borde);
+      border-radius: var(--im-radio);
+      background: var(--im-color-superficie);
+    }
+
+    .im-usuario-menu-seccion h4,
+    .im-usuario-menu-seccion p,
+    .im-usuario-menu-resumen p {
+      margin: 0;
+    }
+
+    .im-usuario-menu-resumen {
+      display: grid;
+      gap: .35rem;
+    }
+
+    .im-usuario-menu-opciones {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .75rem;
+    }
+
+    .im-usuario-menu-opciones .im-switch {
+      width: 100%;
+      justify-content: space-between;
+      padding: .85rem 1rem;
+      border: 1px solid var(--im-color-borde);
+      border-radius: var(--im-radio);
+      background: var(--im-color-superficie-2);
+    }
+
+    .im-usuario-menu-opciones .im-switch[data-fijo="true"] {
+      background: color-mix(in srgb, var(--im-color-principal) 8%, var(--im-color-superficie-2));
     }
 
     .im-usuario-edicion-grid {
@@ -323,6 +387,13 @@ $formatearFecha = static function (?string $fecha): string {
                       $rol = (string) ($usuarioListado['rol'] ?? '');
                       $tipoUsuario = (string) ($usuarioListado['usuario_tipo'] ?? 'externo');
                       $emailVerificado = !empty($usuarioListado['email_verified_at']);
+                      $menuUsuarioData = [
+                          'id' => (int) ($usuarioListado['id'] ?? 0),
+                          'rol' => $rol,
+                          'nombre' => $nombreVisible,
+                          'pagina_inicio' => (string) ($usuarioListado['pagina_inicio'] ?? ''),
+                          'menu_items_config' => (string) ($usuarioListado['menu_items_config'] ?? ''),
+                      ];
                       ?>
                       <tr>
                         <td><?= (int) ($usuarioListado['id'] ?? 0) ?></td>
@@ -369,6 +440,12 @@ $formatearFecha = static function (?string $fecha): string {
                                 <span class="material-symbols-rounded" aria-hidden="true">edit</span>
                                 Modificar usuario
                               </button>
+                              <?php if (in_array($rol, ['impulsa_emprendedor', 'impulsa_cliente'], true)): ?>
+                                <button type="button" role="menuitem" data-gestionar-menu-usuario="<?= $toJson($menuUsuarioData) ?>">
+                                  <span class="material-symbols-rounded" aria-hidden="true">menu</span>
+                                  Menu de usuario
+                                </button>
+                              <?php endif; ?>
                               <button class="im-usuario-accion-eliminar" type="button" role="menuitem" data-eliminar-usuario="<?= (int) ($usuarioListado['id'] ?? 0) ?>" data-usuario-nombre="<?= $h($nombreVisible) ?>" data-usuario-correo="<?= $h($correoLogin) ?>">
                                 <span class="material-symbols-rounded" aria-hidden="true">delete</span>
                                 Eliminar usuario
@@ -520,6 +597,7 @@ $formatearFecha = static function (?string $fecha): string {
   </section>
 
   <?php require __DIR__ . '/../../partials/components/admin/cimientos/emprendedor_cimientosView.php'; ?>
+  <?php require __DIR__ . '/../../partials/components/admin/GestorDeMenu/admin_gestorMenuView.php'; ?>
 
   <div class="im-bottom-sheet-cortina" data-cerrar-alta-usuario></div>
   <section class="im-bottom-sheet im-bottom-sheet--config" role="dialog" aria-modal="true" aria-labelledby="alta-usuario-titulo" aria-hidden="true" data-alta-usuario-sheet>
@@ -639,6 +717,17 @@ $formatearFecha = static function (?string $fecha): string {
               <span class="material-symbols-rounded" aria-hidden="true">edit</span>
               Modificar usuario
             </button>
+            ${['impulsa_emprendedor', 'impulsa_cliente'].includes(String(usuario.rol || '')) ? `
+            <button type="button" role="menuitem" data-gestionar-menu-usuario='${escapeHtml(JSON.stringify({
+              id: Number(usuario.id ?? 0),
+              rol: String(usuario.rol || ''),
+              nombre: nombreVisible,
+              pagina_inicio: String(usuario.pagina_inicio || ''),
+              menu_items_config: String(usuario.menu_items_config || '')
+            }))}'>
+              <span class="material-symbols-rounded" aria-hidden="true">menu</span>
+              Menu de usuario
+            </button>` : ''}
             <button class="im-usuario-accion-eliminar" type="button" role="menuitem" data-eliminar-usuario="${Number(usuario.id ?? 0)}" data-usuario-nombre="${escapeHtml(nombreVisible)}" data-usuario-correo="${escapeHtml(correoLogin)}">
               <span class="material-symbols-rounded" aria-hidden="true">delete</span>
               Eliminar usuario
@@ -861,6 +950,118 @@ $formatearFecha = static function (?string $fecha): string {
         }
 
         if (evento.target.closest('[data-cerrar-editar-usuario]')) {
+          alternarModal(false);
+        }
+      });
+
+      document.addEventListener('keydown', (evento) => {
+        if (evento.key === 'Escape') {
+          alternarModal(false);
+        }
+      });
+    })();
+
+    (() => {
+      const modal = document.querySelector('[data-modal-gestor-menu]');
+      const cortina = document.querySelector('[data-cerrar-gestor-menu].im-modal-cortina');
+      if (!modal || !cortina) {
+        return;
+      }
+
+      const roleLabels = window.adminMenuRoleLabels || {};
+      const menuCatalogByRole = window.adminMenuCatalogByRole || {};
+      const fields = {
+        usuarioId: modal.querySelector('[data-gestor-menu-usuario-id]'),
+        usuarioNombre: modal.querySelector('[data-gestor-menu-usuario-nombre]'),
+        usuarioRol: modal.querySelector('[data-gestor-menu-usuario-rol]'),
+        paginaInicio: modal.querySelector('[data-gestor-menu-pagina-inicio]'),
+        opciones: modal.querySelector('[data-gestor-menu-opciones]'),
+      };
+
+      const alternarModal = (abrir) => {
+        modal.classList.toggle('abierto', abrir);
+        cortina.classList.toggle('abierto', abrir);
+        modal.setAttribute('aria-hidden', abrir ? 'false' : 'true');
+      };
+
+      const obtenerSeleccion = () => Array.from(fields.opciones?.querySelectorAll('input[name="menu_items[]"]:checked') || [])
+        .map((input) => input.value)
+        .filter(Boolean);
+
+      const renderPaginaInicio = (catalogo, seleccion, paginaActual) => {
+        if (!fields.paginaInicio) {
+          return;
+        }
+
+        const seleccionPermitida = new Set(['dashboard', ...seleccion]);
+        const opciones = catalogo.filter((item) => seleccionPermitida.has(String(item.key || '')));
+        const paginaValida = opciones.some((item) => item.key === paginaActual) ? paginaActual : 'dashboard';
+
+        fields.paginaInicio.innerHTML = opciones.map((item) => `
+          <option value="${item.key}" ${item.key === paginaValida ? 'selected' : ''}>${item.label}</option>
+        `).join('');
+      };
+
+      const renderOpciones = (usuario) => {
+        const rol = String(usuario.rol || '');
+        const catalogo = Array.isArray(menuCatalogByRole[rol]) ? menuCatalogByRole[rol] : [];
+        const configuradas = String(usuario.menu_items_config || '')
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+        const seleccion = new Set(configuradas.length > 0 ? configuradas : catalogo.map((item) => item.key));
+        seleccion.add('dashboard');
+
+        if (fields.usuarioId) {
+          fields.usuarioId.value = String(usuario.id || '');
+        }
+        if (fields.usuarioNombre) {
+          fields.usuarioNombre.textContent = usuario.nombre || 'Usuario';
+        }
+        if (fields.usuarioRol) {
+          fields.usuarioRol.textContent = roleLabels[rol] || rol || 'Rol no configurable';
+        }
+        if (fields.opciones) {
+          fields.opciones.innerHTML = catalogo.map((item) => {
+            const key = String(item.key || '');
+            const fijo = key === 'dashboard';
+            return `
+              <label class="im-switch" data-fijo="${fijo ? 'true' : 'false'}">
+                <span>${item.label}</span>
+                ${fijo ? '<input type="hidden" name="menu_items[]" value="dashboard">' : ''}
+                <input type="checkbox" name="${fijo ? '' : 'menu_items[]'}" value="${key}" ${seleccion.has(key) ? 'checked' : ''} ${fijo ? 'checked disabled' : ''}>
+              </label>
+            `;
+          }).join('');
+        }
+
+        const paginaActual = String(usuario.pagina_inicio_key || '');
+        renderPaginaInicio(catalogo, obtenerSeleccion(), paginaActual);
+      };
+
+      fields.opciones?.addEventListener('change', () => {
+        const catalogo = Array.isArray(menuCatalogByRole[(modal.dataset.usuarioRol || '')]) ? menuCatalogByRole[modal.dataset.usuarioRol] : [];
+        const paginaActual = fields.paginaInicio?.value || 'dashboard';
+        renderPaginaInicio(catalogo, obtenerSeleccion(), paginaActual);
+      });
+
+      document.addEventListener('click', (evento) => {
+        const trigger = evento.target.closest('[data-gestionar-menu-usuario]');
+        if (trigger) {
+          try {
+            const usuario = JSON.parse(trigger.getAttribute('data-gestionar-menu-usuario') || '{}');
+            const rol = String(usuario.rol || '');
+            const catalogo = Array.isArray(menuCatalogByRole[rol]) ? menuCatalogByRole[rol] : [];
+            const paginaKey = catalogo.find((item) => item.href === String(usuario.pagina_inicio || ''))?.key || 'dashboard';
+            modal.dataset.usuarioRol = rol;
+            renderOpciones({ ...usuario, pagina_inicio_key: paginaKey });
+            alternarModal(true);
+          } catch (error) {
+            return;
+          }
+        }
+
+        if (evento.target.closest('[data-cerrar-gestor-menu]')) {
           alternarModal(false);
         }
       });

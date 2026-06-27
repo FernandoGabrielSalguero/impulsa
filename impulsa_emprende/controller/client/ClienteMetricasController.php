@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
 require_once __DIR__ . '/../../model/client/ClienteMetricasModel.php';
+require_once __DIR__ . '/../../partials/components/admin/GestorDeMenu/admin_gestorMenuController.php';
 
 $usuario = authRequiereRol('impulsa_cliente');
+adminGestorMenuAsegurarAccesoSeccion($pdo, $usuario, 'metricas');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 

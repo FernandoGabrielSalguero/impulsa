@@ -3,8 +3,10 @@
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
 require_once __DIR__ . '/../../model/emprendedor/EmprendedorPaginaWebModel.php';
 require_once __DIR__ . '/../../model/client/ClienteDashboardModel.php';
+require_once __DIR__ . '/../../partials/components/admin/GestorDeMenu/admin_gestorMenuController.php';
 
 $usuario = authRequiereRol('impulsa_emprendedor');
+adminGestorMenuAsegurarAccesoSeccion($pdo, $usuario, 'pagina_web');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 

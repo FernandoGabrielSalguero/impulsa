@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../../partials/components/admin/GestorDeMenu/admin_gestorMenuModel.php';
+
 $h = isset($h) && is_callable($h)
     ? $h
     : static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -11,16 +13,11 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Emprendedor';
 $emprendedorActivePage = (string) ($emprendedorActivePage ?? 'dashboard');
 
-$emprendedorMenuItems = [
-    ['key' => 'dashboard', 'href' => '/impulsa_emprende/controller/emprendedor/EmprendedorDashboardController.php', 'icon' => 'dashboard', 'label' => 'Dashboard'],
-    ['key' => 'definicion', 'href' => '/impulsa_emprende/controller/emprendedor/emprendedorDefinicionController.php', 'icon' => 'psychology', 'label' => 'Definicion'],
-    ['key' => 'pagina_web', 'href' => '/impulsa_emprende/controller/emprendedor/EmprendedorPaginaWebController.php', 'icon' => 'web', 'label' => 'Pagina web'],
-    ['key' => 'metricas', 'href' => '/impulsa_emprende/controller/emprendedor/EmprendedorMetricasController.php', 'icon' => 'monitoring', 'label' => 'Metricas'],
-    ['key' => 'marketing', 'href' => '/impulsa_emprende/controller/emprendedor/EmprendedorMarketingController.php', 'icon' => 'campaign', 'label' => 'Marketing'],
-    ['key' => 'chatbot', 'href' => '/impulsa_emprende/controller/emprendedor/EmprendedorChatbotController.php', 'icon' => 'forum', 'label' => 'Chatbot'],
-    ['key' => 'blog', 'href' => '/impulsa_emprende/controller/emprendedor/EmprendedorBlogController.php', 'icon' => 'article', 'label' => 'Blog'],
-    ['key' => 'productos', 'href' => '/impulsa_emprende/controller/emprendedor/EmprendedorProductController.php', 'icon' => 'inventory_2', 'label' => 'Productos'],
-];
+$emprendedorMenuItems = adminGestorMenuCatalogoBase('impulsa_emprendedor');
+if (isset($pdo, $usuario['id'])) {
+    $menuConfig = adminGestorMenuObtenerConfiguracionUsuario($pdo, (int) $usuario['id'], 'impulsa_emprendedor');
+    $emprendedorMenuItems = $menuConfig['visible_items'] ?? $emprendedorMenuItems;
+}
 ?>
 <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
   <div class="im-marca">

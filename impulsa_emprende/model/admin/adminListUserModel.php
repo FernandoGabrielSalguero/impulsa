@@ -96,6 +96,7 @@ class AdminListUserModel
             $this->ejecutar('UPDATE project_contracts SET updated_by_user_id = NULL WHERE updated_by_user_id = :id', $usuarioId);
             $this->ejecutar('DELETE FROM project_updates WHERE created_by = :id', $usuarioId);
 
+            $this->ejecutar('DELETE FROM user_menu_view WHERE user_auth_id = :id', $usuarioId);
             $this->ejecutar('DELETE FROM user_params WHERE user_auth_id = :id', $usuarioId);
             $this->ejecutar('DELETE FROM user_contacto WHERE user_auth_id = :id', $usuarioId);
             $this->ejecutar('DELETE FROM user_info WHERE user_auth_id = :id', $usuarioId);
@@ -405,7 +406,10 @@ class AdminListUserModel
                     uc.permison_correo,
                     uc.check_whatsapp,
                     uc.permison_whatsapp,
-                    up.page AS pagina_inicio
+                    up.page AS pagina_inicio,
+                    (SELECT GROUP_CONCAT(umv.menu_key ORDER BY umv.id SEPARATOR ",")
+                     FROM user_menu_view umv
+                     WHERE umv.user_auth_id = ua.id) AS menu_items_config
              FROM user_auth ua
              LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
              LEFT JOIN user_contacto uc ON uc.user_auth_id = ua.id

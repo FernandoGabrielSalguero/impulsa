@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
+require_once __DIR__ . '/../../partials/components/admin/GestorDeMenu/admin_gestorMenuController.php';
 
 $usuario = authRequiereRol('impulsa_emprendedor');
+adminGestorMenuAsegurarAccesoSeccion($pdo, $usuario, 'productos');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 

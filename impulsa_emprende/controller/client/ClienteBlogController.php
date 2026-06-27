@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../../auth/auth_helpers.php';
 require_once __DIR__ . '/../../partials/api_blog/api_blogModel.php';
+require_once __DIR__ . '/../../partials/components/admin/GestorDeMenu/admin_gestorMenuController.php';
 
 $usuario = authRequiereRol('impulsa_cliente');
+adminGestorMenuAsegurarAccesoSeccion($pdo, $usuario, 'blog');
 
 $blogMediaItemId = filter_input(INPUT_GET, 'media_item_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $blogMediaType = trim((string) ($_GET['media_type'] ?? ''));
