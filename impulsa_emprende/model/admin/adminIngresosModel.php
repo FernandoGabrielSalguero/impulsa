@@ -26,59 +26,53 @@ class AdminIngresosModel
     }
 
         /**
-     * Obtiene el listado completo de ingresos con filtros opcionales,
-     * ordenados por fecha descendente.
-     * Ajusta la hora restando 3h para conversión a horario argentino.
-     */
-    public function obtenerIngresos(
-        string $nombre = '',
-        string $rol = '',
-        string $fechaDesde = '',
-        string $fechaHasta = ''
-    ): array {
-        $condiciones = [];
-        $params = [];
+         * Obtiene el listado completo de ingresos con filtros opcionales,
+         * ordenados por fecha descendente.
+         * Ajusta la hora restando 3h para conversión a horario argentino.
+         */
+        public function obtenerIngresos(
+            string $nombre = '',
+            string $rol = '',
+            string $fecha = ''
+        ): array {
+            $condiciones = [];
+            $params = [];
 
-        if ($nombre !== '') {
-            $condiciones[] = 'ui.nombre_usuario LIKE :nombre';
-            $params['nombre'] = '%' . $nombre . '%';
+            if ($nombre !== '') {
+                $condiciones[] = 'ui.nombre_usuario LIKE :nombre';
+                $params['nombre'] = '%' . $nombre . '%';
+            }
+
+            if ($rol !== '') {
+                $condiciones[] = 'ui.rol = :rol';
+                $params['rol'] = $rol;
+            }
+
+            if ($fecha !== '') {
+                $condiciones[] = 'ui.fecha_ingreso = :fecha';
+                $params['fecha'] = $fecha;
+            }
+
+            $whereSql = $condiciones !== []
+                ? 'WHERE ' . implode(' AND ', $condiciones)
+                : '';
+
+            $stmt = $this->pdo->prepare(
+                "SELECT ui.id,
+                        ui.user_auth_id,
+                        ui.nombre_usuario,
+                        ui.rol,
+                        ui.fecha_ingreso,
+                        SUBTIME(ui.hora_ingreso, '03:00:00') AS hora_ingreso,
+                        ui.created_at
+                 FROM user_ingresos ui
+                 {$whereSql}
+                 ORDER BY ui.fecha_ingreso DESC, ui.hora_ingreso DESC, ui.id DESC"
+            );
+            $stmt->execute($params);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-
-        if ($rol !== '') {
-            $condiciones[] = 'ui.rol = :rol';
-            $params['rol'] = $rol;
-        }
-
-        if ($fechaDesde !== '') {
-            $condiciones[] = 'ui.fecha_ingreso >= :fecha_desde';
-            $params['fecha_desde'] = $fechaDesde;
-        }
-
-        if ($fechaHasta !== '') {
-            $condiciones[] = 'ui.fecha_ingreso <= :fecha_hasta';
-            $params['fecha_hasta'] = $fechaHasta;
-        }
-
-        $whereSql = $condiciones !== []
-            ? 'WHERE ' . implode(' AND ', $condiciones)
-            : '';
-
-        $stmt = $this->pdo->prepare(
-            "SELECT ui.id,
-                    ui.user_auth_id,
-                    ui.nombre_usuario,
-                    ui.rol,
-                    ui.fecha_ingreso,
-                    SUBTIME(ui.hora_ingreso, '03:00:00') AS hora_ingreso,
-                    ui.created_at
-             FROM user_ingresos ui
-             {$whereSql}
-             ORDER BY ui.fecha_ingreso DESC, ui.hora_ingreso DESC, ui.id DESC"
-        );
-        $stmt->execute($params);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
 
     /**
      * Obtiene el nombre visible de un usuario a partir de su user_auth_id.
