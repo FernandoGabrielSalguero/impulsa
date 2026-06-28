@@ -10,7 +10,18 @@ $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 
 $adminIngresosModel = new AdminIngresosModel($pdo);
-$ingresos = $adminIngresosModel->obtenerIngresos();
+
+$filtroNombre = trim((string) ($_GET['nombre'] ?? ''));
+$filtroRol = trim((string) ($_GET['rol'] ?? ''));
+$filtroFechaDesde = trim((string) ($_GET['fecha_desde'] ?? ''));
+$filtroFechaHasta = trim((string) ($_GET['fecha_hasta'] ?? ''));
+
+$ingresos = $adminIngresosModel->obtenerIngresos(
+    $filtroNombre,
+    $filtroRol,
+    $filtroFechaDesde,
+    $filtroFechaHasta
+);
 $totalIngresos = count($ingresos);
 
 require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilController.php';

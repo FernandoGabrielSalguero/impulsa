@@ -8,6 +8,21 @@ $totalIngresos = count($ingresos);
 $adminActiveMenu = 'ingresos';
 
 $h = static fn ($valor): string => htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
+
+$filtroNombre = trim((string) ($_GET['nombre'] ?? ''));
+$filtroRol = trim((string) ($_GET['rol'] ?? ''));
+$filtroFechaDesde = trim((string) ($_GET['fecha_desde'] ?? ''));
+$filtroFechaHasta = trim((string) ($_GET['fecha_hasta'] ?? ''));
+
+$rolesDisponibles = [
+    'impulsa_administrador',
+    'impulsa_colaborador',
+    'impulsa_emprendedor',
+    'impulsa_usuario',
+    'impulsa_marketing',
+    'impulsa_cliente',
+];
+
 $formatearRol = static function (string $rol): string {
     return ucwords(str_replace('_', ' ', $rol));
 };
@@ -15,7 +30,8 @@ $formatearFecha = static function (string $fecha): string {
     return date('d/m/Y', strtotime($fecha));
 };
 $formatearHora = static function (string $hora): string {
-    return date('H:i', strtotime($hora));
+    $parts = explode(':', $hora);
+    return (count($parts) >= 2) ? $parts[0] . ':' . $parts[1] : $hora;
 };?>
 <!doctype html>
 <html lang="es">
@@ -44,9 +60,21 @@ $formatearHora = static function (string $hora): string {
       content: attr(data-icon);
     }
 
+    .im-formulario--filtros .im-campo {
+      margin-bottom: 0;
+    }
+
     @media (max-width: 760px) {
       .im-tabla-tareas__scroll {
         max-height: none;
+      }
+
+      .im-formulario--filtros {
+        flex-direction: column;
+      }
+
+      .im-formulario--filtros .im-campo {
+        min-width: 100% !important;
       }
     }
   </style>
@@ -91,6 +119,48 @@ $formatearHora = static function (string $hora): string {
                   <p>Ultimos accesos de usuarios al sistema.</p>
                 </div>
               </div>
+
+              <form class="im-formulario im-formulario--filtros" method="get" action="/impulsa_emprende/controller/admin/adminIngresosController.php" style="display:flex;flex-wrap:wrap;gap:.75rem;padding:0 1.25rem 1rem;align-items:end;">
+                <label class="im-campo im-campo-material" style="min-width:180px;flex:1;">
+                  <span>Nombre de usuario</span>
+                  <input type="search" name="nombre" value="<?= $h($filtroNombre) ?>" placeholder="Buscar por nombre..." autocomplete="off">
+                  <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">search</i>
+                </label>
+                <label class="im-campo im-campo-material" style="min-width:160px;flex:0 1 auto;">
+                  <span>Rol</span>
+                  <select name="rol">
+                    <option value="">Todos los roles</option>
+                    <?php foreach ($rolesDisponibles as $rolOption): ?>
+                      <option value="<?= $h($rolOption) ?>" <?= $filtroRol === $rolOption ? 'selected' : '' ?>>
+                        <?= $h($formatearRol($rolOption)) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                  <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">admin_panel_settings</i>
+                </label>
+                <label class="im-campo im-campo-material" style="min-width:140px;flex:0 1 auto;">
+                  <span>Fecha desde</span>
+                  <input type="date" name="fecha_desde" value="<?= $h($filtroFechaDesde) ?>">
+                  <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">calendar_month</i>
+                </label>
+                <label class="im-campo im-campo-material" style="min-width:140px;flex:0 1 auto;">
+                  <span>Fecha hasta</span>
+                  <input type="date" name="fecha_hasta" value="<?= $h($filtroFechaHasta) ?>">
+                  <i class="im-campo__icono material-symbols-rounded" aria-hidden="true">calendar_month</i>
+                </label>
+                <div style="display:flex;gap:.5rem;flex:0 0 auto;">
+                  <button class="im-boton im-boton--principal" type="submit">
+                    <span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>
+                    Filtrar
+                  </button>
+                  <?php if ($filtroNombre !== '' || $filtroRol !== '' || $filtroFechaDesde !== '' || $filtroFechaHasta !== ''): ?>
+                    <a class="im-boton im-boton--tonal" href="/impulsa_emprende/controller/admin/adminIngresosController.php">
+                      <span class="material-symbols-rounded" aria-hidden="true">clear</span>
+                      Limpiar
+                    </a>
+                  <?php endif; ?>
+                </div>
+              </form>
               <div class="im-tabla-tareas__scroll">
                 <table class="im-tabla-tareas">
                   <thead>

@@ -25,23 +25,57 @@ class AdminIngresosModel
         ]);
     }
 
-    /**
-     * Obtiene el listado completo de ingresos ordenados por fecha descendente.
+        /**
+     * Obtiene el listado completo de ingresos con filtros opcionales,
+     * ordenados por fecha descendente.
+     * Ajusta la hora restando 3h para conversión a horario argentino.
      */
-    public function obtenerIngresos(): array
-    {
+    public function obtenerIngresos(
+        string $nombre = '',
+        string $rol = '',
+        string $fechaDesde = '',
+        string $fechaHasta = ''
+    ): array {
+        $condiciones = [];
+        $params = [];
+
+        if ($nombre !== '') {
+            $condiciones[] = 'ui.nombre_usuario LIKE :nombre';
+            $params['nombre'] = '%' . $nombre . '%';
+        }
+
+        if ($rol !== '') {
+            $condiciones[] = 'ui.rol = :rol';
+            $params['rol'] = $rol;
+        }
+
+        if ($fechaDesde !== '') {
+            $condiciones[] = 'ui.fecha_ingreso >= :fecha_desde';
+            $params['fecha_desde'] = $fechaDesde;
+        }
+
+        if ($fechaHasta !== '') {
+            $condiciones[] = 'ui.fecha_ingreso <= :fecha_hasta';
+            $params['fecha_hasta'] = $fechaHasta;
+        }
+
+        $whereSql = $condiciones !== []
+            ? 'WHERE ' . implode(' AND ', $condiciones)
+            : '';
+
         $stmt = $this->pdo->prepare(
-            'SELECT ui.id,
+            "SELECT ui.id,
                     ui.user_auth_id,
                     ui.nombre_usuario,
                     ui.rol,
                     ui.fecha_ingreso,
-                    ui.hora_ingreso,
+                    SUBTIME(ui.hora_ingreso, '03:00:00') AS hora_ingreso,
                     ui.created_at
              FROM user_ingresos ui
-             ORDER BY ui.fecha_ingreso DESC, ui.hora_ingreso DESC, ui.id DESC'
+             {$whereSql}
+             ORDER BY ui.fecha_ingreso DESC, ui.hora_ingreso DESC, ui.id DESC"
         );
-        $stmt->execute();
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
