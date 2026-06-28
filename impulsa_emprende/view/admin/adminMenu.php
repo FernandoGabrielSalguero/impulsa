@@ -21,6 +21,7 @@ $adminMenuItems = [
     ['key' => 'api', 'href' => '/impulsa_emprende/controller/admin/adminAPIconfigurationController.php', 'icon' => 'key', 'label' => 'Integraciones API'],
     ['key' => 'correos', 'href' => '/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php', 'icon' => 'mail', 'label' => 'Correos enviados'],
     ['key' => 'chatbots', 'href' => '/impulsa_emprende/controller/admin/adminChatbotController.php', 'icon' => 'forum', 'label' => 'Chatbots'],
+    ['key' => 'ingresos', 'href' => '/impulsa_emprende/controller/admin/adminIngresosController.php', 'icon' => 'login', 'label' => 'Ingresos'],    
 ];
 ?>
 <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">

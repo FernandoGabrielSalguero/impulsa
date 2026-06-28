@@ -1,7 +1,10 @@
 ﻿<?php
 
+require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/auth_helpers.php';
+require_once __DIR__ . '/../impulsa_emprende/model/admin/adminIngresosModel.php';
 
+/** @var PDO $pdo */
 $error = '';
 $estado = authMensajeEstado($_GET['estado'] ?? null);
 
@@ -19,10 +22,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$usuario || !password_verify($password, $usuario['password'])) {
             $error = 'Credenciales incorrectas.';
         } else {
-            session_regenerate_id(true);
+                        session_regenerate_id(true);
             $_SESSION['usuario_id'] = (int) $usuario['id'];
             $_SESSION['usuario'] = $usuario['correo'];
             $_SESSION['rol'] = $usuario['rol'];
+
+            // Registrar el ingreso del usuario
+            try {
+                $ingresosModel = new AdminIngresosModel($pdo);
+
+                // Obtener nombre visible del usuario
+                $nombreUsuario = $ingresosModel->obtenerNombreUsuario((int) $usuario['id']);
+
+                $ingresosModel->registrarIngreso(
+                    (int) $usuario['id'],
+                    $nombreUsuario,
+                    $usuario['rol']
+                );
+            } catch (Throwable $e) {
+                // Fallo silencioso: no interrumpe el login
+            }
 
             authRedirigirPorRol($usuario['rol']);
         }
