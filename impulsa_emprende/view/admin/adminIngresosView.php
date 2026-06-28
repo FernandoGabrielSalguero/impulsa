@@ -12,6 +12,7 @@ $h = static fn ($valor): string => htmlspecialchars((string) $valor, ENT_QUOTES,
 $filtroNombre = trim((string) ($_GET['nombre'] ?? ''));
 $filtroRol = trim((string) ($_GET['rol'] ?? ''));
 $filtroFecha = trim((string) ($_GET['fecha'] ?? ''));
+$hayFiltrosActivos = $filtroNombre !== '' || $filtroRol !== '' || $filtroFecha !== '';
 
 $rolesDisponibles = [
     'impulsa_administrador',
@@ -29,8 +30,21 @@ $formatearFecha = static function (string $fecha): string {
     return date('d/m/Y', strtotime($fecha));
 };
 $formatearHora = static function (string $hora): string {
-    $parts = explode(':', $hora);
-    return (count($parts) >= 2) ? $parts[0] . ':' . $parts[1] : $hora;
+    $hora = trim($hora);
+    if ($hora === '') {
+        return '';
+    }
+
+    $partes = explode(':', $hora);
+    if (count($partes) < 2) {
+        return $hora;
+    }
+
+    $horas = (int) $partes[0];
+    $minutos = str_pad((string) ((int) $partes[1]), 2, '0', STR_PAD_LEFT);
+    $horasAjustadas = ($horas - 3 + 24) % 24;
+
+    return str_pad((string) $horasAjustadas, 2, '0', STR_PAD_LEFT) . ':' . $minutos;
 };?>
 <!doctype html>
 <html lang="es">
@@ -59,6 +73,12 @@ $formatearHora = static function (string $hora): string {
 
     .im-filtros-ajax .im-campo {
       margin-bottom: 0;
+    }
+
+    .im-tabla-tareas__sin-resultados {
+      text-align: center;
+      color: #5f6368;
+      padding: 1.5rem 1rem;
     }
 
     @media (max-width: 760px) {
@@ -110,12 +130,12 @@ $formatearHora = static function (string $hora): string {
 
           <div id="ingresos-empty" <?= $totalIngresos > 0 ? 'style="display:none"' : '' ?>>
             <article class="im-tarjeta">
-              <h3>No hay ingresos registrados</h3>
-              <p>Cuando los usuarios ingresen al sistema, sus accesos apareceran registrados en esta tabla.</p>
+              <h3 id="ingresos-empty-title"><?= $hayFiltrosActivos ? 'No se encontraron resultados' : 'No hay ingresos registrados' ?></h3>
+              <p id="ingresos-empty-text"><?= $hayFiltrosActivos ? 'Probá cambiar o limpiar los filtros para volver a buscar ingresos.' : 'Cuando los usuarios ingresen al sistema, sus accesos apareceran registrados en esta tabla.' ?></p>
             </article>
           </div>
 
-          <div id="ingresos-table" <?= $totalIngresos === 0 ? 'style="display:none"' : '' ?>>
+          <div id="ingresos-table">
             <article class="im-tabla-tareas__tarjeta">
               <div class="im-tabla-tareas__cabecera">
                 <div>
@@ -160,15 +180,21 @@ $formatearHora = static function (string $hora): string {
                     </tr>
                   </thead>
                   <tbody id="ingresos-tbody">
-                    <?php foreach ($ingresos as $ingreso): ?>
+                    <?php if ($totalIngresos === 0): ?>
                       <tr>
-                        <td class="im-tabla-tareas__nombre"><?= $h($ingreso['nombre_usuario'] ?? '') ?></td>
-                        <td><span class="im-chip"><?= $h($formatearRol($ingreso['rol'] ?? '')) ?></span></td>
-                        <td><?= $h($formatearFecha($ingreso['fecha_ingreso'] ?? '')) ?></td>
-                        <td><?= $h($formatearHora($ingreso['hora_ingreso'] ?? '')) ?></td>
-                        <td><?= $h($formatearFecha($ingreso['created_at'] ?? '')) ?></td>
+                        <td colspan="5" class="im-tabla-tareas__sin-resultados"><?= $hayFiltrosActivos ? 'No se encontraron ingresos para los filtros seleccionados.' : 'Todavia no hay ingresos registrados.' ?></td>
                       </tr>
-                    <?php endforeach; ?>
+                    <?php else: ?>
+                      <?php foreach ($ingresos as $ingreso): ?>
+                        <tr>
+                          <td class="im-tabla-tareas__nombre"><?= $h($ingreso['nombre_usuario'] ?? '') ?></td>
+                          <td><span class="im-chip"><?= $h($formatearRol($ingreso['rol'] ?? '')) ?></span></td>
+                          <td><?= $h($formatearFecha($ingreso['fecha_ingreso'] ?? '')) ?></td>
+                          <td><?= $h($formatearHora($ingreso['hora_ingreso'] ?? '')) ?></td>
+                          <td><?= $h($formatearFecha($ingreso['created_at'] ?? '')) ?></td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
                   </tbody>
                 </table>
               </div>
@@ -190,8 +216,10 @@ $formatearHora = static function (string $hora): string {
       var totalSpan = document.getElementById('ingresos-total');
       var tableContainer = document.getElementById('ingresos-table');
       var emptyContainer = document.getElementById('ingresos-empty');
+      var emptyTitle = document.getElementById('ingresos-empty-title');
+      var emptyText = document.getElementById('ingresos-empty-text');
 
-      if (!nombreInput || !rolSelect || !fechaInput || !tbody || !totalSpan || !tableContainer || !emptyContainer) return;
+      if (!nombreInput || !rolSelect || !fechaInput || !tbody || !totalSpan || !tableContainer || !emptyContainer || !emptyTitle || !emptyText) return;
 
       var debounceTimer = null;
 
@@ -216,10 +244,11 @@ $formatearHora = static function (string $hora): string {
             totalSpan.textContent = Number(data.total).toLocaleString('es-AR') + ' ingresos';
 
             if (data.total === 0) {
-              tableContainer.style.display = 'none';
               emptyContainer.style.display = '';
+              emptyTitle.textContent = 'No se encontraron resultados';
+              emptyText.textContent = 'Probá cambiar o limpiar los filtros para volver a buscar ingresos.';
+              tbody.innerHTML = '<tr><td colspan="5" class="im-tabla-tareas__sin-resultados">No se encontraron ingresos para los filtros seleccionados.</td></tr>';
             } else {
-              tableContainer.style.display = '';
               emptyContainer.style.display = 'none';
 
               var html = '';

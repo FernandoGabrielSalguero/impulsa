@@ -63,7 +63,7 @@ class AdminIngresosModel
                         ui.nombre_usuario,
                         ui.rol,
                         ui.fecha_ingreso,
-                        SUBTIME(ui.hora_ingreso, '03:00:00') AS hora_ingreso,
+                        ui.hora_ingreso,
                         ui.created_at
                  FROM user_ingresos ui
                  {$whereSql}

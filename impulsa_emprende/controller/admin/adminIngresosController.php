@@ -15,6 +15,24 @@ $filtroNombre = trim((string) ($_GET['nombre'] ?? ''));
 $filtroRol = trim((string) ($_GET['rol'] ?? ''));
 $filtroFecha = trim((string) ($_GET['fecha'] ?? ''));
 
+$formatearHoraAjustada = static function (string $hora): string {
+    $hora = trim($hora);
+    if ($hora === '') {
+        return '';
+    }
+
+    $partes = explode(':', $hora);
+    if (count($partes) < 2) {
+        return $hora;
+    }
+
+    $horas = (int) $partes[0];
+    $minutos = str_pad((string) ((int) $partes[1]), 2, '0', STR_PAD_LEFT);
+    $horasAjustadas = ($horas - 3 + 24) % 24;
+
+    return str_pad((string) $horasAjustadas, 2, '0', STR_PAD_LEFT) . ':' . $minutos;
+};
+
 // Respuesta AJAX: devuelve JSON con los ingresos filtrados
 if (($_GET['ajax'] ?? '') === 'ingresos') {
     header('Content-Type: application/json; charset=UTF-8');
@@ -32,22 +50,17 @@ if (($_GET['ajax'] ?? '') === 'ingresos') {
     $formatearFecha = static function (string $fecha): string {
         return date('d/m/Y', strtotime($fecha));
     };
-    $formatearHora = static function (string $hora): string {
-        $parts = explode(':', $hora);
-        return (count($parts) >= 2) ? $parts[0] . ':' . $parts[1] : $hora;
-    };
-
     $h = static fn ($valor): string => htmlspecialchars((string) $valor, ENT_QUOTES, 'UTF-8');
 
     echo json_encode([
         'ok' => true,
         'total' => $totalIngresos,
-        'ingresos' => array_map(static function (array $ingreso) use ($h, $formatearRol, $formatearFecha, $formatearHora): array {
+        'ingresos' => array_map(static function (array $ingreso) use ($h, $formatearRol, $formatearFecha, $formatearHoraAjustada): array {
             return [
                 'nombre_usuario' => $h($ingreso['nombre_usuario'] ?? ''),
                 'rol' => $h($formatearRol($ingreso['rol'] ?? '')),
                 'fecha_ingreso' => $h($formatearFecha($ingreso['fecha_ingreso'] ?? '')),
-                'hora_ingreso' => $h($formatearHora($ingreso['hora_ingreso'] ?? '')),
+                'hora_ingreso' => $h($formatearHoraAjustada($ingreso['hora_ingreso'] ?? '')),
                 'created_at' => $h($formatearFecha($ingreso['created_at'] ?? '')),
             ];
         }, $ingresos),
