@@ -167,6 +167,43 @@ function obtenerFaviconHref(string $version = '20260607'): string
     return ($baseUrl !== '' ? $baseUrl : '') . '/Favicon.ico?v=' . rawurlencode($version);
 }
 
+function obtenerImpulsaMaterialCdnBaseUrl(): string
+{
+    $cdnBaseUrl = trim((string) (getenv('IMPULSA_MATERIAL_CDN_BASE_URL') ?: ''));
+    if ($cdnBaseUrl === '') {
+        $cdnBaseUrl = trim((string) (getenv('IMPULSA_CDN_BASE_URL') ?: ''));
+    }
+    if ($cdnBaseUrl === '') {
+        $cdnBaseUrl = 'https://impulsagroup.com';
+    }
+
+    return rtrim($cdnBaseUrl, '/');
+}
+
+function obtenerImpulsaMaterialCssHref(): string
+{
+    return obtenerImpulsaMaterialCdnBaseUrl() . '/assets/impulsa_material/css/material.css';
+}
+
+function obtenerImpulsaMaterialJsSrc(): string
+{
+    return obtenerImpulsaMaterialCdnBaseUrl() . '/assets/impulsa_material/js/material.js';
+}
+
+function obtenerImpulsaMaterialValidacionesJsSrc(): string
+{
+    return obtenerImpulsaMaterialCdnBaseUrl() . '/assets/impulsa_material/js/material-validaciones.js';
+}
+
+function renderImpulsaMaterialFonts(): string
+{
+    return <<<'HTML'
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+HTML;
+}
+
 function renderBotonPerfil(?string $avatarPath): string
 {
     $avatarUrl = obtenerAvatarUrl($avatarPath);

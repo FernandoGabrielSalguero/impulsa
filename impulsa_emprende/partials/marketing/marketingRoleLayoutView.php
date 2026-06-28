@@ -16,10 +16,8 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= $h($marketingPageTitle) ?> | Marketing Impulsa</title>
   <link rel="icon" href="<?= $h(obtenerFaviconHref()) ?>" type="image/x-icon">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../assets/impulsa_material/css/material.css">
+  <?= renderImpulsaMaterialFonts() ?>
+  <link rel="stylesheet" href="<?= htmlspecialchars(obtenerImpulsaMaterialCssHref(), ENT_QUOTES, 'UTF-8'); ?>">
   <link rel="stylesheet" href="../../../assets/css/marketing/marketingPlanes.css">
 </head>
 <body>
@@ -70,7 +68,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''
     data-marketing-snackbar="<?= is_array($marketingMensaje) ? $h($marketingMensaje['mensaje'] ?? '') : '' ?>"
     data-estado="<?= is_array($marketingMensaje) ? $h($marketingMensaje['estado'] ?? 'ok') : 'ok' ?>"
   ><span></span><button type="button" data-cerrar-snackbar>Cerrar</button></div>
-  <script src="../../../assets/impulsa_material/js/material.js"></script>
+  <script src="<?= htmlspecialchars(obtenerImpulsaMaterialJsSrc(), ENT_QUOTES, 'UTF-8'); ?>"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="../../../assets/js/marketing/marketingPlanes.js"></script>
 </body>

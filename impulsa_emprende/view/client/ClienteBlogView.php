@@ -12,11 +12,9 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Blog cliente | Impulsa</title>
   <link rel="icon" href="<?= htmlspecialchars(obtenerFaviconHref(), ENT_QUOTES, 'UTF-8'); ?>" type="image/x-icon">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+  <?= renderImpulsaMaterialFonts() ?>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css">
-  <link rel="stylesheet" href="/assets/impulsa_material/css/material.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(obtenerImpulsaMaterialCssHref(), ENT_QUOTES, 'UTF-8'); ?>">
   <style>
     .im-marca__isotipo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
     .im-accion-salir { color: #ba1a1a; }
@@ -46,6 +44,6 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
   </div>
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-  <script src="/assets/impulsa_material/js/material.js"></script>
+  <script src="<?= htmlspecialchars(obtenerImpulsaMaterialJsSrc(), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>

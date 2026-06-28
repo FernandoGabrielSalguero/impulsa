@@ -12,7 +12,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chatbot emprendedor | Impulsa</title>
   <link rel="icon" href="<?= htmlspecialchars(obtenerFaviconHref(), ENT_QUOTES, 'UTF-8'); ?>" type="image/x-icon">
-  <link rel="stylesheet" href="/assets/impulsa_material/css/material.css?v=icons-local-1">
+  <link rel="stylesheet" href="<?= htmlspecialchars(obtenerImpulsaMaterialCssHref(), ENT_QUOTES, 'UTF-8'); ?>">
   <style>
     .im-marca__isotipo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
     .im-bottom-sheet--perfil { max-width: 860px; max-height: min(760px, calc(100vh - 2rem)); overflow: auto; }
@@ -47,7 +47,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) $valor, ENT_Q
   </div>
 
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
-  <script src="/assets/impulsa_material/js/material.js?v=panel-default-1"></script>
+  <script src="<?= htmlspecialchars(obtenerImpulsaMaterialJsSrc(), ENT_QUOTES, 'UTF-8'); ?>"></script>
   <script src="/impulsa_emprende/partials/components/chatbot_builder/chatbot_builder.js"></script>
 </body>
 </html>

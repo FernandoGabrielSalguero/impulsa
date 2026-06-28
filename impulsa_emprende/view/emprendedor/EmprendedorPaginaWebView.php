@@ -37,7 +37,7 @@ if (!function_exists('paginaWebFecha')) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pagina web | Impulsa Emprende</title>
   <link rel="icon" href="<?= htmlspecialchars(obtenerFaviconHref(), ENT_QUOTES, 'UTF-8'); ?>" type="image/x-icon">
-  <link rel="stylesheet" href="/assets/impulsa_material/css/material.css?v=icons-local-1">
+  <link rel="stylesheet" href="<?= htmlspecialchars(obtenerImpulsaMaterialCssHref(), ENT_QUOTES, 'UTF-8'); ?>">
   <?php require __DIR__ . '/../../partials/components/project progress/styles.php'; ?>
   <style>
     .im-marca__isotipo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
@@ -214,6 +214,6 @@ if (!function_exists('paginaWebFecha')) {
       });
     })();
   </script>
-  <script src="/assets/impulsa_material/js/material.js?v=panel-default-1"></script>
+  <script src="<?= htmlspecialchars(obtenerImpulsaMaterialJsSrc(), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>
