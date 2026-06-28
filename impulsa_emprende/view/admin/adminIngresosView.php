@@ -81,6 +81,15 @@ $formatearHora = static function (string $hora): string {
       padding: 1.5rem 1rem;
     }
 
+    .im-snackbar[data-estado="error"] {
+      background: #ba1a1a;
+      color: #fff;
+    }
+
+    .im-snackbar[data-estado="error"] button {
+      color: #fff;
+    }
+
     @media (max-width: 760px) {
       .im-tabla-tareas__scroll {
         max-height: none;
@@ -128,10 +137,10 @@ $formatearHora = static function (string $hora): string {
             </div>
           </div>
 
-          <div id="ingresos-empty" <?= $totalIngresos > 0 ? 'style="display:none"' : '' ?>>
+          <div id="ingresos-empty" <?= ($totalIngresos > 0 || $hayFiltrosActivos) ? 'style="display:none"' : '' ?>>
             <article class="im-tarjeta">
-              <h3 id="ingresos-empty-title"><?= $hayFiltrosActivos ? 'No se encontraron resultados' : 'No hay ingresos registrados' ?></h3>
-              <p id="ingresos-empty-text"><?= $hayFiltrosActivos ? 'Probá cambiar o limpiar los filtros para volver a buscar ingresos.' : 'Cuando los usuarios ingresen al sistema, sus accesos apareceran registrados en esta tabla.' ?></p>
+              <h3 id="ingresos-empty-title">No hay ingresos registrados</h3>
+              <p id="ingresos-empty-text">Cuando los usuarios ingresen al sistema, sus accesos apareceran registrados en esta tabla.</p>
             </article>
           </div>
 
@@ -206,6 +215,10 @@ $formatearHora = static function (string $hora): string {
   </div>
 
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
+  <div class="im-snackbar" data-estado="ok" aria-live="polite" aria-atomic="true">
+    <span></span>
+    <button type="button" class="im-boton im-boton--texto" data-cerrar-snackbar>Cerrar</button>
+  </div>
   <script src="<?= htmlspecialchars(obtenerImpulsaMaterialJsSrc(), ENT_QUOTES, 'UTF-8'); ?>"></script>
   <script>
     (function() {
@@ -214,14 +227,29 @@ $formatearHora = static function (string $hora): string {
       var fechaInput = document.getElementById('filtro-fecha');
       var tbody = document.getElementById('ingresos-tbody');
       var totalSpan = document.getElementById('ingresos-total');
-      var tableContainer = document.getElementById('ingresos-table');
       var emptyContainer = document.getElementById('ingresos-empty');
-      var emptyTitle = document.getElementById('ingresos-empty-title');
-      var emptyText = document.getElementById('ingresos-empty-text');
+      var snackbar = document.querySelector('.im-snackbar');
+      var snackbarTexto = snackbar ? snackbar.querySelector('span') : null;
+      var snackbarCerrar = document.querySelector('[data-cerrar-snackbar]');
 
-      if (!nombreInput || !rolSelect || !fechaInput || !tbody || !totalSpan || !tableContainer || !emptyContainer || !emptyTitle || !emptyText) return;
+      if (!nombreInput || !rolSelect || !fechaInput || !tbody || !totalSpan || !emptyContainer || !snackbar || !snackbarTexto) return;
 
       var debounceTimer = null;
+
+      function mostrarSnackbar(mensaje, estado) {
+        snackbar.dataset.estado = estado === 'error' ? 'error' : 'ok';
+        snackbarTexto.textContent = mensaje || '';
+        snackbar.classList.add('abierto');
+        window.clearTimeout(window.__impulsaIngresosSnackbarTimer);
+        window.__impulsaIngresosSnackbarTimer = window.setTimeout(function() {
+          snackbar.classList.remove('abierto');
+        }, 4200);
+      }
+
+      function ocultarSnackbar() {
+        window.clearTimeout(window.__impulsaIngresosSnackbarTimer);
+        snackbar.classList.remove('abierto');
+      }
 
       function filtrar() {
         var params = new URLSearchParams();
@@ -239,17 +267,20 @@ $formatearHora = static function (string $hora): string {
         fetch('/impulsa_emprende/controller/admin/adminIngresosController.php?' + params.toString())
           .then(function(res) { return res.json(); })
           .then(function(data) {
-            if (!data.ok) return;
+            if (!data.ok) {
+              mostrarSnackbar('No se pudo actualizar el listado de ingresos.', 'error');
+              return;
+            }
 
             totalSpan.textContent = Number(data.total).toLocaleString('es-AR') + ' ingresos';
 
             if (data.total === 0) {
-              emptyContainer.style.display = '';
-              emptyTitle.textContent = 'No se encontraron resultados';
-              emptyText.textContent = 'Probá cambiar o limpiar los filtros para volver a buscar ingresos.';
+              emptyContainer.style.display = 'none';
               tbody.innerHTML = '<tr><td colspan="5" class="im-tabla-tareas__sin-resultados">No se encontraron ingresos para los filtros seleccionados.</td></tr>';
+              mostrarSnackbar('No se encontraron ingresos con esos filtros.', 'ok');
             } else {
               emptyContainer.style.display = 'none';
+              ocultarSnackbar();
 
               var html = '';
               for (var i = 0; i < data.ingresos.length; i++) {
@@ -265,7 +296,9 @@ $formatearHora = static function (string $hora): string {
               tbody.innerHTML = html;
             }
           })
-          .catch(function() {});
+          .catch(function() {
+            mostrarSnackbar('Hubo un problema al buscar ingresos. Intentá nuevamente.', 'error');
+          });
       }
 
       function onChange() {
@@ -276,6 +309,14 @@ $formatearHora = static function (string $hora): string {
       nombreInput.addEventListener('input', onChange);
       rolSelect.addEventListener('change', onChange);
       fechaInput.addEventListener('change', onChange);
+
+      if (snackbarCerrar) {
+        snackbarCerrar.addEventListener('click', ocultarSnackbar);
+      }
+
+      if (<?= $hayFiltrosActivos && $totalIngresos === 0 ? 'true' : 'false' ?>) {
+        mostrarSnackbar('No se encontraron ingresos con esos filtros.', 'ok');
+      }
     })();
   </script>
 </body>
