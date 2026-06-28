@@ -3,7 +3,8 @@ $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
 $marketingRolLabel = $marketingRolLabel ?? 'Marketing';
-$marketingNavItems = $marketingNavItems ?? [];
+$adminRolLabel = $adminRolLabel ?? $marketingRolLabel;
+$adminActiveMenu = $adminActiveMenu ?? 'marketing';
 $marketingGestiona = marketingUsuarioPuedeGestionar($usuario['rol'] ?? null);
 $marketingMensaje = $_SESSION['marketing_estado'] ?? null;
 unset($_SESSION['marketing_estado']);
@@ -24,29 +25,7 @@ $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''
 </head>
 <body>
   <div class="im-aplicacion" data-menu-colapsado="false">
-    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
-      <div class="im-marca">
-        <span class="im-marca__isotipo" aria-hidden="true">
-          <?php if ($usuarioAvatarUrl): ?>
-            <img src="<?= $h($usuarioAvatarUrl) ?>" alt="">
-          <?php else: ?>
-            <?= $h($usuarioInicial) ?>
-          <?php endif; ?>
-        </span>
-        <div class="im-marca__texto">
-          <strong><?= $h($usuarioMarcaNombre) ?></strong>
-          <span><?= $h($marketingRolLabel) ?></span>
-        </div>
-      </div>
-      <nav class="im-navegacion">
-        <?php foreach ($marketingNavItems as $item): ?>
-          <a class="im-nav-item <?= !empty($item['active']) ? 'activo' : '' ?>" href="<?= $h($item['href'] ?? '#') ?>">
-            <span class="im-nav-item__icono" data-icon="<?= $h($item['icon'] ?? 'circle') ?>" aria-hidden="true"></span>
-            <span class="im-nav-item__texto"><?= $h($item['label'] ?? '') ?></span>
-          </a>
-        <?php endforeach; ?>
-      </nav>
-    </aside>
+    <?php require __DIR__ . '/../../view/admin/adminMenu.php'; ?>
     <div class="im-cortina" data-cerrar-menu></div>
     <div class="im-contenedor">
       <header class="im-barra-superior">

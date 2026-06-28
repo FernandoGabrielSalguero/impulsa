@@ -4,16 +4,10 @@ $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Marketing';
 $marketingPageTitle = $marketingPageTitle ?? 'Marketing';
 $marketingContentView = $marketingContentView ?? null;
+$marketingRolLabel = $marketingRolLabel ?? 'Marketing';
 $marketingMensaje = $_SESSION['marketing_estado'] ?? null;
 unset($_SESSION['marketing_estado']);
 $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
-$marketingNavItems = [
-    ['href' => '/impulsa_emprende/controller/marketing/marketingDashboardController.php', 'icon' => 'sell', 'label' => 'Planes publicados', 'active' => ($marketingActivePage ?? '') === 'dashboard'],
-    ['href' => '/impulsa_emprende/controller/marketing/marketingConstructorController.php', 'icon' => 'edit_note', 'label' => 'Constructor', 'active' => ($marketingActivePage ?? '') === 'constructor'],
-    ['href' => '/impulsa_emprende/controller/marketing/marketingMonitorController.php', 'icon' => 'monitoring', 'label' => 'Monitor', 'active' => ($marketingActivePage ?? '') === 'monitor'],
-    ['href' => '/impulsa_emprende/controller/marketing/marketingResultadosController.php', 'icon' => 'analytics', 'label' => 'Resultados', 'active' => ($marketingActivePage ?? '') === 'resultados'],
-    ['href' => '/impulsa_emprende/controller/marketing/marketingUsuariosController.php', 'icon' => 'groups', 'label' => 'Usuarios', 'active' => ($marketingActivePage ?? '') === 'usuarios'],
-];
 ?>
 <!doctype html>
 <html lang="es">
@@ -30,29 +24,7 @@ $marketingNavItems = [
 </head>
 <body>
   <div class="im-aplicacion" data-menu-colapsado="false">
-    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
-      <div class="im-marca">
-        <span class="im-marca__isotipo" aria-hidden="true">
-          <?php if ($usuarioAvatarUrl): ?>
-            <img src="<?= $h($usuarioAvatarUrl) ?>" alt="">
-          <?php else: ?>
-            <?= $h($usuarioInicial) ?>
-          <?php endif; ?>
-        </span>
-        <div class="im-marca__texto">
-          <strong><?= $h($usuarioMarcaNombre) ?></strong>
-          <span>Marketing</span>
-        </div>
-      </div>
-      <nav class="im-navegacion">
-        <?php foreach ($marketingNavItems as $item): ?>
-          <a class="im-nav-item <?= !empty($item['active']) ? 'activo' : '' ?>" href="<?= $h($item['href']) ?>">
-            <span class="im-nav-item__icono" data-icon="<?= $h($item['icon']) ?>" aria-hidden="true"></span>
-            <span class="im-nav-item__texto"><?= $h($item['label']) ?></span>
-          </a>
-        <?php endforeach; ?>
-      </nav>
-    </aside>
+    <?php require __DIR__ . '/../../view/marketing/marketingMenu.php'; ?>
     <div class="im-cortina" data-cerrar-menu></div>
     <div class="im-contenedor">
       <header class="im-barra-superior">

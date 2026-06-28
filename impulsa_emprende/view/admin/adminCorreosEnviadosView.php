@@ -10,6 +10,7 @@ $totalCorreos = $totalCorreos ?? count($correos);
 $porPagina = $porPagina ?? 20;
 $errorCargaCorreos = $errorCargaCorreos ?? null;
 $estadoVista = $estadoVista ?? '';
+$adminActiveMenu = 'correos';
 $h = static fn (mixed $valor): string => htmlspecialchars((string) ($valor ?? ''), ENT_QUOTES, 'UTF-8');
 $formatearFecha = static function (?string $fecha): string {
     if (!$fecha) {
@@ -86,59 +87,7 @@ $buildPageUrl = static function (int $page) use ($filtros): string {
 </head>
 <body>
   <div class="im-aplicacion" data-menu-colapsado="false">
-    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
-      <div class="im-marca">
-        <span class="im-marca__isotipo" aria-hidden="true">
-          <?php if ($usuarioAvatarUrl): ?>
-            <img src="<?= $h($usuarioAvatarUrl) ?>" alt="">
-          <?php else: ?>
-            <?= $h($usuarioInicial) ?>
-          <?php endif; ?>
-        </span>
-        <div class="im-marca__texto">
-          <strong><?= $h($usuarioMarcaNombre) ?></strong>
-          <span>Administrador</span>
-        </div>
-      </div>
-      <nav class="im-navegacion">
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/dashboard.php">
-          <span class="im-nav-item__icono" data-icon="dashboard" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Dashboard</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminListUserController.php">
-          <span class="im-nav-item__icono" data-icon="groups" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Usuarios</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminSolicitudesPaginaWebSolicitudesController.php">
-          <span class="im-nav-item__icono" data-icon="language" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Solicitudes web</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminProyectosController.php">
-          <span class="im-nav-item__icono" data-icon="work" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Proyectos</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminTareasController.php">
-          <span class="im-nav-item__icono" data-icon="task_alt" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Tareas</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminMarketingController.php">
-          <span class="im-nav-item__icono" data-icon="campaign" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Marketing</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminAPIconfigurationController.php">
-          <span class="im-nav-item__icono" data-icon="key" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Integraciones API</span>
-        </a>
-        <a class="im-nav-item activo" href="/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php">
-          <span class="im-nav-item__icono" data-icon="mail" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Correos enviados</span>
-        </a>
-        <a class="im-nav-item" href="/impulsa_emprende/controller/admin/adminChatbotController.php">
-          <span class="im-nav-item__icono" data-icon="forum" aria-hidden="true"></span>
-          <span class="im-nav-item__texto">Chatbots</span>
-        </a>
-      </nav>
-    </aside>
+    <?php require __DIR__ . '/adminMenu.php'; ?>
     <div class="im-cortina" data-cerrar-menu></div>
     <div class="im-contenedor">
       <header class="im-barra-superior">

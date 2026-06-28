@@ -18,21 +18,12 @@ if ($usuarioMarcaNombre === '') {
     $usuarioMarcaNombre = trim((string) ($perfilDatos['nombre'] ?? ''));
 }
 if ($usuarioMarcaNombre === '') {
-    $usuarioMarcaNombre = 'Usuario';
+$usuarioMarcaNombre = 'Usuario';
 }
 
 $marketingRolLabel = 'Administrador';
+$adminRolLabel = 'Administrador';
+$adminActiveMenu = 'marketing';
 $marketingBackHref = '/impulsa_emprende/controller/admin/dashboard.php';
-$marketingNavItems = [
-    ['href' => '/impulsa_emprende/controller/admin/dashboard.php', 'icon' => 'dashboard', 'label' => 'Dashboard'],
-    ['href' => '/impulsa_emprende/controller/admin/adminListUserController.php', 'icon' => 'groups', 'label' => 'Usuarios'],
-    ['href' => '/impulsa_emprende/controller/admin/adminSolicitudesPaginaWebSolicitudesController.php', 'icon' => 'language', 'label' => 'Solicitudes web'],
-    ['href' => '/impulsa_emprende/controller/admin/adminProyectosController.php', 'icon' => 'work', 'label' => 'Proyectos'],
-    ['href' => '/impulsa_emprende/controller/admin/adminTareasController.php', 'icon' => 'task_alt', 'label' => 'Tareas'],
-    ['href' => '/impulsa_emprende/controller/admin/adminMarketingController.php', 'icon' => 'campaign', 'label' => 'Marketing', 'active' => true],
-    ['href' => '/impulsa_emprende/controller/admin/adminAPIconfigurationController.php', 'icon' => 'key', 'label' => 'Integraciones API'],
-    ['href' => '/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php', 'icon' => 'mail', 'label' => 'Correos enviados'],
-    ['href' => '/impulsa_emprende/controller/admin/adminChatbotController.php', 'icon' => 'forum', 'label' => 'Chatbots'],
-];
 
 require __DIR__ . '/../../view/admin/adminMarketingView.php';
