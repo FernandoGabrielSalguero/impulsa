@@ -586,6 +586,10 @@ $resolverDueno = static function (array $integracion): array {
             </div>
             <div class="im-api-doc__lista">
               <div class="im-api-doc__item">
+                <strong>Ruta</strong>
+                <span>`POST <?= $h(rtrim($appBaseUrl, '/')) ?>/api/producto_api/index.php` enviando JSON con `Content-Type: application/json`.</span>
+              </div>
+              <div class="im-api-doc__item">
                 <strong>Campos esperados</strong>
                 <span>`action`, `public_key` y, para detalle, `slug`.</span>
               </div>
@@ -628,7 +632,7 @@ $resolverDueno = static function (array $integracion): array {
               </div>
               <div class="im-api-doc__item">
                 <strong>Uso</strong>
-                <span>Usa `getProductList()` para vitrinas y `getProductDetail({ slug })` para fichas individuales.</span>
+                <span>Usa esa ruta con `action: "list"` para vitrinas y con `action: "detail"` mas `slug` para fichas individuales. Los helpers `getProductList()` y `getProductDetail({ slug })` ya apuntan a ese endpoint.</span>
               </div>
               <div class="im-api-doc__item">
                 <strong>Consideracion</strong>

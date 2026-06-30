@@ -359,6 +359,44 @@ final class ApiProductoModel
         return is_array($row) ? $this->mapearRegistroPublico($row) : null;
     }
 
+    public function obtenerArchivoPublico(int $integrationId, int $itemId, string $column): ?array
+    {
+        if (!in_array($column, self::PATH_COLUMNS, true)) {
+            return null;
+        }
+
+        $row = $this->obtenerItemPorIntegracion($integrationId, $itemId);
+        if (!is_array($row)) {
+            return null;
+        }
+
+        $storedPath = trim((string) ($row[$column] ?? ''));
+        if ($storedPath === '') {
+            return null;
+        }
+
+        $config = $this->buscarConfiguracionArchivoPorColumna($column);
+        if ($config === null) {
+            return null;
+        }
+
+        $absolutePath = $this->resolverRutaArchivoLocal($storedPath, (string) ($config['upload_dir'] ?? ''));
+        if ($absolutePath === null) {
+            return null;
+        }
+
+        $mimeType = function_exists('mime_content_type') ? (string) mime_content_type($absolutePath) : '';
+        if ($mimeType === '') {
+            $mimeType = $column === 'attachment_path' ? 'application/octet-stream' : 'image/jpeg';
+        }
+
+        return [
+            'absolute_path' => $absolutePath,
+            'mime_type' => $mimeType,
+            'download_name' => basename($absolutePath),
+        ];
+    }
+
     private function normalizarPayload(array $payload, ?array $existente): array
     {
         $title = $this->normalizarTexto($payload['title'] ?? null, true, 180);
@@ -550,16 +588,64 @@ final class ApiProductoModel
             'updated_at' => $row['updated_at'] !== null ? (string) $row['updated_at'] : null,
         ];
 
+        $itemId = (int) ($row['id'] ?? 0);
+        $integrationId = (int) ($row['api_integration_id'] ?? 0);
+        $baseUrl = $this->obtenerBasePublica();
+        $publicKey = $integrationId > 0 ? $this->obtenerPublicKeyPorIntegracion($integrationId) : '';
+
         foreach (self::PATH_COLUMNS as $column) {
             $path = trim((string) ($row[$column] ?? ''));
             $data[$column] = $path !== '' ? $path : null;
-            $data[$column . '_url'] = $path !== '' ? $this->resolverUrlPublica($path) : null;
+            $data[$column . '_url'] = null;
+
+            if ($path === '' || $itemId <= 0 || $integrationId <= 0 || $publicKey === '') {
+                continue;
+            }
+
+            $mediaType = match ($column) {
+                'main_image_path' => 'main',
+                'thumbnail_path' => 'thumbnail',
+                'attachment_path' => 'attachment',
+                default => null,
+            };
+
+            if ($mediaType === null) {
+                continue;
+            }
+
+            $data[$column . '_url'] = $this->construirUrlMediaPublica(
+                $baseUrl,
+                $publicKey,
+                $itemId,
+                $mediaType,
+                $path,
+                (string) ($row['updated_at'] ?? $row['created_at'] ?? '')
+            );
         }
 
         $metadata = $row['metadata_json'] ?? null;
         $data['metadata_json'] = is_string($metadata) && trim($metadata) !== '' ? $metadata : null;
 
         return $data;
+    }
+
+    private function construirUrlMediaPublica(
+        string $baseUrl,
+        string $publicKey,
+        int $itemId,
+        string $mediaType,
+        string $storedPath,
+        string $updatedAt
+    ): string {
+        $version = substr(sha1($storedPath . '|' . $updatedAt . '|' . $itemId . '|' . $mediaType), 0, 12);
+
+        return rtrim($baseUrl, '/') . '/api/producto_api/index.php?' . http_build_query([
+            'public_key' => $publicKey,
+            'media_item_id' => $itemId,
+            'media_type' => $mediaType,
+            'file' => basename(str_replace('\\', '/', $storedPath)),
+            'v' => $version,
+        ]);
     }
 
     private function asegurarSlugUnico(int $integrationId, string $slug, ?int $excludeId = null): void
@@ -600,6 +686,30 @@ final class ApiProductoModel
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return is_array($row) ? $row : null;
+    }
+
+    private function obtenerPublicKeyPorIntegracion(int $integrationId): string
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT public_key
+             FROM api_integrations
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $stmt->execute([':id' => $integrationId]);
+
+        return (string) ($stmt->fetchColumn() ?: '');
+    }
+
+    private function buscarConfiguracionArchivoPorColumna(string $column): ?array
+    {
+        foreach ($this->obtenerConfiguracionArchivos() as $config) {
+            if (($config['column'] ?? '') === $column) {
+                return $config;
+            }
+        }
+
+        return null;
     }
 
     private function resolverUrlPublica(string $path): ?string

@@ -7,11 +7,64 @@ require_once __DIR__ . '/../../impulsa_emprende/partials/api_product/api_product
 
 try {
     apiCargarEnv();
-    apiConfigurarCorsPersonalizado(['POST', 'OPTIONS'], ['Content-Type', 'X-API-SECRET']);
+    apiConfigurarCorsPersonalizado(['GET', 'POST', 'OPTIONS'], ['Content-Type', 'X-API-SECRET']);
 
     $metodo = $_SERVER['REQUEST_METHOD'] ?? '';
     if ($metodo === 'OPTIONS') {
         http_response_code(204);
+        exit;
+    }
+
+    if ($metodo === 'GET' && isset($_GET['media_item_id'], $_GET['media_type'], $_GET['public_key'])) {
+        $publicKey = productoObtenerTexto($_GET, 'public_key', true, 80);
+
+        $pdo = apiCrearConexionPdo();
+        $integracion = apiValidarIntegracion($pdo, $publicKey);
+        $model = new ApiProductoModel($pdo);
+
+        $itemId = filter_var($_GET['media_item_id'] ?? null, FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1],
+        ]);
+
+        if ($itemId === false || $itemId === null) {
+            http_response_code(400);
+            exit('Solicitud invalida.');
+        }
+
+        $mediaType = trim((string) ($_GET['media_type'] ?? ''));
+        $column = match ($mediaType) {
+            'main' => 'main_image_path',
+            'thumbnail' => 'thumbnail_path',
+            'attachment' => 'attachment_path',
+            default => null,
+        };
+
+        if ($column === null) {
+            http_response_code(400);
+            exit('Tipo de archivo invalido.');
+        }
+
+        $file = $model->obtenerArchivoPublico((int) $integracion['id'], (int) $itemId, $column);
+
+        if ($file === null || !is_file((string) ($file['absolute_path'] ?? ''))) {
+            http_response_code(404);
+            exit('Archivo no encontrado.');
+        }
+
+        $absolutePath = (string) $file['absolute_path'];
+        $mimeType = (string) ($file['mime_type'] ?? 'application/octet-stream');
+        $downloadName = basename((string) ($file['download_name'] ?? $absolutePath));
+        $disposition = $mediaType === 'attachment' ? 'attachment' : 'inline';
+
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . (string) filesize($absolutePath));
+        header('Content-Disposition: ' . $disposition . '; filename="' . addslashes($downloadName) . '"');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        readfile($absolutePath);
         exit;
     }
 
