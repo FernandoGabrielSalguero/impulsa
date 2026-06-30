@@ -469,8 +469,18 @@ final class ApiProductoModel
 
     private function obtenerConfiguracionArchivos(): array
     {
-        $publicPath = '/impulsa_emprende/uploads/API_Productos';
-        $uploadDir = $this->resolverDirectorioUploadDesdeRutaPublica($publicPath, 'API_Productos');
+        $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+
+        if ($documentRoot === '') {
+            throw new RuntimeException('No se pudo resolver DOCUMENT_ROOT para guardar archivos.');
+        }
+
+        // public_html está en DOCUMENT_ROOT. Subimos un nivel y usamos /storage/API_Product.
+        $storageRoot = dirname($documentRoot);
+        $uploadDir = $storageRoot . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'API_Product';
+
+        // No es una URL pública directa. Es una marca interna para guardar el archivo.
+        $publicPath = 'API_Product';
 
         return [
             'main_image_file' => [
@@ -652,6 +662,11 @@ final class ApiProductoModel
         if ($trimmedPath !== '') {
             $candidates[] = $repoRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $trimmedPath);
             $candidates[] = $appRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, preg_replace('#^impulsa_emprende/#', '', $trimmedPath) ?? $trimmedPath);
+        }
+
+        $legacyUploadDir = $this->resolverDirectorioUploadLegacy('API_Productos');
+        if ($legacyUploadDir !== '') {
+            $candidates[] = $legacyUploadDir . DIRECTORY_SEPARATOR . $baseName;
         }
 
         foreach (array_unique($candidates) as $candidate) {
@@ -900,17 +915,22 @@ final class ApiProductoModel
         return rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path), DIRECTORY_SEPARATOR);
     }
 
-    private function resolverDirectorioUploadDesdeRutaPublica(string $publicPath, string $moduleFolder): string
+    private function resolverDirectorioUploadLegacy(string $moduleFolder): string
     {
-        $publicPath = '/' . ltrim(trim($publicPath), '/');
         $moduleFolder = trim($moduleFolder);
-        if ($publicPath === '/' || $moduleFolder === '') {
+        if ($moduleFolder === '') {
             return '';
         }
 
         $documentRoot = $this->normalizarRutaDirectorio((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
         if ($documentRoot !== '') {
-            return $documentRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, ltrim($publicPath, '/'));
+            return $documentRoot
+                . DIRECTORY_SEPARATOR
+                . 'impulsa_emprende'
+                . DIRECTORY_SEPARATOR
+                . 'uploads'
+                . DIRECTORY_SEPARATOR
+                . $moduleFolder;
         }
 
         return dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $moduleFolder;
