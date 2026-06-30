@@ -97,6 +97,7 @@ $apiProductoDescriptionValue = (string) ($apiProductoCurrent['description_html']
         <input type="hidden" name="api_producto_action_scope" value="<?= $h($apiProductoPostAction) ?>">
         <input type="hidden" name="item_id" value="<?= (int) ($apiProductoCurrent['id'] ?? 0) ?>">
         <input type="hidden" name="description_html" value="<?= $h($apiProductoDescriptionValue) ?>" data-quill-hidden>
+        <input type="hidden" name="slug" value="<?= $h($apiProductoCurrent['slug'] ?? '') ?>">
 
         <label class="im-campo im-campo-material im-campo--ancho">
           <span>Integracion asociada</span>
@@ -111,10 +112,6 @@ $apiProductoDescriptionValue = (string) ($apiProductoCurrent['description_html']
         <label class="im-campo im-campo-material">
           <span>Titulo</span>
           <input type="text" name="title" maxlength="180" value="<?= $h($apiProductoCurrent['title'] ?? '') ?>" required>
-        </label>
-        <label class="im-campo im-campo-material">
-          <span>Slug</span>
-          <input type="text" name="slug" maxlength="220" value="<?= $h($apiProductoCurrent['slug'] ?? '') ?>" placeholder="se-autogenera-si-lo-dejas-vacio">
         </label>
         <label class="im-campo im-campo-material">
           <span>SKU</span>
@@ -141,10 +138,6 @@ $apiProductoDescriptionValue = (string) ($apiProductoCurrent['description_html']
           <input type="number" step="0.01" name="price" value="<?= $h($apiProductoCurrent['price'] ?? '') ?>">
         </label>
         <label class="im-campo im-campo-material">
-          <span>Precio comparativo</span>
-          <input type="number" step="0.01" name="compare_at_price" value="<?= $h($apiProductoCurrent['compare_at_price'] ?? '') ?>">
-        </label>
-        <label class="im-campo im-campo-material">
           <span>Moneda</span>
           <input type="text" name="currency" maxlength="8" value="<?= $h($apiProductoCurrent['currency'] ?? 'ARS') ?>">
         </label>
@@ -155,9 +148,10 @@ $apiProductoDescriptionValue = (string) ($apiProductoCurrent['description_html']
         <label class="im-campo im-campo-material">
           <span>Disponibilidad</span>
           <select name="availability">
-            <?php foreach (['in_stock', 'out_of_stock', 'preorder', 'on_request'] as $availability): ?>
-              <option value="<?= $availability ?>" <?= ($apiProductoCurrent['availability'] ?? 'on_request') === $availability ? 'selected' : '' ?>><?= $h($availability) ?></option>
-            <?php endforeach; ?>
+            <option value="in_stock" <?= ($apiProductoCurrent['availability'] ?? 'on_request') === 'in_stock' ? 'selected' : '' ?>>En stock</option>
+            <option value="out_of_stock" <?= ($apiProductoCurrent['availability'] ?? 'on_request') === 'out_of_stock' ? 'selected' : '' ?>>Sin stock</option>
+            <option value="preorder" <?= ($apiProductoCurrent['availability'] ?? 'on_request') === 'preorder' ? 'selected' : '' ?>>Preventa</option>
+            <option value="on_request" <?= ($apiProductoCurrent['availability'] ?? 'on_request') === 'on_request' ? 'selected' : '' ?>>A pedido</option>
           </select>
         </label>
         <label class="im-campo im-campo-material">
@@ -167,10 +161,6 @@ $apiProductoDescriptionValue = (string) ($apiProductoCurrent['description_html']
         <label class="im-campo im-campo-material im-campo--ancho">
           <span>Descripcion corta</span>
           <textarea name="short_description" rows="3" maxlength="300"><?= $h($apiProductoCurrent['short_description'] ?? '') ?></textarea>
-        </label>
-        <label class="im-campo im-campo-material im-campo--ancho">
-          <span>Metadata JSON</span>
-          <textarea name="metadata_json" rows="3"><?= $h($apiProductoCurrent['metadata_json'] ?? '') ?></textarea>
         </label>
         <label class="im-campo im-campo-material im-campo--ancho">
           <span><input type="checkbox" name="featured" value="1" <?= !empty($apiProductoCurrent['featured']) ? 'checked' : '' ?>> Destacar producto</span>
