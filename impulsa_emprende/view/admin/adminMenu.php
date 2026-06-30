@@ -19,6 +19,7 @@ $adminMenuItems = [
     ['key' => 'tareas', 'href' => '/impulsa_emprende/controller/admin/adminTareasController.php', 'icon' => 'task_alt', 'label' => 'Tareas'],
     ['key' => 'marketing', 'href' => '/impulsa_emprende/controller/admin/adminMarketingController.php', 'icon' => 'campaign', 'label' => 'Marketing'],
     ['key' => 'api', 'href' => '/impulsa_emprende/controller/admin/adminAPIconfigurationController.php', 'icon' => 'key', 'label' => 'Integraciones API'],
+    ['key' => 'productos-admin', 'href' => '/impulsa_emprende/controller/admin/adminProductosManagerController.php', 'icon' => 'inventory_2', 'label' => 'Gestor productos'],
     ['key' => 'correos', 'href' => '/impulsa_emprende/controller/admin/adminCorreosEnviadosController.php', 'icon' => 'mail', 'label' => 'Correos enviados'],
     ['key' => 'chatbots', 'href' => '/impulsa_emprende/controller/admin/adminChatbotController.php', 'icon' => 'forum', 'label' => 'Chatbots'],
     ['key' => 'ingresos', 'href' => '/impulsa_emprende/controller/admin/adminIngresosController.php', 'icon' => 'login', 'label' => 'Ingresos'],    
