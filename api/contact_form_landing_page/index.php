@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../_shared/api_integration_helpers.php';
+require_once __DIR__ . '/../../impulsa_emprende/mail/Mail.php';
 
 try {
     apiCargarEnv();
@@ -26,8 +27,9 @@ try {
 
     $pdo = apiCrearConexionPdo();
     $integracion = apiValidarIntegracion($pdo, (string) $datos['public_key']);
-    insertarConsulta($pdo, $integracion['id'], $datos);
+    $consultaId = insertarConsulta($pdo, $integracion['id'], $datos);
     apiRegistrarUltimoUsoIntegracion($pdo, $integracion['id']);
+    notificarPropietarioIntegracion($pdo, $integracion, $datos, $consultaId);
 
     apiResponderJson(201, true, 'Consulta enviada correctamente', [
         'integration_id' => $integracion['id'],
@@ -127,7 +129,7 @@ function longitudTexto(string $texto): int
  *
  * @param array<string, string|null> $datos
  */
-function insertarConsulta(PDO $pdo, int $integracionId, array $datos): void
+function insertarConsulta(PDO $pdo, int $integracionId, array $datos): int
 {
     $sql = 'INSERT INTO forms_clients_contact
         (page, api_integration_id, contact_nombre, contact_whatsapp, contact_email, contact_description, contact_consultation, state)
@@ -146,8 +148,43 @@ function insertarConsulta(PDO $pdo, int $integracionId, array $datos): void
             ':contact_consultation' => $datos['contact_consultation'],
             ':state' => 'recibido',
         ]);
+        return (int) $pdo->lastInsertId();
     } catch (PDOException $exception) {
         error_log('Error insertando consulta en forms_clients_contact: ' . $exception->getMessage());
         throw new RuntimeException('Error interno del servidor', 500);
+    }
+}
+
+/**
+ * @param array{id:int, project_name:string, allowed_domain:string, public_key:string, secret_key_hash:?string, status:string, user_auth_id:?int} $integracion
+ * @param array<string, string|null> $datos
+ */
+function notificarPropietarioIntegracion(PDO $pdo, array $integracion, array $datos, int $consultaId): void
+{
+    $destinatario = apiObtenerDestinatarioIntegracion($pdo, (int) $integracion['id']);
+    $GLOBALS['pdo'] = $pdo;
+
+    $resultado = \SVE\Mail\Mailer::enviarNotificacionNuevoContactoApi([
+        'integration_id' => (int) $integracion['id'],
+        'project_name' => (string) ($integracion['project_name'] ?? ''),
+        'allowed_domain' => (string) ($integracion['allowed_domain'] ?? ''),
+        'owner_user_auth_id' => $destinatario['owner_user_auth_id'],
+        'owner_email' => $destinatario['owner_email'],
+        'owner_name' => $destinatario['owner_name'],
+        'page' => (string) ($datos['page'] ?? ''),
+        'contact_nombre' => (string) ($datos['contact_nombre'] ?? ''),
+        'contact_email' => (string) ($datos['contact_email'] ?? ''),
+        'contact_whatsapp' => (string) ($datos['contact_whatsapp'] ?? ''),
+        'contact_description' => (string) ($datos['contact_description'] ?? ''),
+        'contact_consultation' => (string) ($datos['contact_consultation'] ?? ''),
+        'meta' => [
+            'source' => 'api/contact_form_landing_page',
+            'forms_clients_contact_id' => $consultaId,
+            'integration_public_key' => (string) ($integracion['public_key'] ?? ''),
+        ],
+    ]);
+
+    if (!($resultado['ok'] ?? false)) {
+        error_log('No se pudo enviar la notificacion de contacto publico para la integracion #' . (int) $integracion['id'] . ': ' . (string) ($resultado['error'] ?? 'Error no informado.'));
     }
 }

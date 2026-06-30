@@ -3,6 +3,7 @@ $usuarioInicial = $usuarioInicial ?? '?';
 $usuarioAvatarUrl = $usuarioAvatarUrl ?? null;
 $usuarioMarcaNombre = $usuarioMarcaNombre ?? 'Usuario';
 $integraciones = $integraciones ?? [];
+$usuariosPropietarios = $usuariosPropietarios ?? [];
 $opcionesProyectoSitio = $opcionesProyectoSitio ?? [];
 $flashIntegraciones = $flashIntegraciones ?? null;
 $appBaseUrl = $appBaseUrl ?? '';
@@ -21,6 +22,22 @@ $estadoChip = static function (string $estado): string {
 };
 $estadoTexto = static function (string $estado): string {
     return $estado === 'active' ? 'Activa' : 'Inactiva';
+};
+$resolverDueno = static function (array $integracion): array {
+    $nombre = trim((string) ($integracion['owner_nombre'] ?? '') . ' ' . (string) ($integracion['owner_apellido'] ?? ''));
+    $apodo = trim((string) ($integracion['owner_apodo'] ?? ''));
+    $correoContacto = trim((string) ($integracion['owner_contacto_correo'] ?? ''));
+    $correoAuth = trim((string) ($integracion['owner_auth_correo'] ?? ''));
+    $correo = $correoContacto !== '' ? $correoContacto : $correoAuth;
+
+    if ($nombre === '') {
+        $nombre = $apodo !== '' ? $apodo : ($correo !== '' ? $correo : 'Sin dueno');
+    }
+
+    return [
+        'name' => $nombre,
+        'email' => $correo,
+    ];
 };
 ?>
 <!doctype html>
@@ -153,6 +170,17 @@ $estadoTexto = static function (string $estado): string {
                   <span>Dominio autorizado</span>
                   <input type="text" name="allowed_domain" placeholder="https://mi-landing.com" required>
                 </label>
+                <label class="im-campo im-campo-material" data-im-campo="generico">
+                  <span>Dueno de la integracion</span>
+                  <select name="owner_user_auth_id" required>
+                    <option value="">Selecciona un usuario</option>
+                    <?php foreach ($usuariosPropietarios as $ownerOption): ?>
+                      <option value="<?= (int) ($ownerOption['id'] ?? 0) ?>">
+                        <?= $h(($ownerOption['display_name'] ?? 'Usuario') . ' - ' . ($ownerOption['display_email'] ?? '') . ' (' . ($ownerOption['rol'] ?? '') . ')') ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </label>
                 <p class="im-api-ayuda">Escribi al menos 4 caracteres para filtrar coincidencias o abrí el desplegable completo.</p>
                 <div class="im-api-form__acciones">
                   <button class="im-boton im-boton--principal" type="submit">Crear integracion</button>
@@ -186,6 +214,7 @@ $estadoTexto = static function (string $estado): string {
                       <tr>
                         <th>ID</th>
                         <th>Proyecto o sitio</th>
+                        <th>Dueno</th>
                         <th>Dominio</th>
                         <th>Public key</th>
                         <th>Secret key</th>
@@ -200,11 +229,12 @@ $estadoTexto = static function (string $estado): string {
                       <?php foreach ($integraciones as $integracion): ?>
                         <?php
                           $integrationId = (int) ($integracion['id'] ?? 0);
+                          $owner = $resolverDueno($integracion);
                           $apiBase = rtrim($appBaseUrl, '/') . "/api";
                           $visitTrackerSrc = rtrim($appBaseUrl, '/') . "/assets/impulsa_material/js/visit-tracker.js";
                           $chatbotUrl = $apiBase . "/chatbot_widget/widget.js?public_key=" . ($integracion['public_key'] ?? '');
                           $visitSnippet = "<script>\nwindow.IMPULSA_API_CONFIG = {\n  publicKey: \"" . ($integracion['public_key'] ?? '') . "\",\n  apiBaseUrl: \"" . $apiBase . "\"\n};\n</script>\n<script src=\"" . $visitTrackerSrc . "\"></script>";
-                          $formSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/contact_form_landing_page/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    page: window.location.pathname,\n    contact_nombre: formName,\n    contact_email: formEmail,\n    contact_whatsapp: formPhone,\n    contact_description: formMessage\n  })\n});";
+                          $formSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/contact_form_landing_page/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    page: window.location.pathname,\n    contact_nombre: formName,\n    contact_email: formEmail,\n    contact_whatsapp: formPhone,\n    contact_description: formMessage,\n    contact_consultation: formConsultation\n  })\n});";
                           $chatbotSnippet = "<script src=\"" . $chatbotUrl . "\"></script>";
                           $blogListSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/blog_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"list\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\"\n  })\n});";
                           $blogDetailSnippet = "fetch(\"" . rtrim($appBaseUrl, '/') . "/api/blog_api/index.php\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    action: \"detail\",\n    public_key: \"" . ($integracion['public_key'] ?? '') . "\",\n    slug: \"mi-post\"\n  })\n});";
@@ -256,14 +286,16 @@ $estadoTexto = static function (string $estado): string {
                               . "      contact_nombre,\n"
                               . "      contact_email,\n"
                               . "      contact_whatsapp = \"\",\n"
-                              . "      contact_description = \"\"\n"
+                              . "      contact_description = \"\",\n"
+                              . "      contact_consultation = \"\"\n"
                               . "    }) => postJson(IMPULSA_CONFIG.apiBaseUrl + \"/contact_form_landing_page/index.php\", {\n"
                               . "      public_key: IMPULSA_CONFIG.publicKey,\n"
                               . "      page,\n"
                               . "      contact_nombre,\n"
                               . "      contact_email,\n"
                               . "      contact_whatsapp,\n"
-                              . "      contact_description\n"
+                              . "      contact_description,\n"
+                              . "      contact_consultation\n"
                               . "    }),\n"
                               . "    getBlogList: () => postJson(IMPULSA_CONFIG.apiBaseUrl + \"/blog_api/index.php\", {\n"
                               . "      action: \"list\",\n"
@@ -290,6 +322,9 @@ $estadoTexto = static function (string $estado): string {
                           $payloadModal = [
                               'id' => $integrationId,
                               'project_name' => (string) ($integracion['project_name'] ?? ''),
+                              'owner_user_auth_id' => (int) ($integracion['user_auth_id'] ?? 0),
+                              'owner_name' => $owner['name'],
+                              'owner_email' => $owner['email'],
                               'allowed_domain' => (string) ($integracion['allowed_domain'] ?? ''),
                               'public_key' => (string) ($integracion['public_key'] ?? ''),
                               'status' => (string) ($integracion['status'] ?? 'inactive'),
@@ -303,6 +338,10 @@ $estadoTexto = static function (string $estado): string {
                         <tr id="integration-<?= $integrationId ?>">
                           <td><?= $integrationId ?></td>
                           <td class="im-tabla-tareas__nombre"><?= $h($integracion['project_name'] ?? '') ?></td>
+                          <td>
+                            <strong><?= $h($owner['name']) ?></strong>
+                            <br><small><?= $h($owner['email'] !== '' ? $owner['email'] : 'Sin correo') ?></small>
+                          </td>
                           <td><code><?= $h($integracion['allowed_domain'] ?? '') ?></code></td>
                           <td>
                             <div class="im-api-copy-linea">
@@ -362,6 +401,11 @@ $estadoTexto = static function (string $estado): string {
           <code data-api-detalle-dominio></code>
         </div>
         <div class="im-api-dato">
+          <span>Dueno de la integracion</span>
+          <strong data-api-detalle-owner-name></strong>
+          <span data-api-detalle-owner-email></span>
+        </div>
+        <div class="im-api-dato">
           <span>Public key</span>
           <div class="im-api-copy-linea">
             <code data-api-detalle-public-key></code>
@@ -398,6 +442,17 @@ $estadoTexto = static function (string $estado): string {
         <label class="im-campo im-campo-material" data-im-campo="generico">
           <span>Dominio autorizado</span>
           <input type="text" name="allowed_domain" data-api-detalle-input-dominio required>
+        </label>
+        <label class="im-campo im-campo-material" data-im-campo="generico">
+          <span>Dueno de la integracion</span>
+          <select name="owner_user_auth_id" data-api-detalle-input-owner>
+            <option value="">Sin asignar</option>
+            <?php foreach ($usuariosPropietarios as $ownerOption): ?>
+              <option value="<?= (int) ($ownerOption['id'] ?? 0) ?>">
+                <?= $h(($ownerOption['display_name'] ?? 'Usuario') . ' - ' . ($ownerOption['display_email'] ?? '') . ' (' . ($ownerOption['rol'] ?? '') . ')') ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
         </label>
         <p class="im-api-ayuda im-campo--full" data-api-detalle-ayuda-dominio>Al cambiar esta URL, la integracion dejara de aceptar requests desde el dominio anterior y pasara a validar el nuevo.</p>
         <div class="im-api-form-secundario__acciones">
@@ -474,7 +529,7 @@ $estadoTexto = static function (string $estado): string {
             <div class="im-api-doc__lista">
               <div class="im-api-doc__item">
                 <strong>Campos esperados</strong>
-                <span>`page`, `contact_nombre`, `contact_email`, `contact_whatsapp`, `contact_description`.</span>
+                <span>`page`, `contact_nombre`, `contact_email`, `contact_whatsapp`, `contact_description`, `contact_consultation`.</span>
               </div>
               <div class="im-api-doc__item">
                 <strong>Obligatorios</strong>
@@ -482,7 +537,7 @@ $estadoTexto = static function (string $estado): string {
               </div>
               <div class="im-api-doc__item">
                 <strong>Opcionales</strong>
-                <span>`contact_whatsapp` y `contact_description`, ambos string.</span>
+                <span>`contact_whatsapp`, `contact_description` y `contact_consultation`, todos string.</span>
               </div>
               <div class="im-api-doc__item">
                 <strong>Uso</strong>
@@ -652,6 +707,8 @@ $estadoTexto = static function (string $estado): string {
         const titulo = modal.querySelector('[data-api-detalle-titulo]');
         const proyecto = modal.querySelector('[data-api-detalle-proyecto]');
         const dominio = modal.querySelector('[data-api-detalle-dominio]');
+        const ownerName = modal.querySelector('[data-api-detalle-owner-name]');
+        const ownerEmail = modal.querySelector('[data-api-detalle-owner-email]');
         const publicKey = modal.querySelector('[data-api-detalle-public-key]');
         const copyPublic = modal.querySelector('[data-api-detalle-copy-public]');
         const estado = modal.querySelector('[data-api-detalle-estado]');
@@ -665,12 +722,15 @@ $estadoTexto = static function (string $estado): string {
         const secretId = modal.querySelector('[data-api-detalle-secret-id]');
         const inputProyecto = modal.querySelector('[data-api-detalle-input-proyecto]');
         const inputDominio = modal.querySelector('[data-api-detalle-input-dominio]');
+        const inputOwner = modal.querySelector('[data-api-detalle-input-owner]');
         const toggleText = modal.querySelector('[data-api-detalle-toggle-text]');
         const submitText = modal.querySelector('[data-api-detalle-submit-text]');
 
         titulo.textContent = mode === 'domain' ? `Cambiar URL #${data.id}` : `Detalle #${data.id}`;
         proyecto.textContent = data.project_name || '';
         dominio.textContent = data.allowed_domain || '';
+        ownerName.textContent = data.owner_name || 'Sin dueno';
+        ownerEmail.textContent = data.owner_email || 'Sin correo configurado';
         publicKey.textContent = data.public_key || '';
         copyPublic.setAttribute('data-copy-text', data.public_key || '');
         estado.textContent = data.status === 'active' ? 'Activa' : 'Inactiva';
@@ -684,6 +744,7 @@ $estadoTexto = static function (string $estado): string {
         secretId.value = String(data.id || '');
         inputProyecto.value = data.project_name || '';
         inputDominio.value = data.allowed_domain || '';
+        inputOwner.value = String(data.owner_user_auth_id || '');
         toggleText.textContent = data.status === 'active' ? 'Desactivar' : 'Activar';
         submitText.textContent = mode === 'domain' ? 'Actualizar URL' : 'Guardar cambios';
         modal.querySelector('[data-api-detalle-all-snippets]').textContent = data.all_snippets || '';

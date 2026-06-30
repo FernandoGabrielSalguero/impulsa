@@ -8,6 +8,33 @@ class AdminAPIconfigurationModel
     {
     }
 
+    public function sincronizarPropietariosIntegraciones(): void
+    {
+        $sql = "
+            UPDATE api_integrations ai
+            LEFT JOIN (
+                SELECT project_name, MIN(client_user_id) AS client_user_id
+                FROM projects
+                WHERE client_user_id IS NOT NULL
+                  AND TRIM(COALESCE(project_name, '')) <> ''
+                GROUP BY project_name
+            ) p ON p.project_name = ai.project_name
+            LEFT JOIN (
+                SELECT nombre_emprendimiento, MIN(user_auth_id) AS user_auth_id
+                FROM landing_page_request
+                WHERE user_auth_id IS NOT NULL
+                  AND TRIM(COALESCE(nombre_emprendimiento, '')) <> ''
+                GROUP BY nombre_emprendimiento
+            ) lpr ON lpr.nombre_emprendimiento = ai.project_name
+            SET ai.user_auth_id = COALESCE(p.client_user_id, lpr.user_auth_id)
+            WHERE ai.user_auth_id IS NULL
+              AND COALESCE(p.client_user_id, lpr.user_auth_id) IS NOT NULL
+        ";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+    }
+
     public function obtenerOpcionesProyectoSitio(): array
     {
         $sql = "
@@ -74,9 +101,17 @@ class AdminAPIconfigurationModel
     public function obtenerIntegraciones(): array
     {
         $sql = 'SELECT ai.*,
+                       ua.correo AS owner_auth_correo,
+                       uc.correo AS owner_contacto_correo,
+                       ui.nombre AS owner_nombre,
+                       ui.apellido AS owner_apellido,
+                       ui.apodo AS owner_apodo,
                        COALESCE(v.total_visits, 0) AS total_visits,
                        COALESCE(f.total_contacts, 0) AS total_contacts
                 FROM api_integrations ai
+                LEFT JOIN user_auth ua ON ua.id = ai.user_auth_id
+                LEFT JOIN user_contacto uc ON uc.user_auth_id = ua.id
+                LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
                 LEFT JOIN (
                     SELECT api_integration_id, COUNT(*) AS total_visits
                     FROM visit_user_page
@@ -95,13 +130,89 @@ class AdminAPIconfigurationModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function crearIntegracion(string $projectName, string $allowedDomain, string $publicKey, string $secretKeyHash): int
+    public function obtenerUsuariosPropietarios(): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT ua.id,
+                    ua.correo AS auth_correo,
+                    ua.rol,
+                    uc.correo AS contacto_correo,
+                    ui.nombre,
+                    ui.apellido,
+                    ui.apodo
+             FROM user_auth ua
+             LEFT JOIN user_contacto uc ON uc.user_auth_id = ua.id
+             LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
+             ORDER BY COALESCE(NULLIF(TRIM(ui.nombre), \'\'), NULLIF(TRIM(ui.apodo), \'\'), ua.correo) ASC, ua.id ASC'
+        );
+        $stmt->execute();
+
+        return array_map(function (array $usuario): array {
+            $nombre = trim((string) ($usuario['nombre'] ?? ''));
+            $apellido = trim((string) ($usuario['apellido'] ?? ''));
+            $apodo = trim((string) ($usuario['apodo'] ?? ''));
+            $correoAuth = trim((string) ($usuario['auth_correo'] ?? ''));
+            $correoContacto = trim((string) ($usuario['contacto_correo'] ?? ''));
+            $nombreVisible = trim($nombre . ' ' . $apellido);
+
+            if ($nombreVisible === '') {
+                $nombreVisible = $apodo !== '' ? $apodo : $correoAuth;
+            }
+
+            return [
+                'id' => (int) ($usuario['id'] ?? 0),
+                'rol' => (string) ($usuario['rol'] ?? ''),
+                'auth_correo' => $correoAuth,
+                'contacto_correo' => $correoContacto,
+                'display_name' => $nombreVisible,
+                'display_email' => $correoContacto !== '' ? $correoContacto : $correoAuth,
+            ];
+        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    public function resolverUsuarioPropietarioPorProyecto(string $projectName): ?int
+    {
+        $projectName = trim($projectName);
+        if ($projectName === '') {
+            return null;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT MIN(client_user_id)
+             FROM projects
+             WHERE client_user_id IS NOT NULL
+               AND project_name = :project_name'
+        );
+        $stmt->execute([':project_name' => $projectName]);
+        $projectOwner = $stmt->fetchColumn();
+
+        if ($projectOwner !== false && $projectOwner !== null) {
+            return (int) $projectOwner;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT MIN(user_auth_id)
+             FROM landing_page_request
+             WHERE user_auth_id IS NOT NULL
+               AND nombre_emprendimiento = :project_name'
+        );
+        $stmt->execute([':project_name' => $projectName]);
+        $requestOwner = $stmt->fetchColumn();
+
+        if ($requestOwner !== false && $requestOwner !== null) {
+            return (int) $requestOwner;
+        }
+
+        return null;
+    }
+
+    public function crearIntegracion(string $projectName, string $allowedDomain, string $publicKey, string $secretKeyHash, ?int $userAuthId): int
     {
         $stmt = $this->pdo->prepare(
             'INSERT INTO api_integrations
-             (project_name, allowed_domain, public_key, secret_key_hash, status)
+             (project_name, allowed_domain, public_key, secret_key_hash, status, user_auth_id)
              VALUES
-             (:project_name, :allowed_domain, :public_key, :secret_key_hash, :status)'
+             (:project_name, :allowed_domain, :public_key, :secret_key_hash, :status, :user_auth_id)'
         );
         $stmt->execute([
             ':project_name' => $projectName,
@@ -109,23 +220,26 @@ class AdminAPIconfigurationModel
             ':public_key' => $publicKey,
             ':secret_key_hash' => $secretKeyHash,
             ':status' => 'active',
+            ':user_auth_id' => $userAuthId,
         ]);
 
         return (int) $this->pdo->lastInsertId();
     }
 
-    public function actualizarIntegracion(int $id, string $projectName, string $allowedDomain): void
+    public function actualizarIntegracion(int $id, string $projectName, string $allowedDomain, ?int $userAuthId): void
     {
         $stmt = $this->pdo->prepare(
             'UPDATE api_integrations
              SET project_name = :project_name,
-                 allowed_domain = :allowed_domain
+                 allowed_domain = :allowed_domain,
+                 user_auth_id = :user_auth_id
              WHERE id = :id'
         );
         $stmt->execute([
             ':id' => $id,
             ':project_name' => $projectName,
             ':allowed_domain' => $allowedDomain,
+            ':user_auth_id' => $userAuthId,
         ]);
     }
 
@@ -188,9 +302,18 @@ class AdminAPIconfigurationModel
     public function obtenerIntegracionPorId(int $id): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT *
+            'SELECT ai.*,
+                    ua.correo AS owner_auth_correo,
+                    uc.correo AS owner_contacto_correo,
+                    ui.nombre AS owner_nombre,
+                    ui.apellido AS owner_apellido,
+                    ui.apodo AS owner_apodo
              FROM api_integrations
-             WHERE id = :id
+             ai
+             LEFT JOIN user_auth ua ON ua.id = ai.user_auth_id
+             LEFT JOIN user_contacto uc ON uc.user_auth_id = ua.id
+             LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
+             WHERE ai.id = :id
              LIMIT 1'
         );
         $stmt->execute([':id' => $id]);

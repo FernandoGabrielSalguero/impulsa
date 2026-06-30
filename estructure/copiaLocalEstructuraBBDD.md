@@ -51,9 +51,13 @@ allowed_domain	varchar(190)	NO	MUL
 public_key	varchar(80)	NO	UNI		
 secret_key_hash	varchar(255)	YES			
 status	enum('active','inactive')	NO	MUL	active	
+user_auth_id	int(10) unsigned	YES	MUL		
 created_at	timestamp	NO		current_timestamp()	
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 last_used_at	datetime	YES			
+
+📌 Relaciones:
+Columna user_auth_id referencia a user_auth.id
 
 📄 Tabla: api_products
 Columna	Tipo	Nulo	Clave	Default	Extra

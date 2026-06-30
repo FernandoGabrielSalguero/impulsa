@@ -148,7 +148,7 @@ function apiCrearConexionPdo(): PDO
 }
 
 /**
- * @return array{id:int, project_name:string, allowed_domain:string, public_key:string, secret_key_hash:?string, status:string}
+ * @return array{id:int, project_name:string, allowed_domain:string, public_key:string, secret_key_hash:?string, status:string, user_auth_id:?int}
  */
 function apiValidarIntegracion(PDO $pdo, string $publicKey): array
 {
@@ -159,7 +159,7 @@ function apiValidarIntegracion(PDO $pdo, string $publicKey): array
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, project_name, allowed_domain, public_key, secret_key_hash, status
+        'SELECT id, project_name, allowed_domain, public_key, secret_key_hash, status, user_auth_id
          FROM ' . API_INTEGRATIONS_TABLE . '
          WHERE public_key = :public_key
          LIMIT 1'
@@ -185,6 +185,53 @@ function apiValidarIntegracion(PDO $pdo, string $publicKey): array
         'public_key' => (string) ($integracion['public_key'] ?? ''),
         'secret_key_hash' => $integracion['secret_key_hash'] !== null ? (string) $integracion['secret_key_hash'] : null,
         'status' => (string) ($integracion['status'] ?? ''),
+        'user_auth_id' => isset($integracion['user_auth_id']) && $integracion['user_auth_id'] !== null ? (int) $integracion['user_auth_id'] : null,
+    ];
+}
+
+/**
+ * @return array{owner_user_auth_id:?int, owner_email:string, owner_name:string}
+ */
+function apiObtenerDestinatarioIntegracion(PDO $pdo, int $integrationId): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT ai.user_auth_id,
+                ua.correo AS auth_correo,
+                uc.correo AS contacto_correo,
+                ui.nombre,
+                ui.apellido,
+                ui.apodo
+         FROM ' . API_INTEGRATIONS_TABLE . ' ai
+         LEFT JOIN user_auth ua ON ua.id = ai.user_auth_id
+         LEFT JOIN user_contacto uc ON uc.user_auth_id = ua.id
+         LEFT JOIN user_info ui ON ui.user_auth_id = ua.id
+         WHERE ai.id = :id
+         LIMIT 1'
+    );
+    $stmt->execute([':id' => $integrationId]);
+    $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!is_array($fila)) {
+        return [
+            'owner_user_auth_id' => null,
+            'owner_email' => '',
+            'owner_name' => '',
+        ];
+    }
+
+    $correoContacto = trim((string) ($fila['contacto_correo'] ?? ''));
+    $correoAuth = trim((string) ($fila['auth_correo'] ?? ''));
+    $nombre = trim((string) ($fila['nombre'] ?? '') . ' ' . (string) ($fila['apellido'] ?? ''));
+    $apodo = trim((string) ($fila['apodo'] ?? ''));
+
+    if ($nombre === '') {
+        $nombre = $apodo !== '' ? $apodo : ($correoContacto !== '' ? $correoContacto : $correoAuth);
+    }
+
+    return [
+        'owner_user_auth_id' => isset($fila['user_auth_id']) && $fila['user_auth_id'] !== null ? (int) $fila['user_auth_id'] : null,
+        'owner_email' => $correoContacto !== '' ? $correoContacto : $correoAuth,
+        'owner_name' => $nombre,
     ];
 }
 

@@ -769,6 +769,130 @@ final class Mailer
     /**
      * @return array{ok: bool, error?: string}
      */
+    public static function enviarNotificacionNuevoContactoApi(array $data): array
+    {
+        $debugLog = [];
+        $mail = null;
+        $html = '';
+
+        $ownerEmail = trim((string) ($data['owner_email'] ?? ''));
+        $ownerName = trim((string) ($data['owner_name'] ?? ''));
+        $projectName = trim((string) ($data['project_name'] ?? ''));
+        $allowedDomain = trim((string) ($data['allowed_domain'] ?? ''));
+        $page = trim((string) ($data['page'] ?? ''));
+        $contactNombre = trim((string) ($data['contact_nombre'] ?? ''));
+        $contactEmail = trim((string) ($data['contact_email'] ?? ''));
+        $contactWhatsapp = trim((string) ($data['contact_whatsapp'] ?? ''));
+        $contactDescription = trim((string) ($data['contact_description'] ?? ''));
+        $contactConsultation = trim((string) ($data['contact_consultation'] ?? ''));
+        $subject = 'Nuevo contacto recibido desde formulario web publico';
+
+        if ($ownerEmail === '' || !filter_var($ownerEmail, FILTER_VALIDATE_EMAIL)) {
+            $error = $ownerEmail === '' ? 'La integracion no tiene un correo dueno configurado.' : 'El correo del dueno de la integracion no es valido.';
+            self::logEmail([
+                'user_auth_id' => $data['owner_user_auth_id'] ?? null,
+                'correo' => $ownerEmail,
+                'asunto' => $subject,
+                'template' => 'notificacion_contacto_web_publica',
+                'estado' => 'fallido',
+                'error' => $error,
+                'meta' => $data['meta'] ?? null,
+            ]);
+
+            return ['ok' => false, 'error' => $error];
+        }
+
+        try {
+            $tplPath = __DIR__ . '/template/notificacion_contacto_web_publica.html';
+            if (!is_file($tplPath)) {
+                throw new \RuntimeException('Template notificacion_contacto_web_publica.html no encontrado.');
+            }
+
+            $texto = static fn (mixed $valor, string $fallback = 'Sin dato'): string => htmlspecialchars(
+                trim((string) ($valor ?? '')) !== '' ? trim((string) $valor) : $fallback,
+                ENT_QUOTES,
+                'UTF-8'
+            );
+            $textoNl = static fn (mixed $valor, string $fallback = 'Sin dato'): string => nl2br($texto($valor, $fallback));
+            $fila = static fn (string $label, string $value): string => '<tr><td class="label">' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</td><td>' . $value . '</td></tr>';
+            $fecha = date('d/m/Y H:i');
+
+            $detalle = implode('', [
+                $fila('Proyecto / integracion', $texto($projectName)),
+                $fila('Dominio autorizado', $texto($allowedDomain)),
+                $fila('Fecha y hora', $texto($fecha)),
+                $fila('Pagina', $texto($page)),
+                $fila('Nombre', $texto($contactNombre)),
+                $fila('Email', $texto($contactEmail)),
+                $fila('WhatsApp', $texto($contactWhatsapp)),
+                $fila('Descripcion', $textoNl($contactDescription)),
+                $fila('Consulta', $textoNl($contactConsultation)),
+            ]);
+
+            $html = strtr((string) file_get_contents($tplPath), [
+                '{{title}}' => 'Nuevo contacto desde formulario web publico',
+                '{{owner_name}}' => $texto($ownerName !== '' ? $ownerName : 'Equipo'),
+                '{{project_name}}' => $texto($projectName),
+                '{{allowed_domain}}' => $texto($allowedDomain),
+                '{{detail_rows}}' => $detalle,
+            ]);
+
+            $mail = self::baseMailer($debugLog);
+            $mail->Subject = $subject;
+            $mail->Body = $html;
+            $mail->AltBody =
+                "Nuevo contacto recibido desde formulario web publico\n\n" .
+                "Proyecto: " . ($projectName !== '' ? $projectName : 'Sin dato') . "\n" .
+                "Dominio: " . ($allowedDomain !== '' ? $allowedDomain : 'Sin dato') . "\n" .
+                "Fecha: {$fecha}\n" .
+                "Pagina: " . ($page !== '' ? $page : 'Sin dato') . "\n" .
+                "Nombre: " . ($contactNombre !== '' ? $contactNombre : 'Sin dato') . "\n" .
+                "Email: " . ($contactEmail !== '' ? $contactEmail : 'Sin dato') . "\n" .
+                "WhatsApp: " . ($contactWhatsapp !== '' ? $contactWhatsapp : 'Sin dato') . "\n" .
+                "Descripcion: " . ($contactDescription !== '' ? $contactDescription : 'Sin dato') . "\n" .
+                "Consulta: " . ($contactConsultation !== '' ? $contactConsultation : 'Sin dato');
+            $mail->addAddress($ownerEmail, $ownerName !== '' ? $ownerName : '');
+            $mail->send();
+
+            self::logEmail([
+                'user_auth_id' => $data['owner_user_auth_id'] ?? null,
+                'correo' => $ownerEmail,
+                'asunto' => $subject,
+                'template' => 'notificacion_contacto_web_publica',
+                'mensaje_html' => $html,
+                'mensaje_text' => $mail->AltBody,
+                'estado' => 'enviado',
+                'meta' => $data['meta'] ?? null,
+            ]);
+
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            $mailError = $mail instanceof PHPMailer ? trim((string) $mail->ErrorInfo) : '';
+            $debugText = !empty($debugLog) ? ' SMTP Log: ' . implode(' | ', array_slice($debugLog, -10)) : '';
+            $errorMsg = $e->getMessage();
+            if ($mailError !== '' && stripos($errorMsg, $mailError) === false) {
+                $errorMsg .= ' | ErrorInfo: ' . $mailError;
+            }
+
+            self::logEmail([
+                'user_auth_id' => $data['owner_user_auth_id'] ?? null,
+                'correo' => $ownerEmail,
+                'asunto' => $subject,
+                'template' => 'notificacion_contacto_web_publica',
+                'mensaje_html' => $html !== '' ? $html : null,
+                'mensaje_text' => $mail instanceof PHPMailer ? ($mail->AltBody ?? null) : null,
+                'estado' => 'fallido',
+                'error' => $errorMsg . $debugText,
+                'meta' => $data['meta'] ?? null,
+            ]);
+
+            return ['ok' => false, 'error' => $errorMsg . $debugText];
+        }
+    }
+
+    /**
+     * @return array{ok: bool, error?: string}
+     */
     public static function reenviarCorreoLog(array $data): array
     {
         $debugLog = [];

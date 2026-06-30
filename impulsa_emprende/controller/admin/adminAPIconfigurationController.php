@@ -9,6 +9,7 @@ $usuario = authRequiereRol('impulsa_administrador');
 $usuarioCorreo = (string) ($usuario['correo'] ?? '');
 $usuarioInicial = obtenerInicialAvatar($usuarioCorreo);
 $adminAPIconfigurationModel = new AdminAPIconfigurationModel($pdo);
+$adminAPIconfigurationModel->sincronizarPropietariosIntegraciones();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['api_integration_action'] ?? '') !== '') {
     try {
@@ -25,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['api_integration_action'] ?
 }
 
 $integraciones = $adminAPIconfigurationModel->obtenerIntegraciones();
+$usuariosPropietarios = $adminAPIconfigurationModel->obtenerUsuariosPropietarios();
 $opcionesProyectoSitio = $adminAPIconfigurationModel->obtenerOpcionesProyectoSitio();
 $flashIntegraciones = $_SESSION['admin_api_integrations_flash'] ?? null;
 unset($_SESSION['admin_api_integrations_flash']);
@@ -51,10 +53,16 @@ function procesarAccionIntegracion(AdminAPIconfigurationModel $model): void
     if ($accion === 'create') {
         $projectName = validarNombreProyecto((string) ($_POST['project_name'] ?? ''));
         $allowedDomain = normalizarDominioPermitido((string) ($_POST['allowed_domain'] ?? ''));
+        $ownerUserAuthId = validarOwnerUsuario(
+            $model,
+            (string) ($_POST['owner_user_auth_id'] ?? ''),
+            $projectName,
+            true
+        );
         $publicKey = generarClaveUnica($model, 'pk_');
         $secretPlain = generarClavePlana('sk_');
         $secretHash = password_hash($secretPlain, PASSWORD_DEFAULT);
-        $integrationId = $model->crearIntegracion($projectName, $allowedDomain, $publicKey, $secretHash);
+        $integrationId = $model->crearIntegracion($projectName, $allowedDomain, $publicKey, $secretHash, $ownerUserAuthId);
 
         $_SESSION['admin_api_integrations_flash'] = [
             'estado' => 'ok',
@@ -74,10 +82,17 @@ function procesarAccionIntegracion(AdminAPIconfigurationModel $model): void
     }
 
     if ($accion === 'update') {
+        $projectName = validarNombreProyecto((string) ($_POST['project_name'] ?? ''));
         $model->actualizarIntegracion(
             $integrationId,
-            validarNombreProyecto((string) ($_POST['project_name'] ?? '')),
-            normalizarDominioPermitido((string) ($_POST['allowed_domain'] ?? ''))
+            $projectName,
+            normalizarDominioPermitido((string) ($_POST['allowed_domain'] ?? '')),
+            validarOwnerUsuario(
+                $model,
+                (string) ($_POST['owner_user_auth_id'] ?? ''),
+                $projectName,
+                false
+            )
         );
         $_SESSION['admin_api_integrations_flash'] = [
             'estado' => 'ok',
@@ -173,6 +188,31 @@ function validarIdIntegracion(string $valor): int
 
     if ($id === false) {
         throw new RuntimeException('La integracion seleccionada no es valida.');
+    }
+
+    return (int) $id;
+}
+
+function validarOwnerUsuario(AdminAPIconfigurationModel $model, string $valor, string $projectName, bool $requerido): ?int
+{
+    $valor = trim($valor);
+
+    if ($valor === '') {
+        $inferido = $model->resolverUsuarioPropietarioPorProyecto($projectName);
+        if ($inferido !== null) {
+            return $inferido;
+        }
+
+        if ($requerido) {
+            throw new RuntimeException('Selecciona un usuario dueno para la integracion.');
+        }
+
+        return null;
+    }
+
+    $id = filter_var($valor, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($id === false) {
+        throw new RuntimeException('El usuario dueno seleccionado no es valido.');
     }
 
     return (int) $id;
