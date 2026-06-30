@@ -67,6 +67,8 @@ $basename = static fn (?string $path): string => $path ? basename(str_replace('\
     .im-admin-productos-cabecera { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; justify-content: space-between; }
     .im-admin-productos-selector { display: grid; gap: 1rem; }
     .im-admin-productos-note { margin: 0; color: var(--im-color-texto-suave); font-size: .85rem; line-height: 1.45; }
+    .im-snackbar[data-estado="error"] { background: #ba1a1a; color: #fff; }
+    .im-snackbar[data-estado="error"] button { color: #fff; }
     @media (max-width: 980px) {
       .im-admin-productos-layout { grid-template-columns: 1fr; }
     }
@@ -101,7 +103,7 @@ $basename = static fn (?string $path): string => $path ? basename(str_replace('\
             </div>
           </div>
 
-          <?php if (is_array($flashProductos) && trim((string) ($flashProductos['mensaje'] ?? '')) !== ''): ?>
+          <?php if (is_array($flashProductos) && ($flashProductos['estado'] ?? '') === 'error' && trim((string) ($flashProductos['mensaje'] ?? '')) !== ''): ?>
             <div class="im-alerta <?= ($flashProductos['estado'] ?? '') === 'error' ? 'im-alerta--info' : 'im-alerta--exito' ?>">
               <?= $h($flashProductos['mensaje'] ?? '') ?>
             </div>
@@ -349,10 +351,17 @@ $basename = static fn (?string $path): string => $path ? basename(str_replace('\
     </div>
   </div>
 
+  <div class="im-snackbar" data-estado="ok" aria-live="polite" aria-atomic="true">
+    <span></span>
+    <button type="button" class="im-boton im-boton--texto" data-cerrar-snackbar>Cerrar</button>
+  </div>
+
   <?php require __DIR__ . '/../../partials/bottom_sheet_perfil/perfilView.php'; ?>
   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
   <script src="<?= htmlspecialchars(obtenerImpulsaMaterialJsSrc(), ENT_QUOTES, 'UTF-8'); ?>"></script>
   <script>
+    window.__adminProductosFlash = <?= json_encode($flashProductos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+
     document.querySelectorAll('[data-quill-form]').forEach((form) => {
       const editorNode = form.querySelector('[data-quill-editor]');
       const hidden = form.querySelector('[data-quill-hidden]');
@@ -362,6 +371,44 @@ $basename = static fn (?string $path): string => $path ? basename(str_replace('\
       form.dataset.quillInitialized = 'true';
       form.addEventListener('submit', () => { hidden.value = quill.root.innerHTML; });
     });
+
+    (function () {
+      const snackbar = document.querySelector('.im-snackbar');
+      const texto = snackbar?.querySelector('span');
+      const cerrar = document.querySelector('[data-cerrar-snackbar]');
+      const flash = window.__adminProductosFlash || null;
+
+      if (!snackbar || !texto) {
+        return;
+      }
+
+      const ocultarSnackbar = () => {
+        window.clearTimeout(window.__adminProductosSnackbarTimer);
+        snackbar.classList.remove('abierto');
+      };
+
+      const mostrarSnackbar = (mensaje, estado) => {
+        if (!mensaje) {
+          return;
+        }
+
+        snackbar.dataset.estado = estado === 'error' ? 'error' : 'ok';
+        texto.textContent = mensaje;
+        snackbar.classList.add('abierto');
+        window.clearTimeout(window.__adminProductosSnackbarTimer);
+        window.__adminProductosSnackbarTimer = window.setTimeout(() => {
+          snackbar.classList.remove('abierto');
+        }, 4200);
+      };
+
+      if (cerrar) {
+        cerrar.addEventListener('click', ocultarSnackbar);
+      }
+
+      if (flash && flash.mensaje) {
+        mostrarSnackbar(flash.mensaje, flash.estado || 'ok');
+      }
+    })();
   </script>
 </body>
 </html>

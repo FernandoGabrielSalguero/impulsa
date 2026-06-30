@@ -105,8 +105,12 @@ function procesarAccionProductoAdmin(AdminProductosManagerModel $model): void
             'estado' => 'ok',
             'mensaje' => $productId !== false ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.',
             'integration_id' => (int) $integrationId,
-            'edit_id' => $savedId,
         ];
+
+        if ($productId !== false) {
+            $_SESSION['admin_productos_flash']['edit_id'] = $savedId;
+        }
+
         return;
     }
 
