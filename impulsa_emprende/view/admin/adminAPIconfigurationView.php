@@ -216,7 +216,6 @@ $resolverDueno = static function (array $integracion): array {
                         <th>Proyecto o sitio</th>
                         <th>Dueno</th>
                         <th>Dominio</th>
-                        <th>Public key</th>
                         <th>Secret key</th>
                         <th>Estado</th>
                         <th>Visitas</th>
@@ -343,12 +342,6 @@ $resolverDueno = static function (array $integracion): array {
                             <br><small><?= $h($owner['email'] !== '' ? $owner['email'] : 'Sin correo') ?></small>
                           </td>
                           <td><code><?= $h($integracion['allowed_domain'] ?? '') ?></code></td>
-                          <td>
-                            <div class="im-api-copy-linea">
-                              <code><?= $h($integracion['public_key'] ?? '') ?></code>
-                              <button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Copiar public key" data-copy-text="<?= $h($integracion['public_key'] ?? '') ?>">content_copy</button>
-                            </div>
-                          </td>
                           <td>
                             <div class="im-api-secret--protegida">
                               Protegida por hash
