@@ -24,17 +24,13 @@ use Throwable;
 
 class AuthController extends Controller
 {
-    public function __construct(
-        private readonly EmailVerificationService $emailVerificationService,
-    ) {}
-
     public function login(LoginRequest $request): JsonResponse
     {
         $user = UserAuth::query()
             ->where('correo', $request->validated('correo'))
             ->first();
 
-        if (! $user || ! Hash::check($request->validated('password'), $user->password)) {
+        if (! $user || ! Hash::check($request->validated('password'), $user->getAuthPassword())) {
             throw ValidationException::withMessages([
                 'correo' => ['Credenciales incorrectas.'],
             ]);
@@ -49,7 +45,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function register(RegisterRequest $request): JsonResponse
+    public function register(RegisterRequest $request, EmailVerificationService $emailVerificationService): JsonResponse
     {
         $rol = AuthDashboard::roleForProfile($request->validated('perfil'));
 
@@ -85,7 +81,7 @@ class AuthController extends Controller
             return $user->load('info');
         });
 
-        $emailSent = $this->emailVerificationService->sendVerificationEmail($user, $verificationToken);
+        $emailSent = $emailVerificationService->sendVerificationEmail($user, $verificationToken);
 
         if (! $emailSent) {
             Log::warning('No se pudo enviar el correo de verificación', [
@@ -100,10 +96,10 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function verifyEmail(VerifyEmailRequest $request): JsonResponse
+    public function verifyEmail(VerifyEmailRequest $request, EmailVerificationService $emailVerificationService): JsonResponse
     {
         try {
-            $result = $this->emailVerificationService->verifyToken($request->validated('token'));
+            $result = $emailVerificationService->verifyToken($request->validated('token'));
 
             return response()->json($result);
         } catch (InvalidArgumentException) {
