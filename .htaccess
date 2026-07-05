@@ -2,13 +2,9 @@
   RewriteEngine On
   RewriteBase /
 
-  # Carpetas de la app (Angular / Laravel) se sirven directo
   RewriteRule ^impulsa_front(/|$) - [L]
   RewriteRule ^impulsa_back(/|$) - [L]
 
-  # Raiz del dominio -> pagina web en web/
   RewriteRule ^$ web/index.html [L]
   RewriteRule ^(.+)$ web/$1 [L]
 </IfModule>
-
-DirectoryIndex web/index.html

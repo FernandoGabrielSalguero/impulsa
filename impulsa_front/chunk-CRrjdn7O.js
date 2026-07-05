@@ -1,0 +1,1 @@
+import {y,E as Je,bH as sv,bw as x}from'./main-GOFC3B32.js';function w(t){t||(t=y(Je));let i=new x(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(sv(i))}export{w};
