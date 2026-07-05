@@ -1,0 +1,206 @@
+<?php
+
+use App\Http\Controllers\Api\V1\Admin\AiUsageLogController;
+use App\Http\Controllers\Api\V1\Admin\ApiIntegrationController;
+use App\Http\Controllers\Api\V1\Admin\ApiProductController;
+use App\Http\Controllers\Api\V1\Admin\ChatbotController;
+use App\Http\Controllers\Api\V1\Admin\CorreoLogController;
+use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\MarketingDashboardController;
+use App\Http\Controllers\Api\V1\Admin\MarketingPlanController;
+use App\Http\Controllers\Api\V1\Admin\MarketingSubscriptionController;
+use App\Http\Controllers\Api\V1\Admin\MercadoPagoSubscriptionPlanController;
+use App\Http\Controllers\Api\V1\Admin\ProjectController;
+use App\Http\Controllers\Api\V1\Admin\TaskController;
+use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Admin\UserMenuController;
+use App\Http\Controllers\Api\V1\Admin\WebRequestController;
+use App\Http\Controllers\Api\V1\Admin\WebsiteSubscriptionController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\Emprendedor\BlogController as EmprendedorBlogController;
+use App\Http\Controllers\Api\V1\Emprendedor\ChatbotController as EmprendedorChatbotController;
+use App\Http\Controllers\Api\V1\Emprendedor\ContractController as EmprendedorContractController;
+use App\Http\Controllers\Api\V1\Emprendedor\DashboardController as EmprendedorDashboardController;
+use App\Http\Controllers\Api\V1\Emprendedor\DefinicionController as EmprendedorDefinicionController;
+use App\Http\Controllers\Api\V1\Emprendedor\MarketingController as EmprendedorMarketingController;
+use App\Http\Controllers\Api\V1\Emprendedor\MenuController as EmprendedorMenuController;
+use App\Http\Controllers\Api\V1\Emprendedor\PaginaWebController as EmprendedorPaginaWebController;
+use App\Http\Controllers\Api\V1\Emprendedor\MetricsController as EmprendedorMetricsController;
+use App\Http\Controllers\Api\V1\Emprendedor\ProductController as EmprendedorProductController;
+use App\Http\Controllers\Api\V1\Emprendedor\WebsiteSubscriptionController as EmprendedorWebsiteSubscriptionController;
+use App\Http\Controllers\Api\V1\Public\PublicMetricsController;
+use App\Http\Controllers\Api\V1\Public\PublicSubscriptionStatusController;
+use App\Http\Controllers\Api\V1\Webhooks\MercadoPagoWebhookController;
+use App\Http\Middleware\ValidatePublicApiKey;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('v1')->group(function (): void {
+    Route::prefix('public')->group(function (): void {
+        Route::middleware(ValidatePublicApiKey::class)->group(function (): void {
+            Route::get('subscription-status', [PublicSubscriptionStatusController::class, 'show']);
+            Route::post('page-visit', [PublicMetricsController::class, 'pageVisit']);
+            Route::post('content-view', [PublicMetricsController::class, 'contentView']);
+        });
+
+        Route::get('subscription-guard.js', [PublicSubscriptionStatusController::class, 'guardScript']);
+    });
+
+    Route::post('webhooks/mercadopago', [MercadoPagoWebhookController::class, 'handle']);
+
+    Route::prefix('auth')->group(function (): void {
+        Route::post('login', [AuthController::class, 'login']);
+        Route::post('register', [AuthController::class, 'register']);
+        Route::post('verify-email', [AuthController::class, 'verifyEmail']);
+        Route::post('check-email', [AuthController::class, 'checkEmail']);
+
+        Route::middleware('auth:sanctum')->group(function (): void {
+            Route::get('me', [AuthController::class, 'me']);
+            Route::post('logout', [AuthController::class, 'logout']);
+        });
+    });
+
+    Route::middleware(['auth:sanctum', 'role:impulsa_administrador'])
+        ->prefix('admin')
+        ->group(function (): void {
+            Route::get('dashboard/stats', [AdminDashboardController::class, 'stats']);
+            Route::get('users', [UserController::class, 'index']);
+            Route::post('users', [UserController::class, 'store']);
+            Route::get('users/{user}', [UserController::class, 'show']);
+            Route::put('users/{user}', [UserController::class, 'update']);
+            Route::delete('users/{user}', [UserController::class, 'destroy']);
+            Route::get('users/{user}/menu-options', [UserMenuController::class, 'options']);
+            Route::put('users/{user}/menu', [UserMenuController::class, 'update']);
+            Route::get('mail-logs', [CorreoLogController::class, 'index']);
+            Route::get('mail-logs/{correoLog}', [CorreoLogController::class, 'show']);
+            Route::post('mail-logs/{correoLog}/resend', [CorreoLogController::class, 'resend']);
+            Route::get('ai-usage-logs/options', [AiUsageLogController::class, 'options']);
+            Route::get('ai-usage-logs', [AiUsageLogController::class, 'index']);
+            Route::get('ai-usage-logs/{aiUsageLog}', [AiUsageLogController::class, 'show']);
+            Route::get('web-requests/internal', [WebRequestController::class, 'indexInternal']);
+            Route::get('web-requests/internal/{webRequest}', [WebRequestController::class, 'showInternal']);
+            Route::post('web-requests/internal/{webRequest}/create-project', [WebRequestController::class, 'createProjectFromInternal']);
+            Route::get('web-requests/external', [WebRequestController::class, 'indexExternal']);
+            Route::get('web-requests/external/{webRequest}', [WebRequestController::class, 'showExternal']);
+            Route::post('web-requests/external/{webRequest}/create-user', [WebRequestController::class, 'createUserFromExternal']);
+            Route::post('web-requests/external/{webRequest}/create-project', [WebRequestController::class, 'createProjectFromExternal']);
+            Route::get('projects/options', [ProjectController::class, 'options']);
+            Route::get('projects/managers', [ProjectController::class, 'managers']);
+            Route::get('projects', [ProjectController::class, 'index']);
+            Route::get('projects/{project}', [ProjectController::class, 'show']);
+            Route::put('projects/{project}', [ProjectController::class, 'update']);
+            Route::post('projects/{project}/phases', [ProjectController::class, 'storePhase']);
+            Route::put('projects/{project}/phases/{phase}', [ProjectController::class, 'updatePhase']);
+            Route::delete('projects/{project}/phases/{phase}', [ProjectController::class, 'destroyPhase']);
+            Route::post('projects/{project}/deliverables', [ProjectController::class, 'storeDeliverable']);
+            Route::put('projects/{project}/deliverables/{deliverable}', [ProjectController::class, 'updateDeliverable']);
+            Route::delete('projects/{project}/deliverables/{deliverable}', [ProjectController::class, 'destroyDeliverable']);
+            Route::get('projects/{project}/contract', [ProjectController::class, 'showContract']);
+            Route::put('projects/{project}/contract', [ProjectController::class, 'updateContract']);
+            Route::get('tasks/options', [TaskController::class, 'options']);
+            Route::get('tasks/assignees', [TaskController::class, 'assignees']);
+            Route::get('tasks', [TaskController::class, 'index']);
+            Route::post('tasks', [TaskController::class, 'store']);
+            Route::get('tasks/{adminTarea}', [TaskController::class, 'show']);
+            Route::put('tasks/{adminTarea}', [TaskController::class, 'update']);
+            Route::delete('tasks/{adminTarea}', [TaskController::class, 'destroy']);
+            Route::get('api-integrations/options', [ApiIntegrationController::class, 'options']);
+            Route::get('api-integrations/project-options', [ApiIntegrationController::class, 'projectOptions']);
+            Route::get('api-integrations/owners', [ApiIntegrationController::class, 'owners']);
+            Route::get('api-integrations/resolve-owner', [ApiIntegrationController::class, 'resolveOwner']);
+            Route::get('api-integrations', [ApiIntegrationController::class, 'index']);
+            Route::post('api-integrations', [ApiIntegrationController::class, 'store']);
+            Route::get('api-integrations/{apiIntegration}', [ApiIntegrationController::class, 'show']);
+            Route::put('api-integrations/{apiIntegration}', [ApiIntegrationController::class, 'update']);
+            Route::post('api-integrations/{apiIntegration}/toggle-status', [ApiIntegrationController::class, 'toggleStatus']);
+            Route::post('api-integrations/{apiIntegration}/regenerate-public-key', [ApiIntegrationController::class, 'regeneratePublicKey']);
+            Route::post('api-integrations/{apiIntegration}/regenerate-secret-key', [ApiIntegrationController::class, 'regenerateSecretKey']);
+            Route::get('api-products/options', [ApiProductController::class, 'options']);
+            Route::get('api-products/integration-options', [ApiProductController::class, 'integrationOptions']);
+            Route::get('api-products/summary', [ApiProductController::class, 'summary']);
+            Route::get('api-products', [ApiProductController::class, 'index']);
+            Route::post('api-products', [ApiProductController::class, 'store']);
+            Route::get('api-products/{apiProduct}', [ApiProductController::class, 'show']);
+            Route::put('api-products/{apiProduct}', [ApiProductController::class, 'update']);
+            Route::patch('api-products/{apiProduct}/status', [ApiProductController::class, 'updateStatus']);
+            Route::get('api-products/{apiProduct}/media/{mediaType}', [ApiProductController::class, 'media']);
+            Route::get('chatbots/summary', [ChatbotController::class, 'summary']);
+            Route::get('chatbots/options', [ChatbotController::class, 'options']);
+            Route::get('chatbots', [ChatbotController::class, 'index']);
+            Route::get('chatbots/{chatbot}', [ChatbotController::class, 'show']);
+            Route::patch('chatbots/{chatbot}/block', [ChatbotController::class, 'updateBlock']);
+            Route::get('marketing/dashboard', [MarketingDashboardController::class, 'summary']);
+            Route::get('marketing-plans/options', [MarketingPlanController::class, 'options']);
+            Route::get('marketing-plans', [MarketingPlanController::class, 'index']);
+            Route::post('marketing-plans', [MarketingPlanController::class, 'store']);
+            Route::get('marketing-plans/{marketingPlan}', [MarketingPlanController::class, 'show']);
+            Route::get('marketing-plans/{marketingPlan}/preview', [MarketingPlanController::class, 'preview']);
+            Route::put('marketing-plans/{marketingPlan}', [MarketingPlanController::class, 'update']);
+            Route::patch('marketing-plans/{marketingPlan}/status', [MarketingPlanController::class, 'updateStatus']);
+            Route::get('marketing-subscriptions/options', [MarketingSubscriptionController::class, 'options']);
+            Route::get('marketing-subscriptions', [MarketingSubscriptionController::class, 'index']);
+            Route::get('marketing-subscriptions/{marketingPlanSubscription}', [MarketingSubscriptionController::class, 'show']);
+            Route::patch('marketing-subscriptions/{marketingPlanSubscription}/status', [MarketingSubscriptionController::class, 'updateStatus']);
+            Route::post('marketing-subscriptions/{marketingPlanSubscription}/mark-paid', [MarketingSubscriptionController::class, 'markPaid']);
+            Route::get('website-subscriptions/options', [WebsiteSubscriptionController::class, 'options']);
+            Route::get('website-subscriptions/integration-options', [WebsiteSubscriptionController::class, 'integrationOptions']);
+            Route::get('website-subscriptions', [WebsiteSubscriptionController::class, 'index']);
+            Route::post('website-subscriptions', [WebsiteSubscriptionController::class, 'store']);
+            Route::get('website-subscriptions/{websiteSubscription}', [WebsiteSubscriptionController::class, 'show']);
+            Route::put('website-subscriptions/{websiteSubscription}', [WebsiteSubscriptionController::class, 'update']);
+            Route::put('website-subscriptions/{websiteSubscription}/periods/{period}', [WebsiteSubscriptionController::class, 'updatePeriod']);
+            Route::post('website-subscriptions/{websiteSubscription}/periods/{period}/mark-paid', [WebsiteSubscriptionController::class, 'markPeriodPaid']);
+            Route::get('mercadopago-subscription-plans/options', [MercadoPagoSubscriptionPlanController::class, 'options']);
+            Route::get('mercadopago-subscription-plans', [MercadoPagoSubscriptionPlanController::class, 'index']);
+            Route::post('mercadopago-subscription-plans', [MercadoPagoSubscriptionPlanController::class, 'store']);
+            Route::get('mercadopago-subscription-plans/{mercadopagoSubscriptionPlan}', [MercadoPagoSubscriptionPlanController::class, 'show']);
+            Route::put('mercadopago-subscription-plans/{mercadopagoSubscriptionPlan}', [MercadoPagoSubscriptionPlanController::class, 'update']);
+            Route::post('mercadopago-subscription-plans/{mercadopagoSubscriptionPlan}/toggle-status', [MercadoPagoSubscriptionPlanController::class, 'toggleStatus']);
+            Route::delete('mercadopago-subscription-plans/{mercadopagoSubscriptionPlan}', [MercadoPagoSubscriptionPlanController::class, 'destroy']);
+        });
+
+    Route::middleware(['auth:sanctum', 'role:impulsa_emprendedor'])
+        ->prefix('emprendedor')
+        ->group(function (): void {
+            Route::get('menu', [EmprendedorMenuController::class, 'show']);
+            Route::get('dashboard/stats', [EmprendedorDashboardController::class, 'stats']);
+            Route::get('contracts/{contractId}', [EmprendedorContractController::class, 'show']);
+            Route::post('contracts/{contractId}/sign', [EmprendedorContractController::class, 'sign']);
+            Route::get('marketing/plans', [EmprendedorMarketingController::class, 'plans']);
+            Route::get('marketing/plans/{planId}', [EmprendedorMarketingController::class, 'showPlan']);
+            Route::get('marketing/subscriptions', [EmprendedorMarketingController::class, 'subscriptions']);
+            Route::post('marketing/subscriptions', [EmprendedorMarketingController::class, 'storeSubscription']);
+            Route::get('marketing/subscriptions/{marketingPlanSubscription}/payment-url', [EmprendedorMarketingController::class, 'paymentUrl']);
+            Route::get('products/options', [EmprendedorProductController::class, 'options']);
+            Route::get('products/summary', [EmprendedorProductController::class, 'summary']);
+            Route::get('products', [EmprendedorProductController::class, 'index']);
+            Route::post('products', [EmprendedorProductController::class, 'store']);
+            Route::get('products/{apiProduct}', [EmprendedorProductController::class, 'show']);
+            Route::put('products/{apiProduct}', [EmprendedorProductController::class, 'update']);
+            Route::patch('products/{apiProduct}/status', [EmprendedorProductController::class, 'updateStatus']);
+            Route::get('products/{apiProduct}/media/{mediaType}', [EmprendedorProductController::class, 'media']);
+            Route::get('chatbot', [EmprendedorChatbotController::class, 'show']);
+            Route::get('chatbot/avatar', [EmprendedorChatbotController::class, 'avatar']);
+            Route::put('chatbot/settings', [EmprendedorChatbotController::class, 'updateSettings']);
+            Route::post('chatbot/settings', [EmprendedorChatbotController::class, 'updateSettings']);
+            Route::patch('chatbot/status', [EmprendedorChatbotController::class, 'updateStatus']);
+            Route::put('chatbot/nodes', [EmprendedorChatbotController::class, 'syncNodes']);
+            Route::get('website-subscription', [EmprendedorWebsiteSubscriptionController::class, 'show']);
+            Route::get('pagina-web/overview', [EmprendedorPaginaWebController::class, 'overview']);
+            Route::get('definicion', [EmprendedorDefinicionController::class, 'show']);
+            Route::put('definicion/buyer-persona', [EmprendedorDefinicionController::class, 'saveBuyerPersona']);
+            Route::put('definicion/mision', [EmprendedorDefinicionController::class, 'saveMision']);
+            Route::put('definicion/vision', [EmprendedorDefinicionController::class, 'saveVision']);
+            Route::put('definicion/landing', [EmprendedorDefinicionController::class, 'saveLanding']);
+            Route::post('definicion/generate-estructura', [EmprendedorDefinicionController::class, 'generateEstructura'])
+                ->middleware('throttle:10,1');
+            Route::get('metrics/summary', [EmprendedorMetricsController::class, 'summary']);
+            Route::get('metrics/dashboard', [EmprendedorMetricsController::class, 'dashboard']);
+            Route::get('blog/taxonomy', [EmprendedorBlogController::class, 'taxonomy']);
+            Route::get('blog', [EmprendedorBlogController::class, 'index']);
+            Route::post('blog', [EmprendedorBlogController::class, 'store']);
+            Route::get('blog/{postId}', [EmprendedorBlogController::class, 'show']);
+            Route::put('blog/{postId}', [EmprendedorBlogController::class, 'update']);
+            Route::patch('blog/{postId}/status', [EmprendedorBlogController::class, 'updateStatus']);
+            Route::get('blog/{postId}/media/{mediaType}', [EmprendedorBlogController::class, 'media']);
+        });
+});

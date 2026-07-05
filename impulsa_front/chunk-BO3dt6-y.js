@@ -1,0 +1,1 @@
+function i(t){return `products-page__status products-page__status--${t}`}export{i};

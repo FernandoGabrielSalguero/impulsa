@@ -1,0 +1,868 @@
+📚 Estructura completa de la base de datos: u104036906_impulsaGroup
+📄 Tabla: admin_tareas
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+nombre_tarea	varchar(180)	NO			
+responsable_user_id	int(10) unsigned	NO	MUL		
+descripcion	text	NO			
+fecha_entrega	date	NO			
+prioridad_defcon	tinyint(1) unsigned	NO	MUL		
+reporta_a	varchar(180)	NO			
+estado	enum('pendiente','en_progreso','completada','cancelada')	NO	MUL	pendiente	
+created_by_user_id	int(10) unsigned	NO	MUL		
+completed_at	datetime	YES			
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
+Columna responsable_user_id referencia a user_auth.id
+📄 Tabla: ai_usage_logs
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	YES	MUL		
+provider	varchar(40)	NO			
+feature	varchar(120)	NO	MUL		
+model	varchar(80)	YES			
+status	enum('success','failed')	NO	MUL		
+prompt_tokens	int(10) unsigned	YES			
+completion_tokens	int(10) unsigned	YES			
+total_tokens	int(10) unsigned	YES			
+latency_ms	int(10) unsigned	YES			
+error_message	varchar(500)	YES			
+metadata_json	text	YES			
+ip_address	varchar(45)	YES			
+created_at	timestamp	NO	MUL	current_timestamp()	
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: api_blog_posts
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+api_integration_id	bigint(20) unsigned	NO	MUL		
+title	varchar(180)	NO			
+slug	varchar(220)	NO			
+subtitle	varchar(255)	YES			
+author	varchar(180)	YES			
+bibliography	text	YES			
+cover_image_path	varchar(255)	YES			
+attachment_path	varchar(255)	YES			
+category	varchar(120)	YES			
+subcategory	varchar(120)	YES			
+excerpt	varchar(300)	YES			
+description_html	longtext	NO			
+publication_date	datetime	YES	MUL		
+status	enum('active','inactive','draft')	NO		draft	
+sort_order	int(10) unsigned	NO		1	
+metadata_json	longtext	YES			
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	timestamp	NO	MUL	current_timestamp()	
+updated_at	timestamp	NO	MUL	current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
+Columna api_integration_id referencia a api_integrations.id
+📄 Tabla: api_integrations
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+project_name	varchar(180)	NO			
+allowed_domain	varchar(190)	NO	MUL		
+public_key	varchar(80)	NO	UNI		
+secret_key_hash	varchar(255)	YES			
+status	enum('active','inactive')	NO	MUL	active	
+user_auth_id	int(10) unsigned	YES	MUL		
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+last_used_at	datetime	YES			
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: api_products
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+api_integration_id	bigint(20) unsigned	NO	MUL		
+title	varchar(180)	NO			
+slug	varchar(220)	NO			
+sku	varchar(80)	YES	MUL		
+short_description	varchar(300)	YES			
+description_html	longtext	NO			
+main_image_path	varchar(255)	YES			
+thumbnail_path	varchar(255)	YES			
+attachment_path	varchar(255)	YES			
+category	varchar(120)	YES			
+subcategory	varchar(120)	YES			
+price	decimal(12,2)	YES			
+compare_at_price	decimal(12,2)	YES			
+currency	varchar(8)	NO		ARS	
+stock_quantity	int(11)	YES			
+availability	enum('in_stock','out_of_stock','preorder','on_request')	NO		on_request	
+status	enum('active','inactive','draft')	NO		draft	
+featured	tinyint(1)	NO		0	
+sort_order	int(10) unsigned	NO		1	
+metadata_json	longtext	YES			
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	timestamp	NO	MUL	current_timestamp()	
+updated_at	timestamp	NO	MUL	current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
+Columna api_integration_id referencia a api_integrations.id
+📄 Tabla: chatbot_events
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+chatbot_id	bigint(20) unsigned	NO	MUL		
+api_integration_id	bigint(20) unsigned	NO	MUL		
+event_type	enum('widget_loaded','bubble_opened','question_viewed','option_clicked','whatsapp_clicked','chat_closed')	NO	MUL		
+node_id	bigint(20) unsigned	YES			
+option_id	bigint(20) unsigned	YES			
+page_url	varchar(500)	YES			
+metadata_json	text	YES			
+ip_hash	char(64)	YES			
+user_agent	varchar(255)	YES			
+created_at	timestamp	NO	MUL	current_timestamp()	
+
+🔗 Relaciones:
+Columna api_integration_id referencia a api_integrations.id
+Columna chatbot_id referencia a chatbots.id
+📄 Tabla: chatbot_node_options
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+node_id	bigint(20) unsigned	NO	MUL		
+label	varchar(180)	NO			
+action_type	enum('go_to_node','whatsapp','restart','close')	NO			
+target_node_id	bigint(20) unsigned	YES	MUL		
+sort_order	int(10) unsigned	NO		1	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna node_id referencia a chatbot_nodes.id
+Columna target_node_id referencia a chatbot_nodes.id
+📄 Tabla: chatbot_nodes
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+chatbot_id	bigint(20) unsigned	NO	MUL		
+title	varchar(180)	NO			
+body	text	NO			
+sort_order	int(10) unsigned	NO		1	
+is_start	tinyint(1)	NO		0	
+status	enum('active','inactive')	NO		active	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna chatbot_id referencia a chatbots.id
+📄 Tabla: chatbots
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+api_integration_id	bigint(20) unsigned	NO	UNI		
+name	varchar(180)	NO			
+avatar_url	varchar(255)	YES			
+whatsapp	varchar(80)	NO			
+initial_message	text	NO			
+status	enum('active','inactive')	NO	MUL	inactive	
+disabled_by_admin	tinyint(1)	NO	MUL	0	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna api_integration_id referencia a api_integrations.id
+📄 Tabla: contacto_landing
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+nombre	varchar(150)	NO			
+empresa	varchar(150)	NO			
+email	varchar(190)	NO	MUL		
+telefono	varchar(80)	NO			
+equipo	varchar(80)	YES			
+objetivo	varchar(120)	YES			
+mensaje	text	YES			
+form_source	varchar(100)	NO		landing-impulsa	
+ip_address	varchar(45)	YES			
+user_agent	varchar(255)	YES			
+created_at	timestamp	NO	MUL	current_timestamp()	
+
+📄 Tabla: correos_log
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	YES	MUL		
+correo	varchar(255)	NO			
+asunto	varchar(255)	NO			
+template	varchar(100)	YES			
+mensaje_html	longtext	YES			
+mensaje_text	text	YES			
+estado	enum('enviado','fallido')	NO	MUL	fallido	
+error	text	YES			
+meta	longtext	YES			
+created_at	timestamp	NO		current_timestamp()	
+
+📄 Tabla: emprendedor_buyer_persona
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	UNI		
+cliente_ideal	text	NO			
+edad_etapa_vida	text	NO			
+ocupacion_realidad_diaria	text	NO			
+problema_necesidad	text	NO			
+preocupacion_frustracion	text	NO			
+objetivo_mejora	text	NO			
+motivacion_busqueda	text	NO			
+freno_dudas	text	NO			
+criterio_eleccion	text	NO			
+busqueda_informacion	text	NO			
+decision_compra	text	NO			
+motivo_eleccion	text	NO			
+buyer_persona_estructura	longtext	NO			
+completado	tinyint(1)	NO		0	
+created_at	timestamp	YES		current_timestamp()	
+updated_at	timestamp	YES		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: emprendedor_mision
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	UNI		
+a_quien_ayudo	varchar(255)	NO			
+que_problema_resuelvo	text	NO			
+como_lo_resuelvo	text	NO			
+mision_estructura	text	NO			
+completado	tinyint(1)	NO		0	
+created_at	timestamp	YES		current_timestamp()	
+updated_at	timestamp	YES		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: emprendedor_vision
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	UNI		
+conversion_futura	text	NO			
+lugar_mercado	text	NO			
+impacto_generado	text	NO			
+vision_estructura	text	NO			
+completado	tinyint(1)	NO		0	
+created_at	timestamp	YES		current_timestamp()	
+updated_at	timestamp	YES		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: forms_clients_contact
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+page	varchar(150)	NO	MUL		
+api_integration_id	bigint(20) unsigned	YES	MUL		
+contact_nombre	varchar(150)	NO			
+contact_whatsapp	varchar(50)	YES			
+contact_email	varchar(150)	YES			
+contact_description	text	YES			
+contact_consultation	varchar(1000)	YES			
+state	enum('recibido','cancelado','aprobado')	NO		recibido	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna api_integration_id referencia a api_integrations.id
+📄 Tabla: landing_page_request
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	UNI		
+nombre_emprendimiento	varchar(255)	NO			
+fecha_inicio	date	NO			
+descripcion	text	NO			
+dominio_registrado	tinyint(1)	NO		0	
+hosting_propio	tinyint(1)	NO		0	
+cantidad_colaboradores	int(10) unsigned	NO		1	
+nombre_fundador	varchar(255)	NO			
+vende_productos	tinyint(1)	NO		0	
+vende_servicios	tinyint(1)	NO		0	
+ya_factura	tinyint(1)	NO		0	
+espacio_fisico	tinyint(1)	NO		0	
+rubro_categoria_id	int(10) unsigned	YES	MUL		
+rubro_subcategoria_id	int(10) unsigned	YES	MUL		
+pais	varchar(100)	YES			
+provincia	varchar(100)	YES			
+localidad	varchar(100)	YES			
+calle	varchar(255)	YES			
+numero	varchar(20)	YES			
+telefono_contacto	varchar(30)	NO			
+completado	tinyint(1)	NO		0	
+created_at	timestamp	YES		current_timestamp()	
+updated_at	timestamp	YES		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna rubro_categoria_id referencia a rubro_emprendedor_categoria.id
+Columna rubro_subcategoria_id referencia a rubro_emprendedor_subcategoria.id
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: landing_page_requests_external
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+nombre	varchar(150)	NO			
+nombre_proyecto	varchar(180)	NO			
+correo	varchar(190)	NO	MUL		
+whatsapp	varchar(80)	NO			
+q1_nombre_comercial	text	NO			
+q2_actividad	text	NO			
+q3_objetivo	text	NO			
+q4_publico	text	NO			
+q5_accion_principal	text	NO			
+q6_propuestas_destacar	text	NO			
+q7_diferencial	text	NO			
+q8_secciones	text	NO			
+q9_textos	text	NO			
+q10_contacto	text	NO			
+q11_material_marca	text	NO			
+q12_estilo_visual	text	NO			
+q13_referencias	text	NO			
+q14_recursos_visuales	text	NO			
+q15_imagenes_apoyo	text	NO			
+q16_dominio_hosting	text	NO			
+q17_correos_corporativos	text	NO			
+q18_requerimientos_adicionales	text	NO			
+form_source	varchar(80)	NO	MUL	public-new-page	
+ip_address	varchar(45)	YES			
+user_agent	varchar(255)	YES			
+created_at	timestamp	NO	MUL	current_timestamp()	
+
+📄 Tabla: marketing_campaign_metrics
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+campaign_id	int(10) unsigned	NO	MUL		
+import_batch_id	int(10) unsigned	YES	MUL		
+report_start_date	date	NO	MUL		
+report_end_date	date	NO	MUL		
+campaign_name	varchar(220)	NO			
+campaign_delivery	varchar(80)	YES			
+results	decimal(14,2)	YES			
+result_indicator	varchar(120)	YES			
+cost_per_result	decimal(12,2)	YES			
+adset_budget	decimal(12,2)	YES			
+adset_budget_type	varchar(80)	YES			
+amount_spent_ars	decimal(12,2)	YES			
+impressions	int(10) unsigned	YES			
+reach	int(10) unsigned	YES			
+campaign_end_date	date	YES			
+attribution_setting	varchar(160)	YES			
+total_message_contacts	int(10) unsigned	YES			
+new_message_contacts	int(10) unsigned	YES			
+purchases	int(10) unsigned	YES			
+cost_per_purchase_ars	decimal(12,2)	YES			
+messaging_conversations_started	int(10) unsigned	YES			
+cost_per_messaging_conversation_started_ars	decimal(12,2)	YES			
+source	enum('meta_csv','manual','meta_api')	NO		meta_csv	
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna import_batch_id referencia a marketing_import_batches.id
+Columna campaign_id referencia a marketing_campaigns.id
+📄 Tabla: marketing_campaigns
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+subscription_id	int(10) unsigned	NO	MUL		
+client_user_id	int(10) unsigned	YES	MUL		
+entrepreneur_user_id	int(10) unsigned	YES	MUL		
+campaign_name	varchar(180)	NO			
+recommended_meta_campaign_name	varchar(220)	NO	MUL		
+internal_code	varchar(80)	YES			
+channel	enum('meta_ads','instagram_organic','google_ads','email','whatsapp','linkedin','other')	NO		meta_ads	
+objective	varchar(80)	YES			
+start_date	date	YES			
+end_date	date	YES			
+budget	decimal(12,2)	YES			
+status	enum('draft','active','paused','completed','cancelled')	NO		draft	
+external_platform	varchar(40)	YES			
+external_campaign_name	varchar(220)	YES			
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna client_user_id referencia a user_auth.id
+Columna created_by_user_id referencia a user_auth.id
+Columna entrepreneur_user_id referencia a user_auth.id
+Columna subscription_id referencia a marketing_plan_subscriptions.id
+📄 Tabla: marketing_client_codes
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	UNI		
+client_code	varchar(40)	NO	UNI		
+display_name	varchar(160)	YES			
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: marketing_commercial_metrics
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+campaign_id	int(10) unsigned	NO	MUL		
+subscription_id	int(10) unsigned	NO	MUL		
+metric_period_start	date	NO			
+metric_period_end	date	NO			
+closed_clients	int(10) unsigned	NO		0	
+proposals_sent	int(10) unsigned	NO		0	
+unsuccessful_contacts	int(10) unsigned	NO		0	
+successful_contacts	int(10) unsigned	NO		0	
+meetings_scheduled	int(10) unsigned	NO		0	
+meetings_completed	int(10) unsigned	NO		0	
+quoted_amount	decimal(12,2)	NO		0.00	
+closed_revenue	decimal(12,2)	NO		0.00	
+notes	text	YES			
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna campaign_id referencia a marketing_campaigns.id
+Columna created_by_user_id referencia a user_auth.id
+Columna subscription_id referencia a marketing_plan_subscriptions.id
+📄 Tabla: marketing_external_campaign_mappings
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+platform	varchar(40)	NO	MUL	meta_ads	
+external_campaign_name	varchar(220)	NO	MUL		
+internal_client_user_id	int(10) unsigned	YES	MUL		
+internal_entrepreneur_user_id	int(10) unsigned	YES	MUL		
+internal_subscription_id	int(10) unsigned	YES	MUL		
+internal_campaign_id	int(10) unsigned	YES	MUL		
+detection_rule	enum('exact_name_match','recommended_name_match','client_code_match','manual_assignment')	NO		manual_assignment	
+confidence_score	decimal(5,2)	YES			
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna internal_campaign_id referencia a marketing_campaigns.id
+Columna internal_client_user_id referencia a user_auth.id
+Columna created_by_user_id referencia a user_auth.id
+Columna internal_entrepreneur_user_id referencia a user_auth.id
+Columna internal_subscription_id referencia a marketing_plan_subscriptions.id
+📄 Tabla: marketing_import_batches
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+platform	varchar(40)	NO	MUL	meta_ads	
+uploaded_by_user_id	int(10) unsigned	YES	MUL		
+original_filename	varchar(255)	NO			
+stored_file_path	varchar(255)	YES			
+file_type	varchar(20)	NO		csv	
+period_start	date	YES			
+period_end	date	YES			
+total_rows	int(10) unsigned	NO		0	
+imported_rows	int(10) unsigned	NO		0	
+skipped_rows	int(10) unsigned	NO		0	
+unresolved_rows	int(10) unsigned	NO		0	
+status	enum('uploaded','previewed','imported','partial','failed','reverted')	NO		uploaded	
+error_message	text	YES			
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna uploaded_by_user_id referencia a user_auth.id
+📄 Tabla: marketing_import_rows
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+import_batch_id	int(10) unsigned	NO	MUL		
+csv_row_number	int(10) unsigned	NO			
+external_campaign_name	varchar(220)	YES	MUL		
+internal_client_user_id	int(10) unsigned	YES			
+internal_entrepreneur_user_id	int(10) unsigned	YES			
+internal_subscription_id	int(10) unsigned	YES			
+internal_campaign_id	int(10) unsigned	YES			
+status	enum('matched','unresolved','skipped','imported','error')	NO		unresolved	
+reason	varchar(120)	YES			
+raw_data_json	longtext	YES			
+created_at	datetime	NO		current_timestamp()	
+
+🔗 Relaciones:
+Columna import_batch_id referencia a marketing_import_batches.id
+📄 Tabla: marketing_plan_features
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+plan_id	int(10) unsigned	NO	MUL		
+feature_name	varchar(180)	NO			
+feature_description	varchar(255)	YES			
+quantity	decimal(10,2)	YES			
+unit	varchar(60)	YES			
+feature_order	int(11)	NO		0	
+is_highlighted	tinyint(1)	NO		0	
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna plan_id referencia a marketing_plans.id
+📄 Tabla: marketing_plan_pricing_options
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+plan_id	int(10) unsigned	NO	MUL		
+duration_months	int(10) unsigned	NO			
+monthly_price	decimal(12,2)	NO			
+total_price	decimal(12,2)	NO			
+setup_fee	decimal(12,2)	NO		0.00	
+currency	varchar(8)	NO		ARS	
+mercadopago_subscription_plan_id	bigint(20) unsigned	YES	MUL		
+is_featured	tinyint(1)	NO		0	
+is_default	tinyint(1)	NO		0	
+display_order	int(11)	NO		0	
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna plan_id referencia a marketing_plans.id
+Columna mercadopago_subscription_plan_id referencia a mercadopago_subscription_plans.id
+📄 Tabla: marketing_plan_subscriptions
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+plan_id	int(10) unsigned	NO	MUL		
+pricing_option_id	int(10) unsigned	NO	MUL		
+client_user_id	int(10) unsigned	YES	MUL		
+entrepreneur_user_id	int(10) unsigned	YES	MUL		
+assigned_marketing_user_id	int(10) unsigned	YES	MUL		
+status	enum('requested','meeting_scheduled','approved_manually','pending_payment','active','paused','completed','cancelled')	NO	MUL	requested	
+payment_status	enum('not_required_yet','pending','paid','failed','cancelled')	NO		not_required_yet	
+payment_provider	varchar(40)	YES			
+payment_reference	varchar(180)	YES			
+payment_required	tinyint(1)	NO		0	
+duration_months	int(10) unsigned	NO			
+monthly_price	decimal(12,2)	NO			
+total_contract_value	decimal(12,2)	NO			
+start_date	date	YES			
+end_date	date	YES			
+monthly_ad_budget	decimal(12,2)	YES			
+notes	text	YES			
+activated_at	datetime	YES			
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna client_user_id referencia a user_auth.id
+Columna entrepreneur_user_id referencia a user_auth.id
+Columna assigned_marketing_user_id referencia a user_auth.id
+Columna plan_id referencia a marketing_plans.id
+Columna pricing_option_id referencia a marketing_plan_pricing_options.id
+📄 Tabla: marketing_plans
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+name	varchar(160)	NO			
+slug	varchar(180)	NO	UNI		
+short_description	varchar(255)	YES			
+full_description	text	YES			
+objective	varchar(120)	YES			
+recommended_ad_budget_min	decimal(12,2)	YES			
+recommended_ad_budget_max	decimal(12,2)	YES			
+setup_fee	decimal(12,2)	NO		0.00	
+billing_period	varchar(40)	NO		monthly	
+report_frequency	varchar(60)	YES			
+support_level	varchar(80)	YES			
+is_visible_to_clients	tinyint(1)	NO		0	
+status	enum('draft','published','paused','archived')	NO	MUL	draft	
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
+📄 Tabla: marketing_reports
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+subscription_id	int(10) unsigned	NO	MUL		
+period_start	date	NO			
+period_end	date	NO			
+title	varchar(180)	NO			
+summary	text	YES			
+conclusions	text	YES			
+next_actions	text	YES			
+visible_to_client	tinyint(1)	NO	MUL	0	
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	datetime	NO		current_timestamp()	
+updated_at	datetime	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
+Columna subscription_id referencia a marketing_plan_subscriptions.id
+📄 Tabla: mercadopago_subscription_plans
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+name	varchar(120)	NO			
+amount	decimal(12,2)	NO		0.00	
+payment_url	varchar(500)	NO			
+status	enum('active','inactive')	NO	MUL	active	
+notes	text	YES			
+created_at	timestamp	YES			
+updated_at	timestamp	YES			
+
+📄 Tabla: project_contracts
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+project_id	bigint(20) unsigned	NO	UNI		
+contract_name	varchar(180)	NO			
+contract_html	longtext	NO			
+contract_text	longtext	YES			
+version_number	int(10) unsigned	NO		1	
+is_signed	tinyint(1)	NO	MUL	0	
+signed_at	datetime	YES			
+signed_by_user_id	int(10) unsigned	YES	MUL		
+signer_full_name	varchar(190)	YES			
+signer_ip	varchar(45)	YES			
+created_by_user_id	int(10) unsigned	YES	MUL		
+updated_by_user_id	int(10) unsigned	YES	MUL		
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
+Columna project_id referencia a projects.id
+Columna signed_by_user_id referencia a user_auth.id
+Columna updated_by_user_id referencia a user_auth.id
+📄 Tabla: project_deliverable_tasks
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+deliverable_id	bigint(20) unsigned	NO	MUL		
+task_order	int(10) unsigned	NO		1	
+title	varchar(255)	NO			
+due_date	date	YES	MUL		
+is_completed	tinyint(1)	NO		0	
+completed_at	datetime	YES			
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna deliverable_id referencia a project_deliverables.id
+📄 Tabla: project_deliverables
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+project_id	bigint(20) unsigned	NO	MUL		
+phase_id	bigint(20) unsigned	YES	MUL		
+title	varchar(180)	NO			
+description	text	YES			
+deliverable_type	enum('document','design','development','deployment','training','other')	NO		other	
+status	enum('pending','in_progress','ready_for_review','delivered')	NO		pending	
+due_date	date	YES			
+delivered_at	datetime	YES			
+client_visible	tinyint(1)	NO		1	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna phase_id referencia a project_phases.id
+Columna project_id referencia a projects.id
+📄 Tabla: project_phases
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+project_id	bigint(20) unsigned	NO	MUL		
+title	varchar(180)	NO			
+description	text	YES			
+duration_days	int(10) unsigned	YES			
+phase_order	int(10) unsigned	NO		1	
+status	enum('pending','in_progress','blocked','done')	NO	MUL	pending	
+due_date	date	YES			
+completed_at	datetime	YES			
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna project_id referencia a projects.id
+📄 Tabla: project_scope_request
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+nombre	varchar(150)	NO			
+nombre_proyecto	varchar(180)	NO			
+correo	varchar(190)	NO	MUL		
+whatsapp	varchar(80)	NO			
+q1_descripcion	text	NO			
+q2_problema	text	NO			
+q3_usuarios	text	NO			
+q4_resultado_ideal	text	NO			
+q5_tipo_aplicacion	enum('pagina_web','sistema_web_interno','app_mobile','plataforma_web_app_mobile','no_se')	NO			
+q6_login	enum('si','no','no_se')	NO			
+q7_acceso	enum('solo_equipo','clientes','proveedores','roles_diferentes','no_se')	NO			
+q8_funciones_minimas	text	NO			
+q9_funcionalidades	longtext	YES			
+q10_admin_vs_usuario	text	YES			
+q11_integraciones	text	YES			
+q12_contenido	enum('claro','medio','no')	NO			
+q13_referencias	text	YES			
+q14_diseno	enum('completa','parcial','no')	NO			
+q15_urgencia	enum('cuanto_antes','1_2_meses','mas_adelante','explorando')	NO	MUL		
+q16_presupuesto	enum('sin_definir','menos_1000000','entre_1000000_2000000','mas_2000000')	NO			
+q17_modalidad	enum('por_etapas','todo_junto','necesito_recomendacion')	NO			
+q18_adicional	text	YES			
+form_source	varchar(100)	NO		public-new-project	
+estado	enum('nuevo','revisado','descartado')	NO	MUL	nuevo	
+ip_address	varchar(45)	YES			
+user_agent	varchar(255)	YES			
+created_at	timestamp	NO	MUL	current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+📄 Tabla: project_updates
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+project_id	bigint(20) unsigned	NO	MUL		
+phase_id	bigint(20) unsigned	YES	MUL		
+created_by	int(10) unsigned	NO	MUL		
+title	varchar(180)	NO			
+message	text	NO			
+progress_delta	smallint(6)	YES			
+visible_to_client	tinyint(1)	NO		1	
+created_at	timestamp	NO		current_timestamp()	
+
+🔗 Relaciones:
+Columna phase_id referencia a project_phases.id
+Columna project_id referencia a projects.id
+Columna created_by referencia a user_auth.id
+📄 Tabla: projects
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+source_type	varchar(40)	YES	MUL		
+source_id	bigint(20) unsigned	YES			
+project_name	varchar(180)	NO			
+project_type	enum('software','landing_page','website','manual')	NO		software	
+client_user_id	int(10) unsigned	YES	MUL		
+manager_user_id	int(10) unsigned	NO	MUL		
+client_name	varchar(150)	NO			
+client_email	varchar(190)	NO			
+client_whatsapp	varchar(80)	YES			
+summary	text	YES			
+scope_summary	text	YES			
+status	enum('draft','planned','in_progress','paused','in_review','completed','cancelled')	NO	MUL	planned	
+priority	enum('low','medium','high','urgent')	NO		medium	
+start_date	date	YES			
+target_delivery_date	date	YES			
+actual_delivery_date	date	YES			
+progress_percent	tinyint(3) unsigned	NO		0	
+client_visible	tinyint(1)	NO		1	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna client_user_id referencia a user_auth.id
+Columna manager_user_id referencia a user_auth.id
+📄 Tabla: rubro_emprendedor_categoria
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+nombre	varchar(150)	NO	UNI		
+descripcion	text	YES			
+
+📄 Tabla: rubro_emprendedor_relaciones
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+categoria_id	int(10) unsigned	NO	MUL		
+subcategoria_id	int(10) unsigned	NO	MUL		
+
+🔗 Relaciones:
+Columna categoria_id referencia a rubro_emprendedor_categoria.id
+Columna subcategoria_id referencia a rubro_emprendedor_subcategoria.id
+📄 Tabla: rubro_emprendedor_subcategoria
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+nombre	varchar(150)	NO	UNI		
+descripcion	text	YES			
+
+📄 Tabla: user_auth
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+correo	varchar(255)	NO	UNI		
+password	varchar(255)	NO			
+rol	enum('impulsa_administrador','impulsa_colaborador','impulsa_emprendedor','impulsa_usuario','impulsa_marketing','impulsa_cliente')	NO			
+verification_token	varchar(100)	YES			
+email_verified_at	timestamp	YES			
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+usuario_tipo	enum('interno','externo')	NO		externo	
+
+📄 Tabla: user_contacto
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	UNI		
+correo	varchar(255)	NO			
+check_correo	tinyint(1)	NO		0	
+permison_correo	tinyint(1)	NO		1	
+whatsapp	varchar(30)	YES			
+check_whatsapp	tinyint(1)	NO		0	
+permison_whatsapp	tinyint(1)	NO		1	
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: user_info
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	UNI		
+nombre	varchar(100)	YES			
+apellido	varchar(100)	YES			
+apodo	varchar(100)	YES			
+avatar_path	varchar(255)	YES			
+fecha_nacimiento	date	YES			
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: user_ingresos
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	MUL		
+nombre_usuario	varchar(255)	NO			
+rol	varchar(50)	NO			
+fecha_ingreso	date	NO	MUL		
+hora_ingreso	time	NO			
+created_at	timestamp	NO		current_timestamp()	
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: user_menu_view
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	MUL		
+menu_key	varchar(100)	NO			
+created_at	timestamp	YES		current_timestamp()	
+updated_at	timestamp	YES		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: user_params
+Columna	Tipo	Nulo	Clave	Default	Extra
+user_auth_id	int(10) unsigned	NO	PRI		
+page	varchar(150)	NO	MUL		
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+📄 Tabla: visit_user_page
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	int(10) unsigned	NO	PRI		auto_increment
+page	varchar(150)	NO	MUL		
+api_integration_id	bigint(20) unsigned	YES	MUL		
+visited_at	timestamp	NO	MUL	current_timestamp()	
+
+🔗 Relaciones:
+Columna api_integration_id referencia a api_integrations.id
+📄 Tabla: website_subscription_periods
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+website_subscription_id	bigint(20) unsigned	NO	MUL		
+year	smallint(5) unsigned	NO	MUL		
+month	tinyint(3) unsigned	NO			
+amount	decimal(12,2)	NO		0.00	
+status	enum('pending','paid','grace','waived','overdue')	NO	MUL	pending	
+mercadopago_payment_id	varchar(120)	YES			
+paid_at	timestamp	YES			
+first_notice_sent_at	timestamp	YES			
+last_reminder_sent_at	timestamp	YES			
+created_at	timestamp	YES			
+updated_at	timestamp	YES			
+
+📄 Tabla: website_subscriptions
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+api_integration_id	bigint(20) unsigned	NO	UNI		
+mercadopago_subscription_plan_id	bigint(20) unsigned	YES	MUL		
+status	enum('active','paused','cancelled')	NO	MUL	active	
+mercadopago_preapproval_id	varchar(120)	YES			
+grace_months_count	tinyint(3) unsigned	NO		0	
+default_amount	decimal(12,2)	NO		0.00	
+notes	text	YES			
+created_at	timestamp	YES			
+updated_at	timestamp	YES			

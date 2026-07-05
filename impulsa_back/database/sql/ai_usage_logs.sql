@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS `ai_usage_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_auth_id` int(10) unsigned DEFAULT NULL,
+  `provider` varchar(40) NOT NULL,
+  `feature` varchar(120) NOT NULL,
+  `model` varchar(80) DEFAULT NULL,
+  `status` enum('success','failed') NOT NULL,
+  `prompt_tokens` int(10) unsigned DEFAULT NULL,
+  `completion_tokens` int(10) unsigned DEFAULT NULL,
+  `total_tokens` int(10) unsigned DEFAULT NULL,
+  `latency_ms` int(10) unsigned DEFAULT NULL,
+  `error_message` varchar(500) DEFAULT NULL,
+  `metadata_json` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `ai_usage_logs_user_auth_id_index` (`user_auth_id`),
+  KEY `ai_usage_logs_feature_index` (`feature`),
+  KEY `ai_usage_logs_status_index` (`status`),
+  KEY `ai_usage_logs_created_at_index` (`created_at`),
+  CONSTRAINT `ai_usage_logs_user_auth_id_foreign` FOREIGN KEY (`user_auth_id`) REFERENCES `user_auth` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
