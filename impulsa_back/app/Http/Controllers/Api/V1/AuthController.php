@@ -41,7 +41,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => new UserAuthResource($user->loadMissing('info')),
+            'user' => UserAuthResource::make($user->loadMissing('info'))->resolve(),
         ]);
     }
 

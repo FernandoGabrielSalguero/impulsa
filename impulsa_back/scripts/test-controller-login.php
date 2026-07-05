@@ -2,22 +2,15 @@
 
 declare(strict_types=1);
 
-use Illuminate\Contracts\Http\Kernel;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\Request;
+use Throwable;
 
 require __DIR__.'/../vendor/autoload.php';
 
 $app = require __DIR__.'/../bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-
-$config = $app->make('config');
-$config->set('app.debug', true);
-
-echo 'CACHE_STORE='.$config->get('cache.default')."\n";
-echo 'CONFIG_CACHED='.(is_file(base_path('bootstrap/cache/config.php')) ? 'yes' : 'no')."\n";
-
-/** @var Kernel $kernel */
-$kernel = $app->make(Kernel::class);
 
 $correo = $argv[1] ?? 'fernandosalguero685@gmail.com';
 $password = $argv[2] ?? '';
@@ -27,7 +20,7 @@ $payload = json_encode([
     'password' => $password,
 ], JSON_THROW_ON_ERROR);
 
-$request = Request::create(
+$base = Request::create(
     '/api/v1/auth/login',
     'POST',
     [],
@@ -40,9 +33,17 @@ $request = Request::create(
     $payload,
 );
 
-$response = $kernel->handle($request);
+/** @var LoginRequest $request */
+$request = LoginRequest::createFrom($base);
+$request->setContainer($app);
+$request->setRedirector($app->make('redirect'));
+$request->validateResolved();
 
-echo 'STATUS='.$response->getStatusCode()."\n";
-echo $response->getContent()."\n";
-
-$kernel->terminate($request, $response);
+try {
+    $response = $app->make(AuthController::class)->login($request);
+    echo 'STATUS='.$response->getStatusCode()."\n";
+    echo $response->getContent()."\n";
+} catch (Throwable $exception) {
+    echo get_class($exception).': '.$exception->getMessage()."\n";
+    exit(1);
+}
