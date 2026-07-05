@@ -27,9 +27,6 @@ impulsa_back/storage/app/public/*
 !impulsa_back/storage/framework/views/.gitignore
 !impulsa_back/storage/app/public/.gitignore
 
-# Archivos subidos del sistema viejo
-legacy/impulsa_emprende/uploads/
-
 # IDE
 .vscode/
 .idea/

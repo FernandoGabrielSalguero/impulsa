@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Impulsa Material CDN</title>
+  <meta name="description" content="Framework CSS responsive inspirado en Material, con clases reutilizables Impulsa.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/material.css">
+</head>
+
+<body>
+  <div class="im-aplicacion" data-menu-colapsado="false">
+    <aside class="im-menu-lateral" id="menu-lateral" aria-label="Navegacion principal">
+      <div class="im-marca">
+        <span class="im-marca__isotipo" aria-hidden="true">I</span>
+        <div class="im-marca__texto">
+          <strong>Impulsa Material</strong>
+          <span>Framework CDN</span>
+        </div>
+      </div>
+
+      <nav class="im-navegacion">
+        <a class="im-nav-item activo" href="#dashboard" data-seccion="dashboard"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Dashboard</span></a>
+        <a class="im-nav-item" href="#botones" data-seccion="botones"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Botones</span></a>
+        <a class="im-nav-item" href="#tarjetas" data-seccion="tarjetas"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Tarjetas</span></a>
+        <a class="im-nav-item" href="#tablas" data-seccion="tablas"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Tablas</span></a>
+        <a class="im-nav-item" href="#bottom-sheet" data-seccion="bottom-sheet"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Bottom sheet</span></a>
+        <a class="im-nav-item" href="#boton" data-seccion="boton"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Boton</span></a>
+        <a class="im-nav-item" href="#dialog" data-seccion="dialog"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Dialog</span></a>
+        <a class="im-nav-item" href="#expansion" data-seccion="expansion"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Expansion panel</span></a>
+        <a class="im-nav-item" href="#form-field" data-seccion="form-field"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Form field</span></a>
+        <a class="im-nav-item" href="#iconos" data-seccion="iconos"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Iconos</span></a>
+        <a class="im-nav-item" href="#stepper" data-seccion="stepper"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Stepper</span></a>
+        <a class="im-nav-item" href="#tabs" data-seccion="tabs"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Tabs</span></a>
+        <a class="im-nav-item" href="#mas-elementos" data-seccion="mas-elementos"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Más Elementos</span></a>
+        <a class="im-nav-item" href="#ayuda" data-seccion="ayuda"><span class="im-nav-item__icono" aria-hidden="true"></span><span class="im-nav-item__texto">Ayuda</span></a>
+      </nav>
+    </aside>
+
+    <div class="im-cortina" data-cerrar-menu></div>
+
+    <div class="im-contenedor">
+      <header class="im-barra-superior">
+        <div class="im-barra-superior__grupo">
+          <button class="im-boton-icono" type="button" data-alternar-menu aria-label="Alternar menu lateral" aria-expanded="true"></button>
+          <div>
+            <p class="im-sobrelinea">Documentacion</p>
+            <h1>Componentes responsive para proyectos Impulsa</h1>
+          </div>
+        </div>
+        <div class="im-barra-superior__acciones">
+          <button class="im-boton im-boton--tonal" type="button">Version 0.1</button>
+          <button class="im-boton-icono im-boton-icono--principal" type="button" data-abrir-config-tema aria-label="Configurar temas"></button>
+        </div>
+      </header>
+
+      <main class="im-contenido">
+        <section class="im-seccion-documento activa" id="dashboard" data-panel="dashboard">
+          <div class="im-encabezado-seccion">
+            <div>
+              <p class="im-sobrelinea">Resumen</p>
+              <h2>Dashboard</h2>
+              <p>Vista integrada para revisar componentes del framework usando las mismas clases base del CDN.</p>
+            </div>
+            <div class="im-muestra">
+              <button class="im-boton-icono im-badge material-symbols-rounded" data-badge="7" type="button" aria-label="Notificaciones">notifications</button>
+              <button class="im-boton im-boton--tonal" type="button" data-abrir-bottom-sheet>Acciones</button>
+              <button class="im-boton im-boton--principal" type="button" data-abrir-dialog>Nuevo proyecto</button>
+            </div>
+          </div>
+
+          <div class="im-grilla im-grilla--metricas">
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Componentes</span><strong>14</strong><small>Menu final</small></article>
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Campos</span><strong>12</strong><small>Validables</small></article>
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">Iconos</span><strong>50+</strong><small>Material Symbols</small></article>
+            <article class="im-tarjeta im-tarjeta--metrica"><span class="im-etiqueta">CDN</span><strong>CSS + JS</strong><small>Sin inline</small></article>
+          </div>
+
+          <div class="im-grilla im-grilla--dashboard">
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera">
+                <div>
+                  <h3>Componentes base</h3>
+                  <p>Botones, campos, chips, badges, progress y snackbar compartiendo estilos del framework.</p>
+                </div>
+                <span class="im-chip im-chip--exito">Online</span>
+              </div>
+              <form class="im-formulario">
+                <label class="im-campo im-campo-material"><span>Proyecto</span><input type="text" value="Impulsa Material"><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">web_asset</i></label>
+                <label class="im-campo im-campo-material"><span>Email</span><input type="email" value="framework@impulsa.dev"><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i></label>
+                <label class="im-slide-toggle im-campo--ancho"><input type="checkbox" checked><span></span> Publicado</label>
+                <label class="im-slider im-campo--ancho"><span>Avance</span><input type="range" min="0" max="100" value="72" data-slider><output>72</output></label>
+              </form>
+              <div class="im-chip-lista"><span class="im-chip">Botones</span><span class="im-chip im-chip--alerta">Docs</span><span class="im-chip im-chip--avatar"><b>I</b> CDN</span></div>
+              <button class="im-boton im-boton--principal" type="button" data-abrir-snackbar>Mostrar snackbar</button>
+            </article>
+
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera">
+                <div>
+                  <h3>Estado operativo</h3>
+                  <p>Indicadores y resumen tabular compacto.</p>
+                </div>
+                <div class="im-spinner" aria-label="Sincronizando"></div>
+              </div>
+              <div class="im-progress-bar" aria-label="Carga al 72"><span></span></div>
+              <div class="im-tabla-contenedor">
+                <table class="im-tabla">
+                  <thead><tr><th>Modulo</th><th>Estado</th></tr></thead>
+                  <tbody>
+                    <tr><td>CSS</td><td><span class="im-chip im-chip--exito">Listo</span></td></tr>
+                    <tr><td>JS</td><td><span class="im-chip im-chip--alerta">Demo</span></td></tr>
+                    <tr><td>Docs</td><td><span class="im-chip">Activo</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+
+          <article class="im-tarjeta">
+            <div class="im-tabs" data-tabs>
+              <button class="activo" type="button">Resumen</button>
+              <button type="button">Flujo</button>
+              <button type="button">Acciones</button>
+            </div>
+            <div class="im-tab-panel activo">El dashboard usa los componentes reales para detectar cambios de estilos base.</div>
+            <div class="im-tab-panel">
+              <div class="im-stepper" data-stepper>
+                <div class="im-stepper__pasos"><button class="activo" type="button">1<span>Instalar</span></button><button type="button">2<span>Usar</span></button><button type="button">3<span>Publicar</span></button></div>
+                <div class="im-stepper__contenido">Contenido del paso seleccionado.</div>
+                <div class="im-muestra"><button class="im-boton im-boton--texto" type="button" data-stepper-prev>Anterior</button><button class="im-boton im-boton--principal" type="button" data-stepper-next>Siguiente</button></div>
+              </div>
+            </div>
+            <div class="im-tab-panel"><button class="im-boton im-boton--tonal" type="button" data-abrir-bottom-sheet>Abrir bottom sheet</button></div>
+          </article>
+        </section>
+
+        <section class="im-seccion-documento" id="botones" data-panel="botones">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Acciones</p><h2>Botones</h2><p>Variantes listas para comandos primarios, secundarios y compactos.</p></div></div>
+          <article class="im-tarjeta im-muestra">
+            <button class="im-boton im-boton--principal" type="button">Principal</button>
+            <button class="im-boton im-boton--tonal" type="button">Tonal</button>
+            <button class="im-boton im-boton--texto" type="button">Texto</button>
+            <button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Editar">edit</button>
+            <button class="im-fab material-symbols-rounded" type="button" aria-label="Crear">add</button>
+          </article>
+        </section>
+
+        <section class="im-seccion-documento" id="tarjetas" data-panel="tarjetas">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Contenedores</p><h2>Tarjetas</h2><p>Superficies reutilizables para piezas de informacion y acciones.</p></div></div>
+          <div class="im-grilla im-grilla--tres-columnas">
+            <article class="im-tarjeta"><h3>Basica</h3><p>Contenido simple con padding, borde y sombra suave.</p></article>
+            <article class="im-tarjeta"><div class="im-tarjeta__cabecera"><div><h3>Con cabecera</h3><p>Titulo, descripcion y accion.</p></div><button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Mas opciones">more_horiz</button></div></article>
+            <article class="im-tarjeta"><h3>Responsive</h3><p>La grilla se adapta a pantallas chicas sin estilos inline.</p></article>
+          </div>
+        </section>
+
+        <section class="im-seccion-documento" id="tablas" data-panel="tablas">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Datos</p><h2>Tablas</h2><p>Tabla de tareas con scroll interno, acciones sticky y menu contextual.</p></div></div>
+          <article class="im-tabla-tareas__tarjeta">
+            <div class="im-tabla-tareas__cabecera">
+              <div>
+                <h3>Mis tareas</h3>
+                <p>Lista de tareas pendientes</p>
+              </div>
+              <div class="im-menu-tabla" data-im-menu>
+                <button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button>
+                <div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel>
+                  <button type="button" role="menuitem">Actualizar</button>
+                  <button type="button" role="menuitem">Descargar</button>
+                  <button type="button" role="menuitem">Filtrar</button>
+                  <button type="button" role="menuitem">Columnas</button>
+                </div>
+              </div>
+            </div>
+            <div class="im-tabla-tareas__scroll im-tabla-tareas--max-9">
+              <table class="im-tabla-tareas">
+                <thead>
+                  <tr>
+                    <th class="im-tabla-tareas__seleccion"><input type="checkbox" aria-label="Seleccionar todas las tareas"></th>
+                    <th class="im-tabla-tareas__nombre">Nombre</th>
+                    <th>Fecha limite</th>
+                    <th>Estado</th>
+                    <th>Usuario</th>
+                    <th class="im-tabla-tareas__acciones">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><input type="checkbox" aria-label="Seleccionar Public Beta Release"></td><td class="im-tabla-tareas__nombre">Public Beta Release</td><td>14 Mar 2023</td><td><span class="im-chip im-chip--activo">Active</span></td><td><span class="im-tabla-tareas__avatar im-avatar--js">JS</span></td><td class="im-tabla-tareas__acciones"><div class="im-menu-tabla" data-im-menu><button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button><div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver tarea</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">edit</span>Editar tarea</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">delete</span>Eliminar tarea</button></div></div></td></tr>
+                  <tr><td><input type="checkbox" aria-label="Seleccionar Fix Platform Errors"></td><td class="im-tabla-tareas__nombre">Fix Platform Errors</td><td>12 Feb 2023</td><td><span class="im-chip im-chip--completado">Completed</span></td><td><span class="im-tabla-tareas__avatar im-avatar--ml">ML</span></td><td class="im-tabla-tareas__acciones"><div class="im-menu-tabla" data-im-menu><button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button><div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver tarea</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">edit</span>Editar tarea</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">delete</span>Eliminar tarea</button></div></div></td></tr>
+                  <tr><td><input type="checkbox" aria-label="Seleccionar Launch our Mobile App"></td><td class="im-tabla-tareas__nombre">Launch our Mobile App</td><td>10 Mar 2023</td><td><span class="im-chip im-chip--activo">Active</span></td><td><span class="im-tabla-tareas__avatar im-avatar--ag">AG</span></td><td class="im-tabla-tareas__acciones"><div class="im-menu-tabla" data-im-menu><button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button><div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver tarea</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">edit</span>Editar tarea</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">delete</span>Eliminar tarea</button></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section class="im-seccion-documento" id="bottom-sheet" data-panel="bottom-sheet">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Superficies temporales</p><h2>Bottom sheet y Drawer</h2><p>Componentes modales independientes para acciones inferiores e informacion lateral.</p></div></div>
+          <div class="im-grilla im-grilla--dos-columnas">
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera"><div><h3>Bottom sheet</h3><p>Panel temporal que se desliza desde abajo para acciones contextuales.</p></div></div>
+              <button class="im-boton im-boton--principal" type="button" data-abrir-bottom-sheet>Abrir bottom sheet</button>
+            </article>
+            <article class="im-tarjeta">
+              <div class="im-tarjeta__cabecera"><div><h3>Drawer</h3><p>Panel lateral derecho para mostrar detalle, formularios o acciones.</p></div></div>
+              <button class="im-boton im-boton--principal" type="button" data-abrir-drawer>Abrir drawer</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="im-seccion-documento" id="boton" data-panel="boton">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Acciones</p><h2>Boton</h2><p>Filled, tonal, texto, icon, FAB, mini FAB y extended FAB.</p></div></div>
+          <article class="im-tarjeta im-muestra">
+            <button class="im-boton im-boton--principal" type="button">Filled</button>
+            <button class="im-boton im-boton--tonal" type="button">Tonal</button>
+            <button class="im-boton im-boton--texto" type="button">Texto</button>
+            <button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Favorito">star</button>
+            <button class="im-fab material-symbols-rounded" type="button" aria-label="Crear">add</button>
+            <button class="im-fab im-fab--mini material-symbols-rounded" type="button" aria-label="Editar">edit</button>
+            <button class="im-fab im-fab--extendido" type="button"><span class="material-symbols-rounded" aria-hidden="true">add</span> Crear registro</button>
+          </article>
+        </section>
+
+        <section class="im-seccion-documento" id="dialog" data-panel="dialog">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Modal</p><h2>Dialog</h2><p>Dialog con header, contenido scrollable y acciones persistentes.</p></div></div>
+          <article class="im-tarjeta im-muestra"><button class="im-boton im-boton--principal" type="button" data-abrir-dialog>Abrir dialog</button></article>
+        </section>
+
+        <section class="im-seccion-documento" id="expansion" data-panel="expansion">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Contenido plegable</p><h2>Expansion panel</h2><p>Accordion con acciones para expandir o colapsar todos los paneles.</p></div></div>
+          <article class="im-tarjeta">
+            <div class="im-muestra"><button class="im-boton im-boton--tonal" type="button" data-expandir-todo>Expandir todo</button><button class="im-boton im-boton--texto" type="button" data-colapsar-todo>Colapsar todo</button></div>
+            <div class="im-acordeon">
+              <details class="im-expansion" open><summary>Basic expansion panel</summary><p>Contenido descriptivo del panel.</p></details>
+              <details class="im-expansion"><summary>Expansion panel as accordion</summary><p>Puede usarse para FAQs, configuraciones o filtros.</p></details>
+              <details class="im-expansion"><summary>Panel con contenido largo</summary><p>El alto se adapta al contenido y conserva separaciones consistentes.</p></details>
+            </div>
+          </article>
+        </section>
+
+        <section class="im-seccion-documento" id="form-field" data-panel="form-field">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Campos</p><h2>Form field</h2><p>Campos Material con y sin validacion para comparar comportamiento.</p></div></div>
+          <article class="im-tarjeta">
+            <div class="im-tarjeta__cabecera"><div><h3>Campos predeterminados con validacion</h3><p>La validacion se activa con <code>data-im-campo</code>.</p></div></div>
+            <form class="im-formulario" data-im-validar>
+              <div class="im-formulario__separador">Datos principales</div>
+              <label class="im-campo im-campo-material" data-im-campo="nombre"><span>Nombre</span><input type="text" name="nombre" placeholder="Nombre y apellido" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">person</i><small data-im-error>Nombre requerido.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="email"><span>Correo</span><input type="email" name="email" placeholder="nombre@dominio.com" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i><small data-im-error>Email requerido.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="whatsapp"><span>WhatsApp</span><input type="tel" name="whatsapp" placeholder="+54 11 1234 5678" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">phone_iphone</i><small data-im-error>Inclui codigo de area.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="dni"><span>DNI</span><input type="text" name="dni" placeholder="12345678" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">badge</i><small data-im-error>DNI requerido.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="cuit"><span>CUIT</span><input type="text" name="cuit" placeholder="20-12345678-3" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">badge</i><small data-im-error>CUIT requerido.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="importe"><span>Importe</span><input type="text" name="importe" placeholder="1250365,25" data-im-placeholder required><b class="im-campo__prefijo" aria-hidden="true">$</b><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">payments</i><small data-im-error>Importe requerido.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="fecha"><span>Fecha</span><input type="text" name="fecha" placeholder="dd/mm/aaaa" inputmode="numeric" data-im-placeholder required><button class="im-campo__boton-icono material-symbols-rounded" type="button" data-im-datepicker aria-label="Abrir calendario">calendar_month</button><small data-im-error>Fecha requerida.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="hora"><span>Hora</span><input type="text" name="hora" placeholder="hh:mm" inputmode="numeric" data-im-placeholder required><button class="im-campo__boton-icono material-symbols-rounded" type="button" data-im-timepicker aria-label="Abrir selector de hora">schedule</button><small data-im-error>Hora requerida.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="cantidad"><span>Cantidad</span><input type="number" name="cantidad" min="1" step="1" placeholder="1" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">tag</i><small data-im-error>Cantidad requerida.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="password"><span>Password</span><input type="password" name="password" placeholder="Minimo 8 caracteres" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">lock</i><small data-im-error>Password requerido.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="confirmarPassword" data-im-confirmar="password"><span>Confirmar password</span><input type="password" name="confirmarPassword" placeholder="Repetir password" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">lock_reset</i><small data-im-error>Confirmacion requerida.</small></label>
+              <label class="im-campo im-campo-material" data-im-campo="generico"><span>Dato generico</span><input type="text" name="generico" placeholder="Cualquier dato requerido" data-im-placeholder required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">description</i><small data-im-error>Dato requerido.</small></label>
+              <div class="im-formulario__separador">Seleccion y preferencias</div>
+              <label class="im-campo im-campo-material" data-im-campo="genero"><span>Sexo / genero</span><select name="genero" required><option value="">Seleccionar</option><option value="femenino">Femenino</option><option value="masculino">Masculino</option><option value="no-binario">No binario</option><option value="prefiero-no-decir">Prefiero no decir</option></select><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">wc</i><small data-im-error>Seleccion requerida.</small></label>
+              <label class="im-campo im-campo-material im-autocomplete" data-im-campo="autocomplete"><span>Cliente autocomplete</span><input type="text" name="cliente" placeholder="Buscar cliente" data-im-placeholder data-autocomplete-input required><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">search</i><div class="im-autocomplete__panel" data-autocomplete-panel><button type="button">Impulsa Desarrollos</button><button type="button">Nairobi Cafe</button><button type="button">Norum Estudio</button></div><small data-im-error>Seleccion requerida.</small></label>
+              <fieldset class="im-campo im-campo-grupo" data-im-campo="radio"><legend>Tipo de cliente</legend><div class="im-radio-grupo"><label class="im-radio"><input type="radio" name="tipoCliente" value="persona"><span>Persona</span></label><label class="im-radio"><input type="radio" name="tipoCliente" value="empresa"><span>Empresa</span></label></div><small data-im-error>Seleccionar un tipo.</small></fieldset>
+              <fieldset class="im-campo im-campo-grupo" data-im-campo="slider" data-im-min="50"><legend>Nivel de prioridad</legend><label class="im-slider"><span>Prioridad</span><input type="range" name="prioridad" min="0" max="100" value="25" data-slider required><output>25</output></label><small data-im-error>Debe ser 50 o superior.</small></fieldset>
+              <fieldset class="im-campo im-campo-grupo" data-im-campo="toggle"><legend>Activacion</legend><label class="im-slide-toggle"><input type="checkbox" name="activo" required><span></span> Aceptar activacion</label><small data-im-error>Debe estar activo.</small></fieldset>
+              <fieldset class="im-campo im-campo-grupo" data-im-campo="checkbox"><legend>Preferencias</legend><label class="im-checkbox"><input type="checkbox" name="preferencias" value="email"><span>Email</span></label><label class="im-checkbox"><input type="checkbox" name="preferencias" value="whatsapp"><span>WhatsApp</span></label><label class="im-checkbox"><input type="checkbox" name="preferencias" value="telefono"><span>Telefono</span></label><small data-im-error>Elegir al menos una preferencia.</small></fieldset>
+              <div class="im-formulario__separador">Texto</div>
+              <label class="im-campo im-campo-material im-campo--ancho" data-im-campo="textarea" data-im-max="255"><span>Texto descriptivo</span><textarea name="texto" rows="4" maxlength="255" placeholder="Hasta 255 caracteres" data-im-placeholder required></textarea><small data-im-error>Texto requerido.</small><em class="im-campo__contador" data-im-contador>0/255</em></label>
+              <div class="im-formulario__acciones"><button class="im-boton im-boton--tonal" type="reset">Limpiar</button><button class="im-boton im-boton--principal" type="submit">Validar campos</button></div>
+            </form>
+          </article>
+
+          <article class="im-tarjeta">
+            <div class="im-tarjeta__cabecera"><div><h3>Campos predeterminados sin validacion</h3><p>Mismos estilos visuales sin <code>data-im-campo</code>, estados ni mensajes dinamicos.</p></div></div>
+            <form class="im-formulario">
+              <label class="im-campo im-campo-material"><span>Nombre</span><input type="text" name="sinNombre" placeholder="Nombre y apellido" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">person</i></label>
+              <label class="im-campo im-campo-material"><span>Correo</span><input type="email" name="sinEmail" placeholder="nombre@dominio.com" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">mail</i></label>
+              <label class="im-campo im-campo-material"><span>WhatsApp</span><input type="tel" name="sinWhatsapp" placeholder="+54 11 1234 5678" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">phone_iphone</i></label>
+              <label class="im-campo im-campo-material"><span>DNI</span><input type="text" name="sinDni" placeholder="12345678" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">badge</i></label>
+              <label class="im-campo im-campo-material"><span>CUIT</span><input type="text" name="sinCuit" placeholder="20-12345678-3" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">badge</i></label>
+              <label class="im-campo im-campo-material"><span>Importe</span><input type="text" name="sinImporte" placeholder="1250365,25" data-im-placeholder><b class="im-campo__prefijo" aria-hidden="true">$</b><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">payments</i></label>
+              <label class="im-campo im-campo-material"><span>Fecha</span><input type="text" name="sinFecha" placeholder="dd/mm/aaaa" inputmode="numeric" data-im-placeholder><button class="im-campo__boton-icono material-symbols-rounded" type="button" aria-label="Abrir calendario">calendar_month</button></label>
+              <label class="im-campo im-campo-material"><span>Hora</span><input type="text" name="sinHora" placeholder="hh:mm" inputmode="numeric" data-im-placeholder><button class="im-campo__boton-icono material-symbols-rounded" type="button" aria-label="Abrir selector de hora">schedule</button></label>
+              <label class="im-campo im-campo-material"><span>Cantidad</span><input type="number" name="sinCantidad" min="1" step="1" placeholder="1" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">tag</i></label>
+              <label class="im-campo im-campo-material"><span>Password</span><input type="password" name="sinPassword" placeholder="Minimo 8 caracteres" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">lock</i></label>
+              <label class="im-campo im-campo-material"><span>Confirmar password</span><input type="password" name="sinConfirmarPassword" placeholder="Repetir password" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">lock_reset</i></label>
+              <label class="im-campo im-campo-material"><span>Dato generico</span><input type="text" name="sinGenerico" placeholder="Cualquier dato" data-im-placeholder><i class="im-campo__icono material-symbols-rounded" aria-hidden="true">description</i></label>
+            </form>
+          </article>
+        </section>
+
+        <section class="im-seccion-documento" id="iconos" data-panel="iconos">
+          <div class="im-encabezado-seccion">
+            <div><p class="im-sobrelinea">Sistema visual</p><h2>Iconos</h2><p>Material Symbols Rounded agrupados por uso frecuente.</p></div>
+            <a class="im-boton im-boton--principal" href="https://fonts.google.com/icons" target="_blank" rel="noopener noreferrer">Abrir Google Icons</a>
+          </div>
+          <div class="im-iconos-categorias">
+            <article class="im-tarjeta"><h3>Navegacion</h3><div class="im-iconos-grid"><span><i class="material-symbols-rounded">dashboard</i><small>dashboard</small></span><span><i class="material-symbols-rounded">home</i><small>home</small></span><span><i class="material-symbols-rounded">menu</i><small>menu</small></span><span><i class="material-symbols-rounded">arrow_back</i><small>arrow_back</small></span><span><i class="material-symbols-rounded">arrow_forward</i><small>arrow_forward</small></span><span><i class="material-symbols-rounded">expand_more</i><small>expand_more</small></span><span><i class="material-symbols-rounded">chevron_right</i><small>chevron_right</small></span></div></article>
+            <article class="im-tarjeta"><h3>Acciones</h3><div class="im-iconos-grid"><span><i class="material-symbols-rounded">add</i><small>add</small></span><span><i class="material-symbols-rounded">edit</i><small>edit</small></span><span><i class="material-symbols-rounded">delete</i><small>delete</small></span><span><i class="material-symbols-rounded">save</i><small>save</small></span><span><i class="material-symbols-rounded">download</i><small>download</small></span><span><i class="material-symbols-rounded">upload</i><small>upload</small></span><span><i class="material-symbols-rounded">refresh</i><small>refresh</small></span></div></article>
+            <article class="im-tarjeta"><h3>Estado</h3><div class="im-iconos-grid"><span><i class="material-symbols-rounded">check_circle</i><small>check_circle</small></span><span><i class="material-symbols-rounded">error</i><small>error</small></span><span><i class="material-symbols-rounded">warning</i><small>warning</small></span><span><i class="material-symbols-rounded">info</i><small>info</small></span><span><i class="material-symbols-rounded">pending</i><small>pending</small></span><span><i class="material-symbols-rounded">sync</i><small>sync</small></span></div></article>
+            <article class="im-tarjeta"><h3>Comunicacion</h3><div class="im-iconos-grid"><span><i class="material-symbols-rounded">mail</i><small>mail</small></span><span><i class="material-symbols-rounded">chat_bubble</i><small>chat_bubble</small></span><span><i class="material-symbols-rounded">notifications</i><small>notifications</small></span><span><i class="material-symbols-rounded">phone_iphone</i><small>phone_iphone</small></span><span><i class="material-symbols-rounded">send</i><small>send</small></span><span><i class="material-symbols-rounded">forum</i><small>forum</small></span></div></article>
+            <article class="im-tarjeta"><h3>Archivos</h3><div class="im-iconos-grid"><span><i class="material-symbols-rounded">description</i><small>description</small></span><span><i class="material-symbols-rounded">folder</i><small>folder</small></span><span><i class="material-symbols-rounded">attach_file</i><small>attach_file</small></span><span><i class="material-symbols-rounded">article</i><small>article</small></span><span><i class="material-symbols-rounded">image</i><small>image</small></span><span><i class="material-symbols-rounded">cloud_upload</i><small>cloud_upload</small></span></div></article>
+            <article class="im-tarjeta"><h3>Usuarios</h3><div class="im-iconos-grid"><span><i class="material-symbols-rounded">person</i><small>person</small></span><span><i class="material-symbols-rounded">group</i><small>group</small></span><span><i class="material-symbols-rounded">badge</i><small>badge</small></span><span><i class="material-symbols-rounded">account_circle</i><small>account_circle</small></span><span><i class="material-symbols-rounded">admin_panel_settings</i><small>admin_panel_settings</small></span><span><i class="material-symbols-rounded">manage_accounts</i><small>manage_accounts</small></span></div></article>
+            <article class="im-tarjeta"><h3>Fechas</h3><div class="im-iconos-grid"><span><i class="material-symbols-rounded">calendar_month</i><small>calendar_month</small></span><span><i class="material-symbols-rounded">event</i><small>event</small></span><span><i class="material-symbols-rounded">schedule</i><small>schedule</small></span><span><i class="material-symbols-rounded">today</i><small>today</small></span><span><i class="material-symbols-rounded">date_range</i><small>date_range</small></span><span><i class="material-symbols-rounded">timer</i><small>timer</small></span></div></article>
+            <article class="im-tarjeta"><h3>Tablas/Datos</h3><div class="im-iconos-grid"><span><i class="material-symbols-rounded">table_chart</i><small>table_chart</small></span><span><i class="material-symbols-rounded">grid_view</i><small>grid_view</small></span><span><i class="material-symbols-rounded">bar_chart</i><small>bar_chart</small></span><span><i class="material-symbols-rounded">filter_list</i><small>filter_list</small></span><span><i class="material-symbols-rounded">search</i><small>search</small></span><span><i class="material-symbols-rounded">visibility</i><small>visibility</small></span><span><i class="material-symbols-rounded">analytics</i><small>analytics</small></span></div></article>
+          </div>
+        </section>
+
+        <section class="im-seccion-documento" id="stepper" data-panel="stepper">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Proceso</p><h2>Stepper</h2><p>Pasos con estado activo, errores y navegacion.</p></div></div>
+          <article class="im-tarjeta im-stepper" data-stepper>
+            <div class="im-stepper__pasos"><button class="activo" type="button">1<span>Datos</span></button><button class="error" type="button">2<span>Validacion</span></button><button type="button">3<span>Confirmar</span></button></div>
+            <div class="im-stepper__contenido">Contenido del paso seleccionado.</div>
+            <div class="im-muestra"><button class="im-boton im-boton--texto" type="button" data-stepper-prev>Anterior</button><button class="im-boton im-boton--principal" type="button" data-stepper-next>Siguiente</button></div>
+          </article>
+        </section>
+
+        <section class="im-seccion-documento" id="tabs" data-panel="tabs">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Vistas</p><h2>Tabs</h2><p>Ejemplo simple de tabs funcional sin tabla ni paginador.</p></div></div>
+          <article class="im-tarjeta">
+            <div class="im-tabs" data-tabs><button class="activo" type="button">Resumen</button><button type="button">Detalle</button><button type="button">Historial</button></div>
+            <div class="im-tab-panel activo">Contenido resumido del componente.</div>
+            <div class="im-tab-panel">Detalle adicional para la vista seleccionada.</div>
+            <div class="im-tab-panel">Historial de cambios o actividad reciente.</div>
+          </article>
+        </section>
+
+        <section class="im-seccion-documento" id="mas-elementos" data-panel="mas-elementos">
+          <div class="im-encabezado-seccion"><div><p class="im-sobrelinea">Componentes extra</p><h2>Más Elementos</h2><p>Demos consolidadas de componentes secundarios en una sola pagina.</p></div></div>
+          <div class="im-grilla im-grilla--dos-columnas">
+            <article class="im-tarjeta"><h3>Badge</h3><div class="im-muestra"><button class="im-boton-icono im-badge material-symbols-rounded" data-badge="5" type="button" aria-label="Notificaciones">notifications</button><span class="im-badge im-badge--texto" data-badge="Nuevo">Mensajes</span><span class="im-badge im-badge--secundario" data-badge="99+">Pedidos</span></div></article>
+            <article class="im-tarjeta"><h3>Chips</h3><div class="im-chip-lista"><span class="im-chip">Analitica</span><span class="im-chip im-chip--exito">Activo</span><span class="im-chip im-chip--alerta">Revision</span><span class="im-chip im-chip--avatar"><b>F</b> Fernando</span></div></article>
+            <article class="im-tarjeta"><h3>Grid list</h3><div class="im-grid-lista"><div class="im-grid-tile im-grid-tile--grande">Tile grande</div><div class="im-grid-tile">Ventas</div><div class="im-grid-tile">Clientes</div><div class="im-grid-tile">Soporte</div></div></article>
+            <article class="im-tarjeta im-menu-demo" data-im-menu><h3>Menu</h3><button class="im-boton im-boton--principal" type="button" data-im-menu-trigger aria-haspopup="menu" aria-expanded="false">Abrir menú</button><div class="im-menu-flotante" role="menu" data-im-menu-panel><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">edit</span> Editar</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">download</span> Descargar</button><button type="button" class="im-menu-con-submenu" role="menuitem" data-im-submenu-trigger aria-haspopup="menu" aria-expanded="false"><span class="material-symbols-rounded" aria-hidden="true">chevron_right</span> Compartir</button><div class="im-submenu" role="menu" data-im-submenu-panel><button type="button" role="menuitem">Email</button><button type="button" role="menuitem">WhatsApp</button></div></div></article>
+            <article class="im-tarjeta"><h3>Progress</h3><div class="im-muestra im-muestra--vertical"><div class="im-progress-bar" aria-label="Carga al 64"><span></span></div><div class="im-progress-bar im-progress-bar--indeterminado" aria-label="Cargando"></div><div class="im-spinner" aria-label="Cargando"></div></div></article>
+            <article class="im-tarjeta"><h3>Sidenav</h3><div class="im-sidenav-demo" data-sidenav-demo><aside>Filtros<br>Estado<br>Fecha</aside><main><button class="im-boton im-boton--tonal" type="button" data-alternar-sidenav-demo>Alternar sidenav</button><p>Contenido del panel principal.</p></main></div></article>
+            <article class="im-tarjeta"><h3>SnackBar</h3><button class="im-boton im-boton--principal" type="button" data-abrir-snackbar>Mostrar snack-bar</button></article>
+            <article class="im-tarjeta"><h3>Toolbar</h3><div class="im-toolbar"><button class="im-boton-icono material-symbols-rounded" type="button" aria-label="Menu">menu</button><strong>Barra</strong><div class="im-menu-tabla" data-im-menu><button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false">more_horiz</button><div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">refresh</span>Actualizar</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">download</span>Exportar</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">view_column</span>Columnas</button><button type="button" role="menuitem"><span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>Filtrar</button></div></div></div></article>
+            <article class="im-tarjeta"><h3>Tooltip</h3><button class="im-boton im-boton--tonal im-tooltip" data-tooltip="Texto explicativo breve" type="button">Hover</button></article>
+            <article class="im-tarjeta im-treeview-demo">
+              <h3>Tree</h3>
+              <p>Arbol reutilizable con seleccion, plegado y deteccion automatica de iconos por tipo de archivo.</p>
+              <ul data-im-tree data-im-tree-selectable="true">
+                <li data-tree-open="true" data-tree-meta="1 carpeta raiz">assets
+                  <ul>
+                    <li data-tree-open="true" data-tree-meta="4 recursos">impulsa_material
+                      <ul>
+                        <li data-tree-open="true" data-tree-meta="2 hojas de estilo">css
+                          <ul>
+                            <li data-tree-meta="65 KB">material.css</li>
+                            <li data-tree-meta="12 KB">tokens.css</li>
+                          </ul>
+                        </li>
+                        <li data-tree-open="true" data-tree-meta="2 scripts">js
+                          <ul>
+                            <li data-tree-meta="31 KB">material.js</li>
+                            <li data-tree-meta="9 KB">material-validaciones.js</li>
+                          </ul>
+                        </li>
+                        <li data-tree-open="true" data-tree-meta="3 recursos visuales">media
+                          <ul>
+                            <li data-tree-meta="SVG">logo-impulsa.svg</li>
+                            <li data-tree-meta="PNG">preview-dashboard.png</li>
+                            <li data-tree-meta="WOFF2">MaterialSymbolsRounded.woff2</li>
+                          </ul>
+                        </li>
+                        <li data-tree-meta="Guia de uso">README.md</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="im-seccion-documento" id="ayuda" data-panel="ayuda">
+          <div class="im-encabezado-seccion">
+            <div>
+              <p class="im-sobrelinea">Guia</p>
+              <h2>Ayuda</h2>
+              <p>Documentacion practica para consumir Impulsa Material desde proyectos externos y para guiar a IA/Codex al construir interfaces.</p>
+            </div>
+          </div>
+          <div class="im-ayuda">
+            <article class="im-tarjeta">
+              <h3>Que es el CDN</h3>
+              <p>Impulsa Material es un framework CSS/JS consumible desde links CDN. Los proyectos consumidores cargan <code>material.css</code>, <code>material.js</code> y, si usan formularios validados, <code>material-validaciones.js</code>, desde las URLs publicas de <code>impulsagroup.com/assets/impulsa_material</code>. La interfaz se construye con clases <code>im-*</code> y atributos <code>data-*</code> ya definidos; no copies estilos inline ni recrees componentes desde cero.</p>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Instalacion basica</h3>
+              <pre class="im-codigo"><code>&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;
+&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;
+&lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&amp;display=swap" rel="stylesheet"&gt;
+
+&lt;link rel="stylesheet" href="https://impulsagroup.com/assets/impulsa_material/css/material.css"&gt;
+
+&lt;script src="https://impulsagroup.com/assets/impulsa_material/js/material.js" defer&gt;&lt;/script&gt;
+&lt;script src="https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js" defer&gt;&lt;/script&gt;</code></pre>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>URLs publicas actuales</h3>
+              <p>Usar estas rutas desde proyectos externos para evitar enlaces relativos al proyecto local.</p>
+              <pre class="im-codigo"><code>CSS:
+https://impulsagroup.com/assets/impulsa_material/css/material.css
+
+JS base:
+https://impulsagroup.com/assets/impulsa_material/js/material.js
+
+JS validaciones:
+https://impulsagroup.com/assets/impulsa_material/js/material-validaciones.js</code></pre>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Instrucciones para IA / Codex</h3>
+              <ul class="im-lista-ayuda">
+                <li>Usar siempre clases existentes del framework antes de crear CSS nuevo.</li>
+                <li>Preferir componentes documentados: botones, tarjetas, tablas, menu de tabla, dialogs, bottom sheets, drawer, tabs, steppers, form fields, chips, badges, snackbar, toolbar, sidenav, progress, spinner, grid list y expansion.</li>
+                <li>Usar prefijo <code>im-</code> para cualquier extension nueva.</li>
+                <li>No inventar clases sin revisar <code>material.css</code>.</li>
+                <li>No usar estilos inline salvo casos excepcionales.</li>
+                <li>No duplicar logica JS si ya existe mediante atributos <code>data-*</code>.</li>
+                <li>Mantener accesibilidad basica: <code>type="button"</code>, <code>aria-label</code>, <code>aria-expanded</code>, <code>role</code> y labels reales en formularios.</li>
+              </ul>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Mapa de componentes</h3>
+              <div class="im-tabla-contenedor">
+                <table class="im-tabla">
+                  <thead><tr><th>Componente</th><th>Clases principales</th><th>JS / data attributes</th><th>Uso recomendado</th></tr></thead>
+                  <tbody>
+                    <tr><td>Layout app</td><td><code>.im-aplicacion</code>, <code>.im-menu-lateral</code>, <code>.im-contenedor</code>, <code>.im-barra-superior</code>, <code>.im-contenido</code></td><td>-</td><td>Estructura base de aplicaciones con menu lateral.</td></tr>
+                    <tr><td>Navegacion</td><td><code>.im-nav-item</code></td><td><code>[data-seccion]</code>, <code>[data-panel]</code>, <code>[data-alternar-menu]</code></td><td>Menu por hash y paneles internos.</td></tr>
+                    <tr><td>Botones</td><td><code>.im-boton</code>, <code>.im-boton--principal</code>, <code>.im-boton--tonal</code>, <code>.im-boton--texto</code>, <code>.im-boton-icono</code>, <code>.im-fab</code></td><td>-</td><td>Acciones primarias, secundarias e iconicas.</td></tr>
+                    <tr><td>Tarjetas</td><td><code>.im-tarjeta</code>, <code>.im-tarjeta__cabecera</code>, <code>.im-tarjeta--metrica</code></td><td>-</td><td>Bloques de contenido, metricas y paneles.</td></tr>
+                    <tr><td>Grillas</td><td><code>.im-grilla</code>, <code>.im-grilla--dos-columnas</code>, <code>.im-grilla--tres-columnas</code>, <code>.im-grilla--metricas</code>, <code>.im-grilla--dashboard</code></td><td>-</td><td>Distribuciones responsive.</td></tr>
+                    <tr><td>Tablas</td><td><code>.im-tabla-contenedor</code>, <code>.im-tabla</code>, <code>.im-tabla-tareas</code>, <code>.im-tabla-tareas__tarjeta</code>, <code>.im-menu-tabla</code>, <code>.im-menu-tabla__panel</code></td><td><code>[data-im-menu]</code>, <code>[data-im-menu-trigger]</code>, <code>[data-im-menu-panel]</code></td><td>Listados administrativos y tablas con menu contextual.</td></tr>
+                    <tr><td>Chips/badges</td><td><code>.im-chip</code>, <code>.im-badge</code></td><td><code>data-badge</code></td><td>Estados, etiquetas y contadores.</td></tr>
+                    <tr><td>Dialog</td><td><code>.im-dialog</code></td><td><code>[data-abrir-dialog]</code>, <code>[data-cerrar-dialog]</code></td><td>Confirmaciones o edicion modal.</td></tr>
+                    <tr><td>Bottom sheet</td><td><code>.im-bottom-sheet</code></td><td><code>[data-abrir-bottom-sheet]</code>, <code>[data-cerrar-bottom-sheet]</code></td><td>Acciones rapidas desde la parte inferior.</td></tr>
+                    <tr><td>Drawer</td><td><code>.im-drawer</code>, <code>.im-drawer__cabecera</code>, <code>.im-drawer__contenido</code>, <code>.im-drawer__acciones</code></td><td><code>[data-abrir-drawer]</code>, <code>[data-cerrar-drawer]</code></td><td>Detalle, formularios o acciones desde el lateral derecho.</td></tr>
+                    <tr><td>Tabs</td><td><code>.im-tabs</code>, <code>.im-tab-panel</code></td><td><code>[data-tabs]</code></td><td>Cambiar vistas dentro de una tarjeta.</td></tr>
+                    <tr><td>Stepper</td><td><code>.im-stepper</code></td><td><code>[data-stepper]</code>, <code>[data-stepper-prev]</code>, <code>[data-stepper-next]</code></td><td>Procesos guiados por pasos.</td></tr>
+                    <tr><td>Formularios</td><td><code>.im-formulario</code>, <code>.im-campo</code>, <code>.im-campo-material</code>, <code>.im-campo--ancho</code></td><td>-</td><td>Captura de datos con estructura consistente.</td></tr>
+                    <tr><td>Validaciones</td><td><code>.im-campo-material</code>, <code>.im-campo-grupo</code></td><td><code>[data-im-campo]</code>, <code>[data-im-validar]</code>, <code>[data-im-error]</code>, <code>[data-im-contador]</code></td><td>Validacion declarativa de formularios.</td></tr>
+                    <tr><td>Snackbar</td><td><code>.im-snackbar</code></td><td><code>[data-abrir-snackbar]</code>, <code>[data-cerrar-snackbar]</code></td><td>Mensajes breves de feedback.</td></tr>
+                    <tr><td>Progress/spinner</td><td><code>.im-progress-bar</code>, <code>.im-spinner</code></td><td>-</td><td>Estados de carga determinate, indeterminate y circular.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Menu de tabla</h3>
+              <p>Usar <code>.im-menu-tabla</code> para acciones contextuales dentro de tablas, toolbars o columnas sticky. El panel usa <code>data-im-menu-panel</code> y, al abrirse, <code>material.js</code> lo mueve temporalmente al <code>body</code> para que se vea completo por encima de cualquier tabla, scroll interno, celda sticky u otro contenedor.</p>
+              <pre class="im-codigo"><code>&lt;div class="im-menu-tabla" data-im-menu&gt;
+  &lt;button
+    class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded"
+    type="button"
+    data-im-menu-trigger
+    aria-label="Opciones de tabla"
+    aria-haspopup="menu"
+    aria-expanded="false"&gt;more_horiz&lt;/button&gt;
+
+  &lt;div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel&gt;
+    &lt;button type="button" role="menuitem"&gt;
+      &lt;span class="material-symbols-rounded" aria-hidden="true"&gt;visibility&lt;/span&gt;Ver
+    &lt;/button&gt;
+    &lt;button type="button" role="menuitem"&gt;
+      &lt;span class="material-symbols-rounded" aria-hidden="true"&gt;edit&lt;/span&gt;Editar
+    &lt;/button&gt;
+    &lt;button type="button" role="menuitem"&gt;
+      &lt;span class="material-symbols-rounded" aria-hidden="true"&gt;delete&lt;/span&gt;Eliminar
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+              <ul class="im-lista-ayuda">
+                <li>Usar siempre <code>data-im-menu</code>, <code>data-im-menu-trigger</code> y <code>data-im-menu-panel</code>.</li>
+                <li>El boton debe ser <code>type="button"</code> y tener <code>aria-label</code>, <code>aria-haspopup="menu"</code> y <code>aria-expanded="false"</code>.</li>
+                <li>Las acciones internas deben ser botones con <code>role="menuitem"</code>.</li>
+                <li>No usar estilos inline ni posicionar el panel a mano; el JS calcula la posicion y lo mantiene dentro del viewport.</li>
+              </ul>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Drawer</h3>
+              <p>El drawer es una superficie lateral derecha para detalle, formularios o acciones secundarias sin abandonar la pantalla. En esta version del CDN, <code>material.js</code> crea el drawer base y su cortina al cargar la pagina; para abrirlo desde un proyecto consumidor alcanza con agregar un boton con <code>data-abrir-drawer</code>. Los elementos con <code>data-cerrar-drawer</code> lo cierran.</p>
+              <pre class="im-codigo"><code>&lt;button class="im-boton im-boton--principal" type="button" data-abrir-drawer&gt;
+  Abrir drawer
+&lt;/button&gt;</code></pre>
+              <p>Estructura interna usada por el componente:</p>
+              <pre class="im-codigo"><code>&lt;div class="im-drawer-cortina" data-cerrar-drawer&gt;&lt;/div&gt;
+&lt;aside class="im-drawer" role="dialog" aria-modal="true" aria-labelledby="im-drawer-titulo"&gt;
+  &lt;header class="im-drawer__cabecera"&gt;
+    &lt;h3 id="im-drawer-titulo"&gt;Detalle&lt;/h3&gt;
+    &lt;button class="im-boton-icono material-symbols-rounded" type="button" data-cerrar-drawer aria-label="Cerrar drawer"&gt;close&lt;/button&gt;
+  &lt;/header&gt;
+  &lt;div class="im-drawer__contenido"&gt;Contenido del drawer&lt;/div&gt;
+  &lt;footer class="im-drawer__acciones"&gt;
+    &lt;button class="im-boton im-boton--texto" type="button" data-cerrar-drawer&gt;Cancelar&lt;/button&gt;
+    &lt;button class="im-boton im-boton--principal" type="button" data-cerrar-drawer&gt;Guardar&lt;/button&gt;
+  &lt;/footer&gt;
+&lt;/aside&gt;</code></pre>
+              <ul class="im-lista-ayuda">
+                <li>Usar el drawer para detalle lateral, edicion breve o acciones relacionadas con un registro.</li>
+                <li>El contenido scrollea dentro de <code>.im-drawer__contenido</code>; cabecera y acciones quedan separadas.</li>
+                <li>La cortina y el drawer son overlays fijos; no deben ir dentro de tablas ni tarjetas.</li>
+              </ul>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Formularios y validaciones</h3>
+              <p>Cargar <code>material-validaciones.js</code> cuando el formulario use validacion declarativa. Cada campo validable necesita un contenedor con <code>data-im-campo="tipo"</code>, un control interno, opcionalmente <code>required</code> y un nodo <code>small</code> o <code>[data-im-error]</code> para mensajes.</p>
+              <p>Tipos soportados: <code>email</code>, <code>whatsapp</code>, <code>cuit</code>, <code>dni</code>, <code>nombre</code>, <code>generico</code>, <code>importe</code>, <code>genero</code>, <code>autocomplete</code>, <code>checkbox</code>, <code>radio</code>, <code>toggle</code>, <code>slider</code>, <code>textarea</code>, <code>fecha</code>, <code>hora</code>, <code>password</code>, <code>confirmarPassword</code>, <code>cantidad</code>.</p>
+              <pre class="im-codigo"><code>&lt;form class="im-formulario" data-im-validar&gt;
+  &lt;label class="im-campo im-campo-material" data-im-campo="email"&gt;
+    &lt;span&gt;Correo&lt;/span&gt;
+    &lt;input type="email" name="email" placeholder="nombre@dominio.com" required&gt;
+    &lt;i class="im-campo__icono material-symbols-rounded" aria-hidden="true"&gt;mail&lt;/i&gt;
+    &lt;small data-im-error&gt;Email requerido.&lt;/small&gt;
+  &lt;/label&gt;
+
+  &lt;label class="im-campo im-campo-material" data-im-campo="cuit"&gt;
+    &lt;span&gt;CUIT&lt;/span&gt;
+    &lt;input type="text" name="cuit" placeholder="20-12345678-3" required&gt;
+    &lt;small data-im-error&gt;CUIT requerido.&lt;/small&gt;
+  &lt;/label&gt;
+
+  &lt;label class="im-campo im-campo-material" data-im-campo="importe"&gt;
+    &lt;span&gt;Importe&lt;/span&gt;
+    &lt;input type="text" name="importe" placeholder="1250365,25" required&gt;
+    &lt;b class="im-campo__prefijo" aria-hidden="true"&gt;$&lt;/b&gt;
+    &lt;small data-im-error&gt;Importe requerido.&lt;/small&gt;
+  &lt;/label&gt;
+
+  &lt;label class="im-campo im-campo-material" data-im-campo="fecha"&gt;
+    &lt;span&gt;Fecha&lt;/span&gt;
+    &lt;input type="text" name="fecha" placeholder="dd/mm/aaaa" inputmode="numeric" required&gt;
+    &lt;button class="im-campo__boton-icono material-symbols-rounded" type="button" data-im-datepicker aria-label="Abrir calendario"&gt;calendar_month&lt;/button&gt;
+    &lt;small data-im-error&gt;Fecha requerida.&lt;/small&gt;
+  &lt;/label&gt;
+
+  &lt;label class="im-campo im-campo-material" data-im-campo="password"&gt;
+    &lt;span&gt;Password&lt;/span&gt;
+    &lt;input type="password" name="password" required&gt;
+    &lt;small data-im-error&gt;Password requerido.&lt;/small&gt;
+  &lt;/label&gt;
+  &lt;label class="im-campo im-campo-material" data-im-campo="confirmarPassword" data-im-confirmar="password"&gt;
+    &lt;span&gt;Confirmar password&lt;/span&gt;
+    &lt;input type="password" name="confirmarPassword" required&gt;
+    &lt;small data-im-error&gt;Confirmacion requerida.&lt;/small&gt;
+  &lt;/label&gt;
+
+  &lt;label class="im-campo im-campo-material im-campo--ancho" data-im-campo="textarea" data-im-max="255"&gt;
+    &lt;span&gt;Descripcion&lt;/span&gt;
+    &lt;textarea name="descripcion" rows="4" required&gt;&lt;/textarea&gt;
+    &lt;small data-im-error&gt;Descripcion requerida.&lt;/small&gt;
+    &lt;em class="im-campo__contador" data-im-contador&gt;0/255&lt;/em&gt;
+  &lt;/label&gt;
+&lt;/form&gt;</code></pre>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Personalizacion visual</h3>
+              <p>Personalizar desde variables CSS, sin editar componentes ni usar estilos inline. Variables frecuentes: <code>--im-color-principal</code>, <code>--im-color-principal-suave</code>, <code>--im-color-secundario</code>, <code>--im-color-fondo</code>, <code>--im-color-superficie</code>, <code>--im-color-texto</code>, <code>--im-color-borde</code>, <code>--im-radio</code>, <code>--im-sombra-1</code>, <code>--im-sombra-2</code>, <code>--im-tipografia</code>.</p>
+              <pre class="im-codigo"><code>:root {
+  --im-color-principal: #112c4e;
+  --im-color-secundario: #2eb3ba;
+}</code></pre>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Ejemplos minimos de uso</h3>
+              <pre class="im-codigo"><code>&lt;button class="im-boton im-boton--principal" type="button"&gt;Guardar&lt;/button&gt;
+
+&lt;article class="im-tarjeta"&gt;
+  &lt;div class="im-tarjeta__cabecera"&gt;
+    &lt;div&gt;&lt;h3&gt;Proyecto&lt;/h3&gt;&lt;p&gt;Estado general&lt;/p&gt;&lt;/div&gt;
+    &lt;span class="im-chip im-chip--exito"&gt;Activo&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/article&gt;
+
+&lt;div class="im-tabla-contenedor"&gt;
+  &lt;table class="im-tabla"&gt;
+    &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Nombre&lt;/th&gt;&lt;th&gt;Estado&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+    &lt;tbody&gt;&lt;tr&gt;&lt;td&gt;CDN&lt;/td&gt;&lt;td&gt;Activo&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;
+
+&lt;button class="im-boton im-boton--principal" type="button" data-abrir-dialog&gt;Abrir dialog&lt;/button&gt;
+&lt;button class="im-boton im-boton--tonal" type="button" data-abrir-bottom-sheet&gt;Abrir bottom sheet&lt;/button&gt;
+&lt;button class="im-boton im-boton--tonal" type="button" data-abrir-drawer&gt;Abrir drawer&lt;/button&gt;
+
+&lt;div class="im-menu-tabla" data-im-menu&gt;
+  &lt;button class="im-boton-icono im-boton-icono--menu-tabla material-symbols-rounded" type="button" data-im-menu-trigger aria-label="Opciones de tabla" aria-haspopup="menu" aria-expanded="false"&gt;more_horiz&lt;/button&gt;
+  &lt;div class="im-menu-flotante im-menu-tabla__panel" role="menu" data-im-menu-panel&gt;
+    &lt;button type="button" role="menuitem"&gt;Ver&lt;/button&gt;
+    &lt;button type="button" role="menuitem"&gt;Editar&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div class="im-tabs" data-tabs&gt;
+  &lt;button class="activo" type="button"&gt;Resumen&lt;/button&gt;
+  &lt;button type="button"&gt;Detalle&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="im-tab-panel activo"&gt;Resumen&lt;/div&gt;
+&lt;div class="im-tab-panel"&gt;Detalle&lt;/div&gt;
+
+&lt;label class="im-campo im-campo-material" data-im-campo="email"&gt;
+  &lt;span&gt;Email&lt;/span&gt;
+  &lt;input type="email" name="email" required&gt;
+  &lt;small data-im-error&gt;Email requerido.&lt;/small&gt;
+&lt;/label&gt;</code></pre>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Buenas practicas</h3>
+              <ul class="im-lista-ayuda">
+                <li>Cargar CSS antes del HTML visible.</li>
+                <li>Cargar JS al final del <code>body</code> o con <code>defer</code>.</li>
+                <li>No mezclar nombres de clases de otros frameworks.</li>
+                <li>Mantener estructura semantica y labels reales.</li>
+                <li>Verificar mobile, scroll interno en tablas y menus de tabla abiertos sobre columnas sticky.</li>
+                <li>Usar <code>material-symbols-rounded</code> para iconos.</li>
+                <li>Mantener textos accesibles y botones con <code>type="button"</code>.</li>
+              </ul>
+            </article>
+
+            <article class="im-tarjeta">
+              <h3>Checklist para publicar CDN</h3>
+              <ul class="im-lista-ayuda">
+                <li>Confirmar rutas finales de CSS y JS.</li>
+                <li>Versionar URLs cuando haya cambios importantes.</li>
+                <li>Probar en proyecto externo limpio.</li>
+                <li>Probar responsive.</li>
+                <li>Probar formularios validados.</li>
+                <li>Probar navegacion por hash.</li>
+                <li>Probar overlays: dialog, bottom sheet, drawer, snackbar y menu de tabla.</li>
+                <li>Mantener esta seccion sincronizada con <code>material.css</code> y JS.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/material.js"></script>
+  <script src="js/material-validaciones.js"></script>
+</body>
+
+</html>
