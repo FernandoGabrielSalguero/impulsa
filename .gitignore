@@ -1,1 +1,44 @@
-# impulsa_emprende/uploads/
+# Variables de entorno
+.env
+.env.*
+!.env.example
+impulsa_back/.env
+impulsa_front/.env
+
+# Angular
+impulsa_front/node_modules/
+impulsa_front/dist/
+impulsa_front/.angular/
+impulsa_front/.cache/
+
+# Laravel
+impulsa_back/vendor/
+impulsa_back/bootstrap/cache/*.php
+impulsa_back/storage/logs/*
+impulsa_back/storage/framework/cache/*
+impulsa_back/storage/framework/sessions/*
+impulsa_back/storage/framework/views/*
+impulsa_back/storage/app/public/*
+
+# Conservar estructura de storage
+!impulsa_back/storage/logs/.gitignore
+!impulsa_back/storage/framework/cache/.gitignore
+!impulsa_back/storage/framework/sessions/.gitignore
+!impulsa_back/storage/framework/views/.gitignore
+!impulsa_back/storage/app/public/.gitignore
+
+# Archivos subidos del sistema viejo
+legacy/impulsa_emprende/uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs y temporales
+*.log
+*.tmp
+*.temp
