@@ -16,7 +16,7 @@ if [[ ! -f .env ]]; then
   exit 1
 fi
 
-composer install --no-dev --optimize-autoloader
+composer install --no-dev --optimize-autoloader --no-interaction
 php artisan migrate --force
 php artisan storage:link || true
 php artisan config:cache
