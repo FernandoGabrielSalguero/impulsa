@@ -23,9 +23,7 @@ class MarketingPlanPricingOption extends Model
         'display_order',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'duration_months' => 'integer',
             'monthly_price' => 'decimal:2',
             'total_price' => 'decimal:2',
@@ -36,7 +34,6 @@ class MarketingPlanPricingOption extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function plan(): BelongsTo
     {

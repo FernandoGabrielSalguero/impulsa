@@ -19,15 +19,12 @@ class UserContacto extends Model
         'permison_whatsapp',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'check_correo' => 'boolean',
             'permison_correo' => 'boolean',
             'check_whatsapp' => 'boolean',
             'permison_whatsapp' => 'boolean',
         ];
-    }
 
     public function userAuth(): BelongsTo
     {

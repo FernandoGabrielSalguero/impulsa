@@ -33,9 +33,7 @@ class ApiProduct extends Model
         'created_by_user_id',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'price' => 'decimal:2',
             'compare_at_price' => 'decimal:2',
             'stock_quantity' => 'integer',
@@ -44,7 +42,6 @@ class ApiProduct extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function integration(): BelongsTo
     {

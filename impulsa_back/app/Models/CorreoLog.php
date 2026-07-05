@@ -23,13 +23,10 @@ class CorreoLog extends Model
         'meta',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'created_at' => 'datetime',
             'meta' => 'array',
         ];
-    }
 
     public function userAuth(): BelongsTo
     {

@@ -20,14 +20,11 @@ class Chatbot extends Model
         'disabled_by_admin',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'disabled_by_admin' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function integration(): BelongsTo
     {

@@ -27,9 +27,7 @@ class MarketingPlan extends Model
         'created_by_user_id',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'recommended_ad_budget_min' => 'decimal:2',
             'recommended_ad_budget_max' => 'decimal:2',
             'setup_fee' => 'decimal:2',
@@ -37,7 +35,6 @@ class MarketingPlan extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function features(): HasMany
     {

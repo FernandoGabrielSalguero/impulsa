@@ -19,9 +19,7 @@ class WebsiteSubscriptionPeriod extends Model
         'last_reminder_sent_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'year' => 'integer',
             'month' => 'integer',
             'amount' => 'decimal:2',
@@ -31,7 +29,6 @@ class WebsiteSubscriptionPeriod extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function subscription(): BelongsTo
     {

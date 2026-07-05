@@ -23,14 +23,11 @@ class ApiIntegration extends Model
         'secret_key_hash',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'last_used_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function owner(): BelongsTo
     {

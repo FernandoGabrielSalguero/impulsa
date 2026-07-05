@@ -18,15 +18,12 @@ class WebsiteSubscription extends Model
         'notes',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'grace_months_count' => 'integer',
             'default_amount' => 'decimal:2',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function apiIntegration(): BelongsTo
     {

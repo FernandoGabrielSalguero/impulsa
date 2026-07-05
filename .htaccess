@@ -5,10 +5,8 @@
   RewriteRule ^impulsa_front(/|$) - [L]
   RewriteRule ^impulsa_back(/|$) - [L]
 
-  # Laravel API -> impulsa_back/public/index.php
   RewriteRule ^api(?:/(.*))?$ impulsa_back/public/index.php [L,QSA]
 
-  # Pagina web estatica
   RewriteRule ^$ web/index.html [L]
   RewriteRule ^(.+)$ web/$1 [L]
 </IfModule>

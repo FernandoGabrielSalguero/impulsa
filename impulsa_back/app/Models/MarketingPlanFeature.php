@@ -19,16 +19,13 @@ class MarketingPlanFeature extends Model
         'is_highlighted',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'quantity' => 'decimal:2',
             'feature_order' => 'integer',
             'is_highlighted' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function plan(): BelongsTo
     {

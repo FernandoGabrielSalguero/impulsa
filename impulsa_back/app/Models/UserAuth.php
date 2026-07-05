@@ -27,13 +27,10 @@ class UserAuth extends Authenticatable
         'verification_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-    }
 
     public function info(): HasOne
     {

@@ -28,9 +28,7 @@ class Project extends Model
         'client_visible',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'client_visible' => 'boolean',
             'start_date' => 'date',
             'target_delivery_date' => 'date',
@@ -38,7 +36,6 @@ class Project extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function clientUser(): BelongsTo
     {

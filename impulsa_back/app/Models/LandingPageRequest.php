@@ -33,9 +33,7 @@ class LandingPageRequest extends Model
         'completado',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'fecha_inicio' => 'date',
             'dominio_registrado' => 'boolean',
             'hosting_propio' => 'boolean',
@@ -47,7 +45,6 @@ class LandingPageRequest extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function userAuth(): BelongsTo
     {

@@ -18,12 +18,9 @@ class UserInfo extends Model
         'avatar_path',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'fecha_nacimiento' => 'date',
         ];
-    }
 
     public function userAuth(): BelongsTo
     {

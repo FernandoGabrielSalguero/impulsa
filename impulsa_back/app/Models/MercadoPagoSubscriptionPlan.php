@@ -17,14 +17,11 @@ class MercadoPagoSubscriptionPlan extends Model
         'notes',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'amount' => 'decimal:2',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function websiteSubscriptions(): HasMany
     {

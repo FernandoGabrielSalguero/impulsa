@@ -24,12 +24,9 @@ class ChatbotEvent extends Model
         'created_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'created_at' => 'datetime',
         ];
-    }
 
     public function chatbot(): BelongsTo
     {

@@ -19,15 +19,12 @@ class ChatbotNode extends Model
         'status',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'sort_order' => 'integer',
             'is_start' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function chatbot(): BelongsTo
     {

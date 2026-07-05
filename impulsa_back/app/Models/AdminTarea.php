@@ -21,16 +21,13 @@ class AdminTarea extends Model
         'completed_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'fecha_entrega' => 'date',
             'prioridad_defcon' => 'integer',
             'completed_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function responsable(): BelongsTo
     {

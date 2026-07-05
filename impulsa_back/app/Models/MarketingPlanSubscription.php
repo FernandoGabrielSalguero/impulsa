@@ -30,9 +30,7 @@ class MarketingPlanSubscription extends Model
         'activated_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'payment_required' => 'boolean',
             'duration_months' => 'integer',
             'monthly_price' => 'decimal:2',
@@ -44,7 +42,6 @@ class MarketingPlanSubscription extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
-    }
 
     public function plan(): BelongsTo
     {
