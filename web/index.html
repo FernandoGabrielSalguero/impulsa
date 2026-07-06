@@ -718,47 +718,6 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
       text-align: right;
     }
 
-    .emprende-sheet {
-      width: min(920px, calc(100vw - 1.5rem));
-      max-width: 920px;
-      max-height: calc(100vh - 1rem);
-      bottom: .5rem;
-      padding: 1rem;
-      overflow: hidden;
-      grid-template-rows: auto auto minmax(0, 1fr);
-    }
-
-    .emprende-sheet__header {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: .75rem;
-    }
-
-    .emprende-sheet__brand {
-      grid-column: 2;
-      width: min(230px, 64vw);
-      height: auto;
-    }
-
-    .emprende-sheet__header .im-boton-icono {
-      justify-self: end;
-    }
-
-    .emprende-sheet__panel {
-      min-height: 0;
-    }
-
-    .emprende-auth-frame {
-      width: 100%;
-      height: min(520px, calc(100vh - 210px));
-      min-height: 430px;
-      border: 0;
-      background: transparent;
-      display: block;
-    }
-
     .is-submitting {
       opacity: .75;
       cursor: wait;
@@ -1234,8 +1193,7 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
       </div>
     </footer>
   </div>
-  <div class="im-bottom-sheet-cortina" data-cerrar-emprende></div>
-  <section class="im-bottom-sheet emprende-sheet" id="impulsa-emprende" role="dialog" aria-modal="true"
+  <section class="im-bottom-sheet emprende-sheet" id="impulsa-emprende" role="dialog" aria-modal="true" hidden
     aria-labelledby="impulsa-emprende-titulo">
     <header class="emprende-sheet__header">
       <img class="emprende-sheet__brand" src="assets/brands/impulsa-emprende/Impulsa Emprende.png"
@@ -1255,10 +1213,10 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
         clara para alcanzar el éxito con más foco, estructura y capacidad de decisión.</p>
     </div>
     <div class="im-tab-panel emprende-sheet__panel">
-      <iframe class="emprende-auth-frame" src="auth/register.php?embed=1" title="Registro Impulsa Emprende"></iframe>
+      <p class="form-note">Registro deshabilitado en esta versiÃ³n del sitio.</p>
     </div>
     <div class="im-tab-panel emprende-sheet__panel">
-      <iframe class="emprende-auth-frame" src="auth/login.php?embed=1" title="Ingreso Impulsa Emprende"></iframe>
+      <p class="form-note">Ingreso deshabilitado en esta versiÃ³n del sitio.</p>
     </div>
   </section>
   <script>
@@ -1269,49 +1227,6 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
   </script>
   <script src="https://impulsagroup.com/api/v1/public/impulsa.js" defer></script>
   <script>
-    (() => {
-      const sheet = document.getElementById('impulsa-emprende');
-      const backdrop = document.querySelector('[data-cerrar-emprende].im-bottom-sheet-cortina');
-      const openButtons = document.querySelectorAll('[data-abrir-emprende]');
-      const closeButtons = document.querySelectorAll('[data-cerrar-emprende]');
-      const tabs = document.querySelector('[data-emprende-tabs]');
-
-      const setOpen = (open) => {
-        sheet?.classList.toggle('abierto', open);
-        backdrop?.classList.toggle('abierto', open);
-        document.body.style.overflow = open ? 'hidden' : '';
-      };
-
-      openButtons.forEach((button) => {
-        button.addEventListener('click', (event) => {
-          event.preventDefault();
-          setOpen(true);
-        });
-      });
-
-      closeButtons.forEach((button) => {
-        button.addEventListener('click', () => setOpen(false));
-      });
-
-      if (tabs) {
-        const buttons = [...tabs.querySelectorAll('button')];
-        const panels = [];
-        let next = tabs.nextElementSibling;
-
-        while (next?.classList.contains('im-tab-panel')) {
-          panels.push(next);
-          next = next.nextElementSibling;
-        }
-
-        buttons.forEach((button, index) => {
-          button.addEventListener('click', () => {
-            buttons.forEach((item, position) => item.classList.toggle('activo', position === index));
-            panels.forEach((panel, position) => panel.classList.toggle('activo', position === index));
-          });
-        });
-      }
-    })();
-
     (() => {
       const form = document.getElementById('contact-form');
       const consultationCounter = document.getElementById('contact-consultation-counter');
