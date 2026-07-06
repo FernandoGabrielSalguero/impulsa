@@ -6,8 +6,8 @@ use App\Models\UserAuth;
 use App\Models\WebsiteSubscription;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use MercadoPago\Client\Payment\PaymentClient;
-use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Payment;
+use MercadoPago\SDK;
 
 class MercadoPagoWebhookService
 {
@@ -44,12 +44,19 @@ class MercadoPagoWebhookService
     private function handlePaymentNotification(string $paymentId): void
     {
         try {
-            $client = new PaymentClient;
-            $payment = $client->get((int) $paymentId);
+            $payment = Payment::find_by_id($paymentId);
         } catch (\Throwable $exception) {
             Log::warning('MercadoPago: no se pudo obtener pago', [
                 'payment_id' => $paymentId,
                 'error' => $exception->getMessage(),
+            ]);
+
+            return;
+        }
+
+        if ($payment === null) {
+            Log::warning('MercadoPago: pago no encontrado', [
+                'payment_id' => $paymentId,
             ]);
 
             return;
@@ -160,6 +167,6 @@ class MercadoPagoWebhookService
             throw new \RuntimeException('MERCADOPAGO_ACCESS_TOKEN no configurado.');
         }
 
-        MercadoPagoConfig::setAccessToken($token);
+        SDK::setAccessToken($token);
     }
 }
