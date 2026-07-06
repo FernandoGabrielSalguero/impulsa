@@ -23,4 +23,11 @@ class PublicMediaUrlBuilder
 
         return rtrim($baseUrl, '/') . '/' . $normalized;
     }
+
+    public function publicApiUrl(string $path): string
+    {
+        $path = '/' . ltrim(str_replace('\\', '/', $path), '/');
+
+        return rtrim((string) config('impulsa.public_api_base_url'), '/') . '/api' . $path;
+    }
 }

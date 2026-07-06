@@ -1,9 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\Legacy\LegacyBlogApiController;
-use App\Http\Controllers\Api\Legacy\LegacyProductApiController;
-use App\Http\Controllers\Api\Legacy\LegacyVisitApiController;
-use App\Http\Controllers\Api\Legacy\LegacyVisitTrackerController;
+use App\Http\Controllers\Api\Legacy\LegacyDeprecationController;
 use App\Http\Controllers\Api\V1\Admin\AiUsageLogController;
 use App\Http\Controllers\Api\V1\Admin\ApiIntegrationController;
 use App\Http\Controllers\Api\V1\Admin\ApiProductController;
@@ -28,8 +25,8 @@ use App\Http\Controllers\Api\V1\Emprendedor\DashboardController as EmprendedorDa
 use App\Http\Controllers\Api\V1\Emprendedor\DefinicionController as EmprendedorDefinicionController;
 use App\Http\Controllers\Api\V1\Emprendedor\MarketingController as EmprendedorMarketingController;
 use App\Http\Controllers\Api\V1\Emprendedor\MenuController as EmprendedorMenuController;
-use App\Http\Controllers\Api\V1\Emprendedor\PaginaWebController as EmprendedorPaginaWebController;
 use App\Http\Controllers\Api\V1\Emprendedor\MetricsController as EmprendedorMetricsController;
+use App\Http\Controllers\Api\V1\Emprendedor\PaginaWebController as EmprendedorPaginaWebController;
 use App\Http\Controllers\Api\V1\Emprendedor\ProductController as EmprendedorProductController;
 use App\Http\Controllers\Api\V1\Emprendedor\WebsiteSubscriptionController as EmprendedorWebsiteSubscriptionController;
 use App\Http\Controllers\Api\V1\Cliente\BlogController as ClienteBlogController;
@@ -47,33 +44,22 @@ use App\Http\Controllers\Api\V1\Marketing\PlanController as MarketingUserPlanCon
 use App\Http\Controllers\Api\V1\Marketing\ResultsController as MarketingUserResultsController;
 use App\Http\Controllers\Api\V1\Marketing\SubscriptionController as MarketingUserSubscriptionController;
 use App\Http\Controllers\Api\V1\Marketing\UsersController as MarketingUserUsersController;
-use App\Http\Controllers\Api\V1\Public\PublicMetricsController;
-use App\Http\Controllers\Api\V1\Public\PublicSubscriptionStatusController;
 use App\Http\Controllers\Api\V1\Webhooks\MercadoPagoWebhookController;
 use App\Http\Middleware\HandlePublicApiCors;
-use App\Http\Middleware\ValidateLegacyPublicApiKey;
-use App\Http\Middleware\ValidatePublicApiKey;
+use App\PublicEmbed\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
+use App\PublicEmbed\Controllers\Panel\ContactSubmissionController as PanelContactSubmissionController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('visit-tracker.js', [LegacyVisitTrackerController::class, 'script']);
+Route::get('visit-tracker.js', [LegacyDeprecationController::class, 'deprecatedScript']);
 
-Route::middleware([HandlePublicApiCors::class, ValidateLegacyPublicApiKey::class])->group(function (): void {
-    Route::match(['POST', 'OPTIONS'], 'blog_api/index.php', [LegacyBlogApiController::class, 'handle']);
-    Route::match(['POST', 'OPTIONS'], 'producto_api/index.php', [LegacyProductApiController::class, 'handle']);
-    Route::match(['POST', 'OPTIONS'], 'visit_user_page/index.php', [LegacyVisitApiController::class, 'handle']);
+Route::middleware([HandlePublicApiCors::class])->group(function (): void {
+    Route::match(['POST', 'OPTIONS'], 'blog_api/index.php', [LegacyDeprecationController::class, 'gone']);
+    Route::match(['POST', 'OPTIONS'], 'producto_api/index.php', [LegacyDeprecationController::class, 'gone']);
+    Route::match(['POST', 'OPTIONS'], 'visit_user_page/index.php', [LegacyDeprecationController::class, 'gone']);
+    Route::match(['POST', 'OPTIONS'], 'contact_form_landing_page/index.php', [LegacyDeprecationController::class, 'gone']);
 });
 
 Route::prefix('v1')->group(function (): void {
-    Route::prefix('public')->group(function (): void {
-        Route::middleware([HandlePublicApiCors::class, ValidatePublicApiKey::class])->group(function (): void {
-            Route::get('subscription-status', [PublicSubscriptionStatusController::class, 'show']);
-            Route::post('page-visit', [PublicMetricsController::class, 'pageVisit']);
-            Route::post('content-view', [PublicMetricsController::class, 'contentView']);
-        });
-
-        Route::get('subscription-guard.js', [PublicSubscriptionStatusController::class, 'guardScript']);
-    });
-
     Route::post('webhooks/mercadopago', [MercadoPagoWebhookController::class, 'handle']);
 
     Route::prefix('auth')->group(function (): void {
@@ -143,6 +129,9 @@ Route::prefix('v1')->group(function (): void {
             Route::post('api-integrations/{apiIntegration}/toggle-status', [ApiIntegrationController::class, 'toggleStatus']);
             Route::post('api-integrations/{apiIntegration}/regenerate-public-key', [ApiIntegrationController::class, 'regeneratePublicKey']);
             Route::post('api-integrations/{apiIntegration}/regenerate-secret-key', [ApiIntegrationController::class, 'regenerateSecretKey']);
+            Route::get('contact-submissions', [AdminContactSubmissionController::class, 'index']);
+            Route::get('contact-submissions/{contactSubmission}', [AdminContactSubmissionController::class, 'show']);
+            Route::patch('contact-submissions/{contactSubmission}/state', [AdminContactSubmissionController::class, 'updateState']);
             Route::get('api-products/options', [ApiProductController::class, 'options']);
             Route::get('api-products/integration-options', [ApiProductController::class, 'integrationOptions']);
             Route::get('api-products/summary', [ApiProductController::class, 'summary']);
@@ -213,6 +202,9 @@ Route::prefix('v1')->group(function (): void {
             Route::post('chatbot/settings', [EmprendedorChatbotController::class, 'updateSettings']);
             Route::patch('chatbot/status', [EmprendedorChatbotController::class, 'updateStatus']);
             Route::put('chatbot/nodes', [EmprendedorChatbotController::class, 'syncNodes']);
+            Route::get('contact-submissions', [PanelContactSubmissionController::class, 'index']);
+            Route::get('contact-submissions/{contactSubmission}', [PanelContactSubmissionController::class, 'show']);
+            Route::patch('contact-submissions/{contactSubmission}/state', [PanelContactSubmissionController::class, 'updateState']);
             Route::get('website-subscription', [EmprendedorWebsiteSubscriptionController::class, 'show']);
             Route::get('pagina-web/overview', [EmprendedorPaginaWebController::class, 'overview']);
             Route::get('definicion', [EmprendedorDefinicionController::class, 'show']);
@@ -259,6 +251,9 @@ Route::prefix('v1')->group(function (): void {
             Route::post('chatbot/settings', [ClienteChatbotController::class, 'updateSettings']);
             Route::patch('chatbot/status', [ClienteChatbotController::class, 'updateStatus']);
             Route::put('chatbot/nodes', [ClienteChatbotController::class, 'syncNodes']);
+            Route::get('contact-submissions', [PanelContactSubmissionController::class, 'index']);
+            Route::get('contact-submissions/{contactSubmission}', [PanelContactSubmissionController::class, 'show']);
+            Route::patch('contact-submissions/{contactSubmission}/state', [PanelContactSubmissionController::class, 'updateState']);
             Route::get('metrics/summary', [ClienteMetricsController::class, 'summary']);
             Route::get('metrics/dashboard', [ClienteMetricsController::class, 'dashboard']);
             Route::get('blog/taxonomy', [ClienteBlogController::class, 'taxonomy']);

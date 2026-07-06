@@ -1,0 +1,44 @@
+<?php
+
+namespace App\PublicEmbed\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\PublicEmbed\Services\ContactSubmissionInboxService;
+use App\PublicEmbed\Support\PublicResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class ContactSubmissionController extends Controller
+{
+    public function __construct(
+        private readonly ContactSubmissionInboxService $inboxService,
+    ) {}
+
+    public function index(Request $request): JsonResponse
+    {
+        $result = $this->inboxService->listForAdmin(
+            $request->query('q'),
+            $request->query('integration_id') !== null ? (int) $request->query('integration_id') : null,
+            $request->query('state'),
+            (int) $request->query('per_page', 20),
+        );
+
+        return response()->json($result);
+    }
+
+    public function show(int $contactSubmission): JsonResponse
+    {
+        return PublicResponse::success($this->inboxService->findForAdmin($contactSubmission));
+    }
+
+    public function updateState(Request $request, int $contactSubmission): JsonResponse
+    {
+        $validated = $request->validate([
+            'state' => ['required', 'string', 'in:recibido,cancelado,aprobado'],
+        ]);
+
+        return PublicResponse::success(
+            $this->inboxService->updateStateForAdmin($contactSubmission, $validated['state']),
+        );
+    }
+}

@@ -12,10 +12,17 @@ class ValidatePublicApiKey
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $publicKey = trim((string) $request->query('public_key', ''));
+        if ($request->isMethod('OPTIONS')) {
+            return $next($request);
+        }
+
+        $publicKey = $this->resolvePublicKey($request);
 
         if ($publicKey === '') {
-            return response()->json(['message' => 'public_key requerida.'], 401);
+            return response()->json([
+                'message' => 'public_key requerida.',
+                'code' => 'public_key_required',
+            ], 401);
         }
 
         $integration = ApiIntegration::query()
@@ -23,15 +30,24 @@ class ValidatePublicApiKey
             ->first();
 
         if ($integration === null) {
-            return response()->json(['message' => 'Integración no encontrada.'], 404);
+            return response()->json([
+                'message' => 'Integración no encontrada.',
+                'code' => 'integration_not_found',
+            ], 404);
         }
 
         if ($integration->status !== 'active') {
-            return response()->json(['message' => 'Integración inactiva.'], 403);
+            return response()->json([
+                'message' => 'Integración inactiva.',
+                'code' => 'integration_inactive',
+            ], 403);
         }
 
         if (! PublicApiOriginValidator::isOriginAllowed($request, $integration->allowed_domain)) {
-            return response()->json(['message' => 'Dominio no autorizado.'], 403);
+            return response()->json([
+                'message' => 'Dominio no autorizado.',
+                'code' => 'domain_not_allowed',
+            ], 403);
         }
 
         $integration->forceFill(['last_used_at' => now()])->save();
@@ -39,5 +55,22 @@ class ValidatePublicApiKey
         $request->attributes->set('api_integration', $integration);
 
         return $next($request);
+    }
+
+    private function resolvePublicKey(Request $request): string
+    {
+        $fromQuery = trim((string) $request->query('public_key', ''));
+
+        if ($fromQuery !== '') {
+            return $fromQuery;
+        }
+
+        $fromHeader = trim((string) $request->header('X-Impulsa-Public-Key', ''));
+
+        if ($fromHeader !== '') {
+            return $fromHeader;
+        }
+
+        return trim((string) $request->input('public_key', ''));
     }
 }

@@ -40,7 +40,7 @@ class HandlePublicApiCors
     {
         $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
         $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin');
+        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin, X-Impulsa-Public-Key');
         $response->headers->set('Access-Control-Max-Age', '86400');
         $response->headers->set('Vary', 'Origin');
 
