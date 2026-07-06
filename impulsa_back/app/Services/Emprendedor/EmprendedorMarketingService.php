@@ -46,7 +46,7 @@ class EmprendedorMarketingService
     {
         return MarketingPlanSubscription::query()
             ->with(['plan', 'pricingOption.mercadopagoPlan'])
-            ->where('entrepreneur_user_id', $user->id)
+            ->where($this->subscriptionUserColumn($user), $user->id)
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
             ->get();
@@ -69,7 +69,7 @@ class EmprendedorMarketingService
         }
 
         $existingPending = MarketingPlanSubscription::query()
-            ->where('entrepreneur_user_id', $user->id)
+            ->where($this->subscriptionUserColumn($user), $user->id)
             ->where('plan_id', $plan->id)
             ->whereIn('status', ['requested', 'meeting_scheduled', 'approved_manually', 'pending_payment', 'active'])
             ->exists();
@@ -85,10 +85,9 @@ class EmprendedorMarketingService
         $totalValue = $monthlyPrice * $durationMonths + (float) $pricingOption->setup_fee;
 
         return DB::transaction(function () use ($user, $plan, $pricingOption, $data, $monthlyPrice, $durationMonths, $totalValue): MarketingPlanSubscription {
-            return MarketingPlanSubscription::query()->create([
+            $payload = [
                 'plan_id' => $plan->id,
                 'pricing_option_id' => $pricingOption->id,
-                'entrepreneur_user_id' => $user->id,
                 'status' => 'requested',
                 'payment_status' => 'not_required_yet',
                 'payment_required' => false,
@@ -99,7 +98,15 @@ class EmprendedorMarketingService
                     ? (float) $data['monthly_ad_budget']
                     : null,
                 'notes' => trim((string) ($data['notes'] ?? '')) ?: null,
-            ]);
+            ];
+
+            if ($user->rol === 'impulsa_cliente') {
+                $payload['client_user_id'] = $user->id;
+            } else {
+                $payload['entrepreneur_user_id'] = $user->id;
+            }
+
+            return MarketingPlanSubscription::query()->create($payload);
         });
     }
 
@@ -127,10 +134,18 @@ class EmprendedorMarketingService
 
     public function assertOwnership(MarketingPlanSubscription $subscription, UserAuth $user): void
     {
-        if ((int) $subscription->entrepreneur_user_id !== (int) $user->id) {
+        $column = $this->subscriptionUserColumn($user);
+        $ownerId = (int) ($subscription->{$column} ?? 0);
+
+        if ($ownerId !== (int) $user->id) {
             throw ValidationException::withMessages([
                 'subscription' => ['No tenés permiso para acceder a esta suscripción.'],
             ]);
         }
+    }
+
+    private function subscriptionUserColumn(UserAuth $user): string
+    {
+        return $user->rol === 'impulsa_cliente' ? 'client_user_id' : 'entrepreneur_user_id';
     }
 }

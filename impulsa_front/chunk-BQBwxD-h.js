@@ -1,0 +1,1 @@
+function t(n){return `marketing-page__status marketing-page__status--${n}`}function e(n){return `marketing-page__subscription marketing-page__subscription--${n}`}export{e,t};

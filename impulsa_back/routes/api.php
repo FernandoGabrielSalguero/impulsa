@@ -28,6 +28,21 @@ use App\Http\Controllers\Api\V1\Emprendedor\PaginaWebController as EmprendedorPa
 use App\Http\Controllers\Api\V1\Emprendedor\MetricsController as EmprendedorMetricsController;
 use App\Http\Controllers\Api\V1\Emprendedor\ProductController as EmprendedorProductController;
 use App\Http\Controllers\Api\V1\Emprendedor\WebsiteSubscriptionController as EmprendedorWebsiteSubscriptionController;
+use App\Http\Controllers\Api\V1\Cliente\BlogController as ClienteBlogController;
+use App\Http\Controllers\Api\V1\Cliente\ChatbotController as ClienteChatbotController;
+use App\Http\Controllers\Api\V1\Cliente\ContractController as ClienteContractController;
+use App\Http\Controllers\Api\V1\Cliente\DashboardController as ClienteDashboardController;
+use App\Http\Controllers\Api\V1\Cliente\MarketingController as ClienteMarketingController;
+use App\Http\Controllers\Api\V1\Cliente\MenuController as ClienteMenuController;
+use App\Http\Controllers\Api\V1\Cliente\MetricsController as ClienteMetricsController;
+use App\Http\Controllers\Api\V1\Cliente\ProductController as ClienteProductController;
+use App\Http\Controllers\Api\V1\Marketing\DashboardController as MarketingUserDashboardController;
+use App\Http\Controllers\Api\V1\Marketing\MenuController as MarketingUserMenuController;
+use App\Http\Controllers\Api\V1\Marketing\MonitorController as MarketingUserMonitorController;
+use App\Http\Controllers\Api\V1\Marketing\PlanController as MarketingUserPlanController;
+use App\Http\Controllers\Api\V1\Marketing\ResultsController as MarketingUserResultsController;
+use App\Http\Controllers\Api\V1\Marketing\SubscriptionController as MarketingUserSubscriptionController;
+use App\Http\Controllers\Api\V1\Marketing\UsersController as MarketingUserUsersController;
 use App\Http\Controllers\Api\V1\Public\PublicMetricsController;
 use App\Http\Controllers\Api\V1\Public\PublicSubscriptionStatusController;
 use App\Http\Controllers\Api\V1\Webhooks\MercadoPagoWebhookController;
@@ -202,5 +217,65 @@ Route::prefix('v1')->group(function (): void {
             Route::put('blog/{postId}', [EmprendedorBlogController::class, 'update']);
             Route::patch('blog/{postId}/status', [EmprendedorBlogController::class, 'updateStatus']);
             Route::get('blog/{postId}/media/{mediaType}', [EmprendedorBlogController::class, 'media']);
+        });
+
+    Route::middleware(['auth:sanctum', 'role:impulsa_cliente'])
+        ->prefix('cliente')
+        ->group(function (): void {
+            Route::get('menu', [ClienteMenuController::class, 'show']);
+            Route::get('dashboard/stats', [ClienteDashboardController::class, 'stats']);
+            Route::get('contracts/{contractId}', [ClienteContractController::class, 'show']);
+            Route::post('contracts/{contractId}/sign', [ClienteContractController::class, 'sign']);
+            Route::get('marketing/plans', [ClienteMarketingController::class, 'plans']);
+            Route::get('marketing/plans/{planId}', [ClienteMarketingController::class, 'showPlan']);
+            Route::get('marketing/subscriptions', [ClienteMarketingController::class, 'subscriptions']);
+            Route::post('marketing/subscriptions', [ClienteMarketingController::class, 'storeSubscription']);
+            Route::get('marketing/subscriptions/{marketingPlanSubscription}/payment-url', [ClienteMarketingController::class, 'paymentUrl']);
+            Route::get('products/options', [ClienteProductController::class, 'options']);
+            Route::get('products/summary', [ClienteProductController::class, 'summary']);
+            Route::get('products', [ClienteProductController::class, 'index']);
+            Route::post('products', [ClienteProductController::class, 'store']);
+            Route::get('products/{apiProduct}', [ClienteProductController::class, 'show']);
+            Route::put('products/{apiProduct}', [ClienteProductController::class, 'update']);
+            Route::patch('products/{apiProduct}/status', [ClienteProductController::class, 'updateStatus']);
+            Route::get('products/{apiProduct}/media/{mediaType}', [ClienteProductController::class, 'media']);
+            Route::get('chatbot', [ClienteChatbotController::class, 'show']);
+            Route::get('chatbot/avatar', [ClienteChatbotController::class, 'avatar']);
+            Route::put('chatbot/settings', [ClienteChatbotController::class, 'updateSettings']);
+            Route::post('chatbot/settings', [ClienteChatbotController::class, 'updateSettings']);
+            Route::patch('chatbot/status', [ClienteChatbotController::class, 'updateStatus']);
+            Route::put('chatbot/nodes', [ClienteChatbotController::class, 'syncNodes']);
+            Route::get('metrics/summary', [ClienteMetricsController::class, 'summary']);
+            Route::get('metrics/dashboard', [ClienteMetricsController::class, 'dashboard']);
+            Route::get('blog/taxonomy', [ClienteBlogController::class, 'taxonomy']);
+            Route::get('blog', [ClienteBlogController::class, 'index']);
+            Route::post('blog', [ClienteBlogController::class, 'store']);
+            Route::get('blog/{postId}', [ClienteBlogController::class, 'show']);
+            Route::put('blog/{postId}', [ClienteBlogController::class, 'update']);
+            Route::patch('blog/{postId}/status', [ClienteBlogController::class, 'updateStatus']);
+            Route::get('blog/{postId}/media/{mediaType}', [ClienteBlogController::class, 'media']);
+        });
+
+    Route::middleware(['auth:sanctum', 'role:impulsa_marketing'])
+        ->prefix('marketing-user')
+        ->group(function (): void {
+            Route::get('menu', [MarketingUserMenuController::class, 'show']);
+            Route::get('dashboard', [MarketingUserDashboardController::class, 'summary']);
+            Route::get('marketing-plans/options', [MarketingUserPlanController::class, 'options']);
+            Route::get('marketing-plans', [MarketingUserPlanController::class, 'index']);
+            Route::post('marketing-plans', [MarketingUserPlanController::class, 'store']);
+            Route::get('marketing-plans/{marketingPlan}', [MarketingUserPlanController::class, 'show']);
+            Route::get('marketing-plans/{marketingPlan}/preview', [MarketingUserPlanController::class, 'preview']);
+            Route::put('marketing-plans/{marketingPlan}', [MarketingUserPlanController::class, 'update']);
+            Route::patch('marketing-plans/{marketingPlan}/status', [MarketingUserPlanController::class, 'updateStatus']);
+            Route::get('marketing-subscriptions/options', [MarketingUserSubscriptionController::class, 'options']);
+            Route::get('marketing-subscriptions', [MarketingUserSubscriptionController::class, 'index']);
+            Route::get('marketing-subscriptions/{marketingPlanSubscription}', [MarketingUserSubscriptionController::class, 'show']);
+            Route::patch('marketing-subscriptions/{marketingPlanSubscription}/status', [MarketingUserSubscriptionController::class, 'updateStatus']);
+            Route::post('marketing-subscriptions/{marketingPlanSubscription}/mark-paid', [MarketingUserSubscriptionController::class, 'markPaid']);
+            Route::get('monitor/campaigns', [MarketingUserMonitorController::class, 'campaigns']);
+            Route::post('monitor/import-csv', [MarketingUserMonitorController::class, 'importCsv']);
+            Route::get('results', [MarketingUserResultsController::class, 'index']);
+            Route::get('users', [MarketingUserUsersController::class, 'index']);
         });
 });

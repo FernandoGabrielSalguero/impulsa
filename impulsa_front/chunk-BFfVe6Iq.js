@@ -1,0 +1,1 @@
+import {y,E as Je,bL as sv,bx as x}from'./main-JZCO2ZUC.js';function w(t){t||(t=y(Je));let i=new x(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(sv(i))}export{w};

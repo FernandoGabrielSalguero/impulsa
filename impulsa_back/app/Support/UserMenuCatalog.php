@@ -23,6 +23,13 @@ class UserMenuCatalog
             ['key' => 'blog', 'label' => 'Blog', 'legacy_href' => '/impulsa_emprende/controller/client/ClienteBlogController.php'],
             ['key' => 'productos', 'label' => 'Productos', 'legacy_href' => '/impulsa_emprende/controller/client/ClienteProductController.php'],
         ],
+        'impulsa_marketing' => [
+            ['key' => 'dashboard', 'label' => 'Planes publicados', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingDashboardController.php'],
+            ['key' => 'constructor', 'label' => 'Constructor', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingConstructorController.php'],
+            ['key' => 'monitor', 'label' => 'Monitor', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingMonitorController.php'],
+            ['key' => 'resultados', 'label' => 'Resultados', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingResultadosController.php'],
+            ['key' => 'usuarios', 'label' => 'Usuarios', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingUsuariosController.php'],
+        ],
     ];
 
     public static function configurableRoles(): array

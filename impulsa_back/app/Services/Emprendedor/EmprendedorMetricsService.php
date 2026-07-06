@@ -54,8 +54,10 @@ class EmprendedorMetricsService
     /** @return array<string, mixed> */
     private function marketingSummary(UserAuth $user): array
     {
+        $subscriptionColumn = $user->rol === 'impulsa_cliente' ? 'client_user_id' : 'entrepreneur_user_id';
+
         $subscriptionIds = DB::table('marketing_plan_subscriptions')
-            ->where('entrepreneur_user_id', $user->id)
+            ->where($subscriptionColumn, $user->id)
             ->pluck('id');
 
         if ($subscriptionIds->isEmpty()) {
@@ -87,10 +89,15 @@ class EmprendedorMetricsService
                 'mc.end_date',
             ]);
 
-        $reports = DB::table('marketing_reports as mr')
+        $reportsQuery = DB::table('marketing_reports as mr')
             ->join('marketing_plan_subscriptions as mps', 'mps.id', '=', 'mr.subscription_id')
-            ->where('mps.entrepreneur_user_id', $user->id)
-            ->where('mr.visible_to_client', 1)
+            ->where("mps.{$subscriptionColumn}", $user->id);
+
+        if ($user->rol === 'impulsa_cliente') {
+            $reportsQuery->where('mr.visible_to_client', 1);
+        }
+
+        $reports = $reportsQuery
             ->orderByDesc('mr.period_end')
             ->limit(20)
             ->get([

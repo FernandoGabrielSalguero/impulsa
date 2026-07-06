@@ -28,9 +28,9 @@ class UserAuth extends Authenticatable
     ];
 
     protected $casts = [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
     public function info(): HasOne
     {
