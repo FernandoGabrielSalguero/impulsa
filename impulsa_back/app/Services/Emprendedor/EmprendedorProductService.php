@@ -68,6 +68,20 @@ class EmprendedorProductService
         return $this->productAdminService->updateStatus($product, $status);
     }
 
+    /** @return array{categories: list<string>, subcategories: list<string>} */
+    public function taxonomy(UserAuth $user): array
+    {
+        $integration = $this->integrationAccess->requireIntegration($user);
+
+        return $this->productAdminService->taxonomy((int) $integration->id);
+    }
+
+    public function delete(UserAuth $user, ApiProduct $product): void
+    {
+        $this->find($user, (int) $product->id);
+        $this->productAdminService->delete($product);
+    }
+
     public function resolveMediaFile(UserAuth $user, ApiProduct $product, string $mediaType): array
     {
         $this->find($user, (int) $product->id);

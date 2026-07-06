@@ -215,6 +215,50 @@ class ApiProductAdminService
         return $product;
     }
 
+    /** @return array{categories: list<string>, subcategories: list<string>} */
+    public function taxonomy(int $integrationId): array
+    {
+        $this->findIntegration($integrationId);
+
+        $categories = DB::table('api_products')
+            ->where('api_integration_id', $integrationId)
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->map(static fn ($value): string => (string) $value)
+            ->values()
+            ->all();
+
+        $subcategories = DB::table('api_products')
+            ->where('api_integration_id', $integrationId)
+            ->whereNotNull('subcategory')
+            ->where('subcategory', '!=', '')
+            ->distinct()
+            ->orderBy('subcategory')
+            ->pluck('subcategory')
+            ->map(static fn ($value): string => (string) $value)
+            ->values()
+            ->all();
+
+        return [
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+        ];
+    }
+
+    public function delete(ApiProduct $product): void
+    {
+        $this->findIntegration((int) $product->api_integration_id);
+
+        $this->storageService->deleteStoredPath($product->main_image_path);
+        $this->storageService->deleteStoredPath($product->thumbnail_path);
+        $this->storageService->deleteStoredPath($product->attachment_path);
+
+        $product->delete();
+    }
+
     public function resolveMediaFile(ApiProduct $product, string $mediaType): array
     {
         $column = match ($mediaType) {

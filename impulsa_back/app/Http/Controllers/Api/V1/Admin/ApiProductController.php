@@ -142,6 +142,33 @@ class ApiProductController extends Controller
         ]);
     }
 
+    public function taxonomy(Request $request): JsonResponse
+    {
+        $integrationId = (int) $request->integer('integration_id');
+
+        if ($integrationId <= 0) {
+            return response()->json([
+                'message' => 'Debés seleccionar una integración API.',
+                'errors' => [
+                    'integration_id' => ['Debés seleccionar una integración API.'],
+                ],
+            ], 422);
+        }
+
+        return response()->json([
+            'data' => $this->apiProductAdminService->taxonomy($integrationId),
+        ]);
+    }
+
+    public function destroy(ApiProduct $apiProduct): JsonResponse
+    {
+        $this->apiProductAdminService->delete($apiProduct);
+
+        return response()->json([
+            'message' => 'Producto eliminado correctamente.',
+        ]);
+    }
+
     public function media(ApiProduct $apiProduct, string $mediaType): BinaryFileResponse
     {
         $file = $this->apiProductAdminService->resolveMediaFile($apiProduct, $mediaType);

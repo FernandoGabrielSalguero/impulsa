@@ -105,13 +105,29 @@ class ProductController extends Controller
         ]);
     }
 
+    public function taxonomy(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->productService->taxonomy($request->user()),
+        ]);
+    }
+
+    public function destroy(Request $request, ApiProduct $apiProduct): JsonResponse
+    {
+        $this->productService->delete($request->user(), $apiProduct);
+
+        return response()->json([
+            'message' => 'Producto eliminado correctamente.',
+        ]);
+    }
+
     public function media(Request $request, ApiProduct $apiProduct, string $mediaType): BinaryFileResponse
     {
         $this->productService->find($request->user(), (int) $apiProduct->id);
         $media = $this->productService->resolveMediaFile($request->user(), $apiProduct, $mediaType);
 
-        return response()->file($media['path'], [
-            'Content-Type' => $media['mime'],
+        return response()->file($media['absolute_path'], [
+            'Content-Type' => $media['mime_type'],
         ]);
     }
 }
