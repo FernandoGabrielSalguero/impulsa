@@ -17,6 +17,7 @@ class EmprendedorChatbotResource extends JsonResource
             'id' => (int) $chatbot->id,
             'name' => (string) $chatbot->name,
             'avatar_url' => $this->resolveAvatarUrl($chatbot, $request),
+            'has_avatar' => $this->hasManagedAvatar($chatbot),
             'whatsapp' => (string) $chatbot->whatsapp,
             'initial_message' => (string) $chatbot->initial_message,
             'status' => (string) $chatbot->status,
@@ -59,12 +60,17 @@ class EmprendedorChatbotResource extends JsonResource
             return rtrim((string) config('app.url'), '/') . $stored;
         }
 
-        if (str_starts_with($stored, 'chatbot-avatars/')) {
-            $version = $chatbot->updated_at?->getTimestamp() ?? time();
-
-            return url('/api/v1/emprendedor/chatbot/avatar') . '?v=' . $version;
+        if ($this->hasManagedAvatar($chatbot)) {
+            return null;
         }
 
         return $stored;
+    }
+
+    private function hasManagedAvatar(Chatbot $chatbot): bool
+    {
+        $stored = trim((string) ($chatbot->avatar_url ?? ''));
+
+        return $stored !== '' && str_starts_with($stored, 'chatbot-avatars/');
     }
 }

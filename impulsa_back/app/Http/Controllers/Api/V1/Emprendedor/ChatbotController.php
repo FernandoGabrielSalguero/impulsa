@@ -9,6 +9,7 @@ use App\Http\Requests\Emprendedor\UpdateChatbotStatusRequest;
 use App\Http\Resources\EmprendedorChatbotResource;
 use App\Services\Emprendedor\EmprendedorChatbotService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -59,9 +60,19 @@ class ChatbotController extends Controller
         ]);
     }
 
-    public function avatar(Request $request): BinaryFileResponse
+    public function avatar(Request $request): BinaryFileResponse|JsonResponse
     {
-        $file = $this->chatbotService->resolveAvatarFile($request->user());
+        try {
+            $file = $this->chatbotService->resolveAvatarFile($request->user());
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => collect($exception->errors())->flatten()->first() ?? 'Avatar no disponible.',
+            ], 404);
+        }
+
+        if (! is_file($file['path'])) {
+            return response()->json(['message' => 'Avatar no encontrado.'], 404);
+        }
 
         return response()->file($file['path'], [
             'Content-Type' => $file['mime'],

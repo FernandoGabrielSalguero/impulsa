@@ -38,11 +38,14 @@ function ensureStyles() {
   style.id = STYLE_ID;
   style.textContent = `
     #impulsa-chatbot-root{position:fixed;right:20px;bottom:20px;z-index:2147483000;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-    #impulsa-chatbot-bubble{width:56px;height:56px;border-radius:50%;border:none;background:#009ee3;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+    #impulsa-chatbot-bubble{width:56px;height:56px;border-radius:50%;border:none;background:#009ee3;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.2);overflow:hidden;padding:0}
+    #impulsa-chatbot-bubble img{width:100%;height:100%;object-fit:cover}
     #impulsa-chatbot-panel{display:none;position:absolute;right:0;bottom:70px;width:320px;max-height:420px;background:#fff;border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.18);overflow:hidden;flex-direction:column}
     #impulsa-chatbot-panel.is-open{display:flex}
-    #impulsa-chatbot-header{padding:12px 14px;background:#0f172a;color:#fff;font-weight:600;display:flex;justify-content:space-between;align-items:center}
-    #impulsa-chatbot-body{padding:14px;overflow:auto;font-size:14px;color:#334155;line-height:1.5}
+    #impulsa-chatbot-header{padding:12px 14px;background:#0f172a;color:#fff;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
+    #impulsa-chatbot-header-title{display:flex;align-items:center;gap:8px;min-width:0}
+    #impulsa-chatbot-header-title img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0}
+    #impulsa-chatbot-body{padding:14px;overflow:auto;font-size:14px;color:#334155;line-height:1.5;white-space:pre-wrap}
     #impulsa-chatbot-options{display:flex;flex-direction:column;gap:8px;padding:0 14px 14px}
     .impulsa-chatbot-option{border:1px solid #cbd5e1;background:#f8fafc;border-radius:10px;padding:10px;text-align:left;cursor:pointer;font-size:13px}
     .impulsa-chatbot-option:hover{background:#e2e8f0}
@@ -61,7 +64,10 @@ function mountWidget(http, config) {
 
   const header = document.createElement('div');
   header.id = 'impulsa-chatbot-header';
-  header.innerHTML = `<span>${escapeHtml(config.name || 'Chat')}</span><button type="button" aria-label="Cerrar" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">×</button>`;
+  const avatarHtml = config.avatar_url
+    ? `<img src="${escapeHtml(config.avatar_url)}" alt="">`
+    : '';
+  header.innerHTML = `<div id="impulsa-chatbot-header-title">${avatarHtml}<span>${escapeHtml(config.name || 'Chat')}</span></div><button type="button" aria-label="Cerrar" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">×</button>`;
 
   const body = document.createElement('div');
   body.id = 'impulsa-chatbot-body';
@@ -77,19 +83,41 @@ function mountWidget(http, config) {
   bubble.id = 'impulsa-chatbot-bubble';
   bubble.type = 'button';
   bubble.setAttribute('aria-label', 'Abrir chat');
-  bubble.textContent = '💬';
+  if (config.avatar_url) {
+    const img = document.createElement('img');
+    img.src = config.avatar_url;
+    img.alt = '';
+    bubble.appendChild(img);
+  } else {
+    bubble.textContent = '💬';
+  }
 
   root.appendChild(panel);
   root.appendChild(bubble);
   document.body.appendChild(root);
 
   const nodesById = Object.fromEntries((config.nodes || []).map((node) => [node.id, node]));
-  const startNode = (config.nodes || []).find((node) => node.is_start) || config.nodes?.[0];
+  const startNode = (config.nodes || []).find((node) => node.is_start) || config.nodes?.[0] || null;
+
+  function buildMessage(node) {
+    const intro = String(config.initial_message || '').trim();
+    const message = node?.body ? String(node.body).trim() : '';
+
+    if (intro && message) {
+      return `${intro}\n\n${message}`;
+    }
+
+    return intro || message || 'Hola, ¿en qué puedo ayudarte?';
+  }
 
   function renderNode(node) {
-    if (!node) return;
-    body.textContent = node.body || config.initial_message || '';
+    body.textContent = buildMessage(node);
     options.innerHTML = '';
+
+    if (!node) {
+      appendWhatsappFallback();
+      return;
+    }
 
     (node.options || []).forEach((option) => {
       const btn = document.createElement('button');
@@ -100,7 +128,26 @@ function mountWidget(http, config) {
       options.appendChild(btn);
     });
 
+    if ((node.options || []).length === 0) {
+      appendWhatsappFallback();
+    }
+
     trackEvent(http, 'question_viewed', { node_id: node.id });
+  }
+
+  function appendWhatsappFallback() {
+    const phone = String(config.whatsapp || '').replace(/\D/g, '');
+    if (!phone) return;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'impulsa-chatbot-option';
+    btn.textContent = 'Hablar por WhatsApp';
+    btn.addEventListener('click', () => {
+      window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer');
+      trackEvent(http, 'whatsapp_clicked');
+    });
+    options.appendChild(btn);
   }
 
   function handleOption(option, node) {

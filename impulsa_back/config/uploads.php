@@ -47,6 +47,11 @@ return [
         'path_prefix' => env('UPLOAD_CHATBOT_AVATAR_PREFIX', 'chatbot-avatars'),
     ],
 
+    /*
+    | Hostinger: UPLOAD_CHATBOT_AVATAR_PATH=/home/.../storage/chatbot-avatars
+    | Crear la carpeta con permisos de escritura para PHP (775).
+    */
+
     'user_avatar' => [
         'label' => 'Avatar usuario',
         'description' => 'Foto de perfil en user_info.avatar_path (futuro).',
