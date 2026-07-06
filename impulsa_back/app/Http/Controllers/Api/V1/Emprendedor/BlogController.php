@@ -89,4 +89,13 @@ class BlogController extends Controller
             'Content-Type' => $media['mime'],
         ]);
     }
+
+    public function destroy(Request $request, int $postId): JsonResponse
+    {
+        $this->blogService->delete($request->user(), $postId);
+
+        return response()->json([
+            'message' => 'Artículo eliminado correctamente.',
+        ]);
+    }
 }

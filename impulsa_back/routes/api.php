@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Legacy\LegacyDeprecationController;
 use App\Http\Controllers\Api\V1\Admin\AiUsageLogController;
+use App\Http\Controllers\Api\V1\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Api\V1\Admin\ApiIntegrationController;
 use App\Http\Controllers\Api\V1\Admin\ApiProductController;
 use App\Http\Controllers\Api\V1\Admin\ChatbotController;
@@ -141,6 +142,9 @@ Route::prefix('v1')->group(function (): void {
             Route::put('api-products/{apiProduct}', [ApiProductController::class, 'update']);
             Route::patch('api-products/{apiProduct}/status', [ApiProductController::class, 'updateStatus']);
             Route::get('api-products/{apiProduct}/media/{mediaType}', [ApiProductController::class, 'media']);
+            Route::get('blog/summary', [AdminBlogController::class, 'summary']);
+            Route::get('blog', [AdminBlogController::class, 'index']);
+            Route::get('blog/{postId}', [AdminBlogController::class, 'show']);
             Route::get('chatbots/summary', [ChatbotController::class, 'summary']);
             Route::get('chatbots/options', [ChatbotController::class, 'options']);
             Route::get('chatbots', [ChatbotController::class, 'index']);
@@ -223,6 +227,7 @@ Route::prefix('v1')->group(function (): void {
             Route::put('blog/{postId}', [EmprendedorBlogController::class, 'update']);
             Route::patch('blog/{postId}/status', [EmprendedorBlogController::class, 'updateStatus']);
             Route::get('blog/{postId}/media/{mediaType}', [EmprendedorBlogController::class, 'media']);
+            Route::delete('blog/{postId}', [EmprendedorBlogController::class, 'destroy']);
         });
 
     Route::middleware(['auth:sanctum', 'role:impulsa_cliente'])
@@ -263,6 +268,7 @@ Route::prefix('v1')->group(function (): void {
             Route::put('blog/{postId}', [ClienteBlogController::class, 'update']);
             Route::patch('blog/{postId}/status', [ClienteBlogController::class, 'updateStatus']);
             Route::get('blog/{postId}/media/{mediaType}', [ClienteBlogController::class, 'media']);
+            Route::delete('blog/{postId}', [ClienteBlogController::class, 'destroy']);
         });
 
     Route::middleware(['auth:sanctum', 'role:impulsa_marketing'])

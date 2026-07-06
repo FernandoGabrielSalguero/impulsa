@@ -155,6 +155,16 @@ class EmprendedorBlogService
         return $this->find($user, $postId);
     }
 
+    public function delete(UserAuth $user, int $postId): void
+    {
+        $post = $this->find($user, $postId);
+
+        $this->storageService->deleteStoredPath($post->cover_image_path ?? null);
+        $this->storageService->deleteStoredPath($post->attachment_path ?? null);
+
+        DB::table('api_blog_posts')->where('id', $postId)->delete();
+    }
+
     public function resolveMediaFile(UserAuth $user, int $postId, string $mediaType): array
     {
         $post = $this->find($user, $postId);

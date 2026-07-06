@@ -56,6 +56,7 @@ class LegacyPublicBlogService
     private function mapPost(object $row): array
     {
         $coverUrl = $this->mediaUrlBuilder->url($row->cover_image_path ?? null);
+        $attachmentUrl = $this->mediaUrlBuilder->url($row->attachment_path ?? null);
 
         return [
             'id' => (int) $row->id,
@@ -75,6 +76,9 @@ class LegacyPublicBlogService
             'cover_image_path_url' => $coverUrl,
             'cover_image_url' => $coverUrl,
             'image_url' => $coverUrl,
+            'attachment_path' => $row->attachment_path,
+            'attachment_path_url' => $attachmentUrl,
+            'attachment_url' => $attachmentUrl,
         ];
     }
 }
