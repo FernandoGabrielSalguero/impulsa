@@ -15,6 +15,8 @@ class UserMenuCatalog
             ['key' => 'blog', 'label' => 'Blog', 'legacy_href' => '/impulsa_emprende/controller/emprendedor/EmprendedorBlogController.php'],
             ['key' => 'productos', 'label' => 'Productos', 'legacy_href' => '/impulsa_emprende/controller/emprendedor/EmprendedorProductController.php'],
             ['key' => 'contactos', 'label' => 'Contactos', 'legacy_href' => '/impulsa_emprende/controller/emprendedor/EmprendedorContactosController.php'],
+        ],
+        'impulsa_cliente' => [
             ['key' => 'dashboard', 'label' => 'Dashboard', 'legacy_href' => '/impulsa_emprende/controller/client/ClienteDashboardController.php'],
             ['key' => 'metricas', 'label' => 'Métricas', 'legacy_href' => '/impulsa_emprende/controller/client/ClienteMetricasController.php'],
             ['key' => 'marketing', 'label' => 'Marketing', 'legacy_href' => '/impulsa_emprende/controller/client/ClienteMarketingController.php'],
@@ -22,6 +24,8 @@ class UserMenuCatalog
             ['key' => 'blog', 'label' => 'Blog', 'legacy_href' => '/impulsa_emprende/controller/client/ClienteBlogController.php'],
             ['key' => 'productos', 'label' => 'Productos', 'legacy_href' => '/impulsa_emprende/controller/client/ClienteProductController.php'],
             ['key' => 'contactos', 'label' => 'Contactos', 'legacy_href' => '/impulsa_emprende/controller/client/ClienteContactosController.php'],
+        ],
+        'impulsa_marketing' => [
             ['key' => 'dashboard', 'label' => 'Planes publicados', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingDashboardController.php'],
             ['key' => 'constructor', 'label' => 'Constructor', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingConstructorController.php'],
             ['key' => 'monitor', 'label' => 'Monitor', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingMonitorController.php'],
