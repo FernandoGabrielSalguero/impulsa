@@ -9,7 +9,7 @@ final class PublicResponse
     /** @param array<string, mixed>|list<mixed>|null $data */
     public static function success(mixed $data = null, array $meta = [], int $status = 200): JsonResponse
     {
-        $payload = ['data' => $data ?? new \stdClass()];
+        $payload = ['data' => $data];
 
         if ($meta !== []) {
             $payload['meta'] = $meta;

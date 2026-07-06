@@ -31,6 +31,8 @@ class EmprendedorChatbotService
 
         if ($chatbot === null) {
             $chatbot = $this->createDefaultChatbot($user, $integration);
+        } elseif (! $chatbot->nodes()->exists()) {
+            $chatbot = $this->seedDefaultNodes($chatbot);
         }
 
         return $chatbot;
@@ -53,6 +55,17 @@ class EmprendedorChatbotService
                 'disabled_by_admin' => false,
             ]);
 
+            return $this->seedDefaultNodes($chatbot);
+        });
+    }
+
+    private function seedDefaultNodes(Chatbot $chatbot): Chatbot
+    {
+        if ($chatbot->nodes()->exists()) {
+            return $this->reload($chatbot);
+        }
+
+        return DB::transaction(function () use ($chatbot): Chatbot {
             $startNode = ChatbotNode::query()->create([
                 'chatbot_id' => $chatbot->id,
                 'title' => 'Inicio',
@@ -128,6 +141,10 @@ class EmprendedorChatbotService
             throw ValidationException::withMessages([
                 'status' => ['Estado inválido.'],
             ]);
+        }
+
+        if ($status === 'active' && ! $chatbot->nodes()->where('status', 'active')->exists()) {
+            $chatbot = $this->seedDefaultNodes($chatbot);
         }
 
         $chatbot->status = $status;

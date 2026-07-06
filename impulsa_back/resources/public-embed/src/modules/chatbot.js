@@ -5,15 +5,22 @@ export async function initChatbot(http, logger) {
     const payload = await http.request('/chatbot');
     const config = payload?.data;
 
-    if (!config) {
+    if (!config?.id) {
       logger.set('chatbot', 'inactive', 0, 'not configured');
       return null;
     }
 
+    const nodeCount = (config.nodes || []).length;
+
     mountWidget(http, config);
     await trackEvent(http, 'widget_loaded');
 
-    logger.set('chatbot', 'ok', (config.nodes || []).length, 'widget mounted');
+    logger.set(
+      'chatbot',
+      'ok',
+      nodeCount,
+      nodeCount > 0 ? 'widget mounted' : 'active but no questions saved',
+    );
 
     return {
       config,
@@ -38,13 +45,14 @@ function ensureStyles() {
   style.id = STYLE_ID;
   style.textContent = `
     #impulsa-chatbot-root{position:fixed;right:20px;bottom:20px;z-index:2147483000;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-    #impulsa-chatbot-bubble{width:56px;height:56px;border-radius:50%;border:none;background:#009ee3;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.2);overflow:hidden;padding:0}
-    #impulsa-chatbot-bubble img{width:100%;height:100%;object-fit:cover}
+    #impulsa-chatbot-bubble{width:56px;height:56px;border-radius:50%;border:none;background:#009ee3;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.2);overflow:hidden;padding:0;display:grid;place-items:center;line-height:1}
+    #impulsa-chatbot-bubble.has-avatar{background:transparent;padding:0;box-shadow:0 10px 28px rgba(15,23,42,.24),0 0 0 3px rgba(255,255,255,.95)}
+    #impulsa-chatbot-bubble img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
     #impulsa-chatbot-panel{display:none;position:absolute;right:0;bottom:70px;width:320px;max-height:420px;background:#fff;border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.18);overflow:hidden;flex-direction:column}
     #impulsa-chatbot-panel.is-open{display:flex}
     #impulsa-chatbot-header{padding:12px 14px;background:#0f172a;color:#fff;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
     #impulsa-chatbot-header-title{display:flex;align-items:center;gap:8px;min-width:0}
-    #impulsa-chatbot-header-title img{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0}
+    #impulsa-chatbot-header-title img{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 8px rgba(0,0,0,.22)}
     #impulsa-chatbot-body{padding:14px;overflow:auto;font-size:14px;color:#334155;line-height:1.5;white-space:pre-wrap}
     #impulsa-chatbot-options{display:flex;flex-direction:column;gap:8px;padding:0 14px 14px}
     .impulsa-chatbot-option{border:1px solid #cbd5e1;background:#f8fafc;border-radius:10px;padding:10px;text-align:left;cursor:pointer;font-size:13px}
@@ -84,6 +92,7 @@ function mountWidget(http, config) {
   bubble.type = 'button';
   bubble.setAttribute('aria-label', 'Abrir chat');
   if (config.avatar_url) {
+    bubble.classList.add('has-avatar');
     const img = document.createElement('img');
     img.src = config.avatar_url;
     img.alt = '';

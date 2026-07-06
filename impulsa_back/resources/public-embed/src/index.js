@@ -70,7 +70,14 @@ async function boot() {
   }
 
   if (isFeatureEnabled(features, 'chatbot', bootstrapFeatures)) {
-    Impulsa.chatbot = await initChatbot(http, logger);
+    const chatbotFeature = bootstrapFeatures?.chatbot;
+    const chatbotReady = !chatbotFeature || chatbotFeature.status === 'ready';
+
+    if (chatbotReady) {
+      Impulsa.chatbot = await initChatbot(http, logger);
+    } else {
+      logger.set('chatbot', 'inactive', 0, 'disabled in panel');
+    }
   } else {
     logger.set('chatbot', 'skipped', '—', 'disabled in config');
   }
