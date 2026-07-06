@@ -26,7 +26,10 @@ class PublicChatbotController extends Controller
         $config = $this->chatbotService->publicConfig($integration);
 
         if ($config === null) {
-            return PublicResponse::error('Chatbot no disponible.', 'not_available', 404);
+            return PublicResponse::success(null, [
+                'feature' => 'chatbot',
+                'status' => 'inactive',
+            ]);
         }
 
         return PublicResponse::success($config, [

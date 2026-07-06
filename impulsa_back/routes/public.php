@@ -7,6 +7,7 @@ use App\PublicEmbed\Controllers\PublicBootstrapController;
 use App\PublicEmbed\Controllers\PublicChatbotController;
 use App\PublicEmbed\Controllers\PublicContactController;
 use App\PublicEmbed\Controllers\PublicEmbedScriptController;
+use App\PublicEmbed\Controllers\PublicMediaController;
 use App\PublicEmbed\Controllers\PublicMetricsController;
 use App\PublicEmbed\Controllers\PublicProductController;
 use App\PublicEmbed\Controllers\PublicSubscriptionController;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware([HandlePublicApiCors::class])->group(function (): void {
     Route::get('impulsa.js', [PublicEmbedScriptController::class, 'script']);
+    Route::get('media/{path}', [PublicMediaController::class, 'show'])->where('path', '.*');
 
     Route::middleware([ValidatePublicApiKey::class])->group(function (): void {
         Route::match(['GET', 'OPTIONS'], 'bootstrap', [PublicBootstrapController::class, 'show']);

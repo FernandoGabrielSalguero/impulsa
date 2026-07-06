@@ -15,13 +15,17 @@ class PublicMediaUrlBuilder
         $normalized = str_replace('\\', '/', $storedPath);
         $normalized = ltrim($normalized, '/');
 
-        $baseUrl = trim((string) config('impulsa.public_storage_base_url', ''));
+        if (config('impulsa.public_media_url_mode', 'api') === 'storage') {
+            $baseUrl = trim((string) config('impulsa.public_storage_base_url', ''));
 
-        if ($baseUrl === '') {
-            $baseUrl = rtrim((string) config('impulsa.public_api_base_url'), '/') . '/storage';
+            if ($baseUrl === '') {
+                $baseUrl = rtrim((string) config('impulsa.public_api_base_url'), '/') . '/storage';
+            }
+
+            return rtrim($baseUrl, '/') . '/' . $normalized;
         }
 
-        return rtrim($baseUrl, '/') . '/' . $normalized;
+        return $this->publicApiUrl('/v1/public/media/' . $normalized);
     }
 
     public function publicApiUrl(string $path): string

@@ -8,6 +8,13 @@ return [
 
     'public_storage_base_url' => rtrim((string) env('PUBLIC_STORAGE_BASE_URL', ''), '/'),
 
+    /*
+    | URL pública para imágenes de blog/productos.
+    | - api: sirve por Laravel (/api/v1/public/media/...) — recomendado en Hostinger
+    | - storage: usa PUBLIC_STORAGE_BASE_URL o /storage (requiere symlink/.htaccess)
+    */
+    'public_media_url_mode' => env('PUBLIC_MEDIA_URL_MODE', 'api'),
+
     'mail_from_name' => env('MAIL_FROM_NAME', 'Impulsa'),
 
     'verification_token_ttl_hours' => (int) env('EMAIL_VERIFICATION_TTL_HOURS', 24),

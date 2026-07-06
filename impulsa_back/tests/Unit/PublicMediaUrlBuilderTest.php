@@ -10,6 +10,7 @@ class PublicMediaUrlBuilderTest extends TestCase
 {
     public function test_builds_url_from_stored_path_with_public_storage_base_url(): void
     {
+        Config::set('impulsa.public_media_url_mode', 'storage');
         Config::set('impulsa.public_storage_base_url', 'https://impulsagroup.com/storage');
         Config::set('impulsa.public_api_base_url', 'https://impulsagroup.com');
 
@@ -21,8 +22,22 @@ class PublicMediaUrlBuilderTest extends TestCase
         );
     }
 
+    public function test_builds_api_media_url_by_default(): void
+    {
+        Config::set('impulsa.public_media_url_mode', 'api');
+        Config::set('impulsa.public_api_base_url', 'https://impulsagroup.com');
+
+        $builder = new PublicMediaUrlBuilder();
+
+        $this->assertSame(
+            'https://impulsagroup.com/api/v1/public/media/API_Blog/blog-cover_test.png',
+            $builder->url('API_Blog/blog-cover_test.png'),
+        );
+    }
+
     public function test_falls_back_to_public_api_base_url_when_storage_base_is_empty(): void
     {
+        Config::set('impulsa.public_media_url_mode', 'storage');
         Config::set('impulsa.public_storage_base_url', '');
         Config::set('impulsa.public_api_base_url', 'https://impulsagroup.com');
 

@@ -33,6 +33,13 @@ php artisan config:cache
 
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
+STORAGE_SRC="$(dirname "$ROOT")/storage"
+STORAGE_LINK="${ROOT}/storage"
+if [[ -d "$STORAGE_SRC" && ! -e "$STORAGE_LINK" ]]; then
+  ln -sf "$STORAGE_SRC" "$STORAGE_LINK"
+  echo "Symlink creado: public_html/storage -> ../storage"
+fi
+
 echo ""
 echo "Setup listo. Prueba:"
 echo "  curl -X POST https://impulsagroup.com/api/v1/auth/check-email \\"
