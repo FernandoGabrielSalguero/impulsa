@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\Legacy\LegacyBlogApiController;
+use App\Http\Controllers\Api\Legacy\LegacyProductApiController;
+use App\Http\Controllers\Api\Legacy\LegacyVisitApiController;
+use App\Http\Controllers\Api\Legacy\LegacyVisitTrackerController;
 use App\Http\Controllers\Api\V1\Admin\AiUsageLogController;
 use App\Http\Controllers\Api\V1\Admin\ApiIntegrationController;
 use App\Http\Controllers\Api\V1\Admin\ApiProductController;
@@ -46,12 +50,22 @@ use App\Http\Controllers\Api\V1\Marketing\UsersController as MarketingUserUsersC
 use App\Http\Controllers\Api\V1\Public\PublicMetricsController;
 use App\Http\Controllers\Api\V1\Public\PublicSubscriptionStatusController;
 use App\Http\Controllers\Api\V1\Webhooks\MercadoPagoWebhookController;
+use App\Http\Middleware\HandlePublicApiCors;
+use App\Http\Middleware\ValidateLegacyPublicApiKey;
 use App\Http\Middleware\ValidatePublicApiKey;
 use Illuminate\Support\Facades\Route;
 
+Route::get('visit-tracker.js', [LegacyVisitTrackerController::class, 'script']);
+
+Route::middleware([HandlePublicApiCors::class, ValidateLegacyPublicApiKey::class])->group(function (): void {
+    Route::match(['POST', 'OPTIONS'], 'blog_api/index.php', [LegacyBlogApiController::class, 'handle']);
+    Route::match(['POST', 'OPTIONS'], 'producto_api/index.php', [LegacyProductApiController::class, 'handle']);
+    Route::match(['POST', 'OPTIONS'], 'visit_user_page/index.php', [LegacyVisitApiController::class, 'handle']);
+});
+
 Route::prefix('v1')->group(function (): void {
     Route::prefix('public')->group(function (): void {
-        Route::middleware(ValidatePublicApiKey::class)->group(function (): void {
+        Route::middleware([HandlePublicApiCors::class, ValidatePublicApiKey::class])->group(function (): void {
             Route::get('subscription-status', [PublicSubscriptionStatusController::class, 'show']);
             Route::post('page-visit', [PublicMetricsController::class, 'pageVisit']);
             Route::post('content-view', [PublicMetricsController::class, 'contentView']);

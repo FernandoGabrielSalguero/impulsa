@@ -6,6 +6,8 @@ return [
 
     'public_api_base_url' => rtrim((string) env('PUBLIC_API_BASE_URL', env('APP_URL', 'http://localhost')), '/'),
 
+    'public_storage_base_url' => rtrim((string) env('PUBLIC_STORAGE_BASE_URL', ''), '/'),
+
     'mail_from_name' => env('MAIL_FROM_NAME', 'Impulsa'),
 
     'verification_token_ttl_hours' => (int) env('EMAIL_VERIFICATION_TTL_HOURS', 24),

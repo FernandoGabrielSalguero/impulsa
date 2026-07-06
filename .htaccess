@@ -5,6 +5,8 @@
   RewriteRule ^impulsa_front(/|$) - [L]
   RewriteRule ^impulsa_back(/|$) - [L]
 
+  RewriteRule ^storage/(.*)$ ../storage/$1 [L]
+
   RewriteRule ^api(?:/(.*))?$ impulsa_back/public/index.php [L,QSA]
 
   RewriteRule ^$ web/index.html [L]

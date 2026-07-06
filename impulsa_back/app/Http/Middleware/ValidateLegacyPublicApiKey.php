@@ -8,14 +8,21 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ValidatePublicApiKey
+class ValidateLegacyPublicApiKey
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $publicKey = trim((string) $request->query('public_key', ''));
+        if ($request->isMethod('OPTIONS')) {
+            return $next($request);
+        }
+
+        $publicKey = trim((string) $request->input('public_key', ''));
 
         if ($publicKey === '') {
-            return response()->json(['message' => 'public_key requerida.'], 401);
+            return response()->json([
+                'success' => false,
+                'message' => 'public_key requerida.',
+            ], 401);
         }
 
         $integration = ApiIntegration::query()
@@ -23,15 +30,24 @@ class ValidatePublicApiKey
             ->first();
 
         if ($integration === null) {
-            return response()->json(['message' => 'Integración no encontrada.'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Integración no encontrada.',
+            ], 404);
         }
 
         if ($integration->status !== 'active') {
-            return response()->json(['message' => 'Integración inactiva.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'Integración inactiva.',
+            ], 403);
         }
 
         if (! PublicApiOriginValidator::isOriginAllowed($request, $integration->allowed_domain)) {
-            return response()->json(['message' => 'Dominio no autorizado.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'Dominio no autorizado.',
+            ], 403);
         }
 
         $integration->forceFill(['last_used_at' => now()])->save();

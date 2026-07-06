@@ -54,10 +54,23 @@ class ApiProductStorageService
             return null;
         }
 
-        $baseName = basename(str_replace('\\', '/', $storedPath));
-        $candidate = rtrim($this->storageDirectory(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $baseName;
+        $normalized = str_replace('\\', '/', $storedPath);
 
-        return is_file($candidate) ? $candidate : null;
+        if ($this->isExistingFile($normalized)) {
+            return $normalized;
+        }
+
+        $baseName = basename($normalized);
+
+        foreach ($this->candidateStorageDirectories() as $directory) {
+            $candidate = rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $baseName;
+
+            if ($this->isExistingFile($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     public function deleteStoredPath(?string $storedPath): void
@@ -179,5 +192,49 @@ class ApiProductStorageService
     private function pathPrefix(): string
     {
         return (string) config('api_product.path_prefix', 'API_Product');
+    }
+
+    private function isExistingFile(string $path): bool
+    {
+        return $path !== '' && is_file($path);
+    }
+
+    /** @return list<string> */
+    private function candidateStorageDirectories(): array
+    {
+        $directories = [];
+
+        $configured = rtrim($this->storageDirectory(), DIRECTORY_SEPARATOR);
+
+        if ($configured !== '') {
+            $directories[] = $configured;
+        }
+
+        $legacy = $this->legacyStorageDirectory();
+
+        if ($legacy !== null && ! in_array($legacy, $directories, true)) {
+            $directories[] = $legacy;
+        }
+
+        return $directories;
+    }
+
+    private function legacyStorageDirectory(): ?string
+    {
+        $legacyFromEnv = trim((string) env('UPLOAD_API_PRODUCT_LEGACY_PATH', ''));
+
+        if ($legacyFromEnv !== '') {
+            return rtrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $legacyFromEnv), DIRECTORY_SEPARATOR);
+        }
+
+        $domainRoot = dirname(dirname(base_path()));
+
+        if ($domainRoot === '' || $domainRoot === base_path()) {
+            return null;
+        }
+
+        return $domainRoot
+            . DIRECTORY_SEPARATOR . 'storage'
+            . DIRECTORY_SEPARATOR . basename(str_replace('\\', '/', $this->pathPrefix()));
     }
 }

@@ -32,17 +32,23 @@ class ApiIntegrationController extends Controller
 
     public function options(): JsonResponse
     {
+        $publicApiBaseUrl = rtrim((string) config('impulsa.public_api_base_url'), '/');
+
         return response()->json([
             'statuses' => collect(IntegrationLabels::statuses())->map(static fn (string $value): array => [
                 'value' => $value,
                 'label' => IntegrationLabels::statusLabel($value),
             ])->values(),
-            'public_api_base_url' => rtrim((string) config('impulsa.public_api_base_url'), '/'),
+            'public_api_base_url' => $publicApiBaseUrl,
+            'public_api_url' => $publicApiBaseUrl . '/api',
             'endpoints' => [
                 ['key' => 'contact', 'label' => 'Formulario de contacto', 'path' => '/api/contact_form_landing_page/index.php'],
                 ['key' => 'blog', 'label' => 'Blog', 'path' => '/api/blog_api/index.php'],
                 ['key' => 'products', 'label' => 'Productos', 'path' => '/api/producto_api/index.php'],
                 ['key' => 'visit_tracker', 'label' => 'Tracker de visitas', 'path' => '/api/visit-tracker.js'],
+                ['key' => 'page_visit', 'label' => 'Registro de visita (legacy)', 'path' => '/api/visit_user_page/index.php'],
+                ['key' => 'page_visit_v1', 'label' => 'Registro de visita (v1)', 'path' => '/api/v1/public/page-visit'],
+                ['key' => 'content_view', 'label' => 'Vista de contenido', 'path' => '/api/v1/public/content-view'],
                 ['key' => 'chatbot', 'label' => 'Widget chatbot', 'path' => '/api/chatbot_widget/widget.js'],
                 ['key' => 'subscription_status', 'label' => 'Estado de suscripción', 'path' => '/api/v1/public/subscription-status'],
                 ['key' => 'subscription_guard', 'label' => 'Guardián de suscripción (JS)', 'path' => '/api/v1/public/subscription-guard.js'],
