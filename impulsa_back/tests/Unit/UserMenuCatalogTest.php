@@ -22,6 +22,10 @@ class UserMenuCatalogTest extends TestCase
         $this->assertNotContains('definicion', $clienteKeys);
         $this->assertNotContains('pagina_web', $clienteKeys);
 
+        $this->assertContains('contactos', $emprendedorKeys);
+        $this->assertContains('contactos', $clienteKeys);
+        $this->assertNotContains('contactos', $marketingKeys);
+
         $this->assertContains('constructor', $marketingKeys);
         $this->assertNotContains('constructor', $emprendedorKeys);
         $this->assertNotContains('constructor', $clienteKeys);
