@@ -8,6 +8,10 @@ use Illuminate\Validation\ValidationException;
 
 class PublicContactService
 {
+    public function __construct(
+        private readonly ContactSubmissionNotificationService $notificationService,
+    ) {}
+
     /** @param array<string, mixed> $data */
     public function submit(ApiIntegration $integration, array $data, string $defaultPage): int
     {
@@ -30,7 +34,7 @@ class PublicContactService
             ]);
         }
 
-        return (int) DB::table('forms_clients_contact')->insertGetId([
+        $id = (int) DB::table('forms_clients_contact')->insertGetId([
             'page' => mb_substr($page !== '' ? $page : '/', 0, 150),
             'api_integration_id' => (int) $integration->id,
             'contact_nombre' => mb_substr($nombre, 0, 150),
@@ -42,5 +46,16 @@ class PublicContactService
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        $this->notificationService->notifyAfterSubmit($integration, $id, [
+            'contact_nombre' => $nombre,
+            'contact_email' => $email,
+            'contact_whatsapp' => $whatsapp,
+            'contact_description' => $description,
+            'contact_consultation' => $consultation,
+            'page' => $page !== '' ? $page : '/',
+        ]);
+
+        return $id;
     }
 }
