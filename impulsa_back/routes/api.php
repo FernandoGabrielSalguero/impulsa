@@ -133,6 +133,7 @@ Route::prefix('v1')->group(function (): void {
             Route::get('contact-submissions', [AdminContactSubmissionController::class, 'index']);
             Route::get('contact-submissions/{contactSubmission}', [AdminContactSubmissionController::class, 'show']);
             Route::patch('contact-submissions/{contactSubmission}/state', [AdminContactSubmissionController::class, 'updateState']);
+            Route::delete('contact-submissions/{contactSubmission}', [AdminContactSubmissionController::class, 'destroy']);
             Route::get('api-products/options', [ApiProductController::class, 'options']);
             Route::get('api-products/integration-options', [ApiProductController::class, 'integrationOptions']);
             Route::get('api-products/summary', [ApiProductController::class, 'summary']);
@@ -209,6 +210,7 @@ Route::prefix('v1')->group(function (): void {
             Route::get('contact-submissions', [PanelContactSubmissionController::class, 'index']);
             Route::get('contact-submissions/{contactSubmission}', [PanelContactSubmissionController::class, 'show']);
             Route::patch('contact-submissions/{contactSubmission}/state', [PanelContactSubmissionController::class, 'updateState']);
+            Route::delete('contact-submissions/{contactSubmission}', [PanelContactSubmissionController::class, 'destroy']);
             Route::get('website-subscription', [EmprendedorWebsiteSubscriptionController::class, 'show']);
             Route::get('pagina-web/overview', [EmprendedorPaginaWebController::class, 'overview']);
             Route::get('definicion', [EmprendedorDefinicionController::class, 'show']);
@@ -259,6 +261,7 @@ Route::prefix('v1')->group(function (): void {
             Route::get('contact-submissions', [PanelContactSubmissionController::class, 'index']);
             Route::get('contact-submissions/{contactSubmission}', [PanelContactSubmissionController::class, 'show']);
             Route::patch('contact-submissions/{contactSubmission}/state', [PanelContactSubmissionController::class, 'updateState']);
+            Route::delete('contact-submissions/{contactSubmission}', [PanelContactSubmissionController::class, 'destroy']);
             Route::get('metrics/summary', [ClienteMetricsController::class, 'summary']);
             Route::get('metrics/dashboard', [ClienteMetricsController::class, 'dashboard']);
             Route::get('blog/taxonomy', [ClienteBlogController::class, 'taxonomy']);

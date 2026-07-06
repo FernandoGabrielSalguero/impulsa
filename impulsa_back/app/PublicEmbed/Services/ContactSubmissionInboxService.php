@@ -107,6 +107,24 @@ class ContactSubmissionInboxService
         return $this->findForUser($user, $id);
     }
 
+    public function deleteForAdmin(int $id): void
+    {
+        $deleted = DB::table('forms_clients_contact')->where('id', $id)->delete();
+
+        if ($deleted === 0) {
+            throw ValidationException::withMessages([
+                'contact_submission' => ['Contacto no encontrado.'],
+            ]);
+        }
+    }
+
+    public function deleteForUser(UserAuth $user, int $id): void
+    {
+        $this->findForUser($user, $id);
+
+        DB::table('forms_clients_contact')->where('id', $id)->delete();
+    }
+
     /** @return list<int> */
     private function integrationIdsForUser(UserAuth $user): array
     {
@@ -170,7 +188,7 @@ class ContactSubmissionInboxService
 
         $search = trim((string) $q);
 
-        if (mb_strlen($search) >= 2) {
+        if (mb_strlen($search) >= 3) {
             $like = '%' . $search . '%';
             $query->where(function ($builder) use ($like): void {
                 $builder

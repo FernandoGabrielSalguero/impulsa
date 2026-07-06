@@ -41,4 +41,13 @@ class ContactSubmissionController extends Controller
             $this->inboxService->updateStateForAdmin($contactSubmission, $validated['state']),
         );
     }
+
+    public function destroy(int $contactSubmission): JsonResponse
+    {
+        $this->inboxService->deleteForAdmin($contactSubmission);
+
+        return response()->json([
+            'message' => 'Contacto eliminado correctamente.',
+        ]);
+    }
 }

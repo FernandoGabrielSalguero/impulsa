@@ -53,4 +53,16 @@ class ContactSubmissionController extends Controller
             $this->inboxService->updateStateForUser($user, $contactSubmission, $validated['state']),
         );
     }
+
+    public function destroy(Request $request, int $contactSubmission): JsonResponse
+    {
+        /** @var UserAuth $user */
+        $user = $request->user();
+
+        $this->inboxService->deleteForUser($user, $contactSubmission);
+
+        return response()->json([
+            'message' => 'Contacto eliminado correctamente.',
+        ]);
+    }
 }
