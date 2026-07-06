@@ -693,6 +693,10 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
       line-height: 1.6;
     }
 
+    .form-status:empty {
+      display: none;
+    }
+
     .form-status-success {
       background: rgba(46, 179, 186, .12);
       border-color: rgba(46, 179, 186, .24);
@@ -1162,8 +1166,8 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
           <div class="form-card fade-up delay-2">
             <h3>Solicitar contacto</h3>
             <p class="form-note">Dejanos tus datos y una breve descripción del desafío que querés resolver.</p>
-            <div id="form-status" class="form-status" hidden aria-live="polite"></div>
-            <form id="contact-form" accept-charset="UTF-8">
+            <p class="form-status" data-impulsa-contact-message aria-live="polite"></p>
+            <form id="contact-form" data-impulsa-contact accept-charset="UTF-8">
               <div class="field-row">
                 <label for="contact_nombre">Nombre<input id="contact_nombre" name="contact_nombre" type="text"
                     placeholder="Tu nombre" required></label>
@@ -1258,94 +1262,13 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
     </div>
   </section>
   <script>
-    (() => {
-      const IMPULSA_CONFIG = {
-        publicKey: "pk_bb468e60958b1d1ab22f3c92403726d6",
-        apiBaseUrl: "https://impulsagroup.com/api",
-        visitTrackerSrc: "https://impulsagroup.com/assets/impulsa_material/js/visit-tracker.js",
-        chatbotScriptUrl: "https://impulsagroup.com/api/chatbot_widget/widget.js?public_key=pk_bb468e60958b1d1ab22f3c92403726d6"
-      };
-
-      window.IMPULSA_API_CONFIG = {
-        publicKey: IMPULSA_CONFIG.publicKey,
-        apiBaseUrl: IMPULSA_CONFIG.apiBaseUrl
-      };
-
-      const postJson = (endpoint, payload) => fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const ensureVisitTracker = () => {
-        if (document.querySelector('script[data-impulsa-visit-tracker]')) {
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src = IMPULSA_CONFIG.visitTrackerSrc;
-        script.async = true;
-        script.dataset.impulsaVisitTracker = "true";
-        document.body.appendChild(script);
-      };
-
-      const mountChatbot = () => {
-        if (document.querySelector('script[data-impulsa-chatbot]')) {
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src = IMPULSA_CONFIG.chatbotScriptUrl;
-        script.async = true;
-        script.dataset.impulsaChatbot = "true";
-        document.body.appendChild(script);
-      };
-
-      window.ImpulsaAPI = {
-        config: IMPULSA_CONFIG,
-        trackVisits: ensureVisitTracker,
-        sendContact: ({
-          page = window.location.pathname,
-          contact_nombre,
-          contact_email = "",
-          contact_whatsapp = "",
-          contact_description = "",
-          contact_consultation = ""
-        }) => postJson(IMPULSA_CONFIG.apiBaseUrl + "/contact_form_landing_page/index.php", {
-          public_key: IMPULSA_CONFIG.publicKey,
-          page,
-          contact_nombre,
-          contact_email,
-          contact_whatsapp,
-          contact_description,
-          contact_consultation
-        }),
-        getBlogList: () => postJson(IMPULSA_CONFIG.apiBaseUrl + "/blog_api/index.php", {
-          action: "list",
-          public_key: IMPULSA_CONFIG.publicKey
-        }),
-        getBlogDetail: ({ slug }) => postJson(IMPULSA_CONFIG.apiBaseUrl + "/blog_api/index.php", {
-          action: "detail",
-          public_key: IMPULSA_CONFIG.publicKey,
-          slug: slug || "mi-post"
-        }),
-        getProductList: () => postJson(IMPULSA_CONFIG.apiBaseUrl + "/producto_api/index.php", {
-          action: "list",
-          public_key: IMPULSA_CONFIG.publicKey
-        }),
-        getProductDetail: ({ slug }) => postJson(IMPULSA_CONFIG.apiBaseUrl + "/producto_api/index.php", {
-          action: "detail",
-          public_key: IMPULSA_CONFIG.publicKey,
-          slug: slug || "mi-producto"
-        }),
-        mountChatbot
-      };
-
-      window.ImpulsaAPI.trackVisits();
-    })();
-
+    window.IMPULSA_API_CONFIG = {
+      publicKey: "pk_bb468e60958b1d1ab22f3c92403726d6",
+      apiBaseUrl: "https://impulsagroup.com/api"
+    };
+  </script>
+  <script src="https://impulsagroup.com/api/v1/public/impulsa.js" defer></script>
+  <script>
     (() => {
       const sheet = document.getElementById('impulsa-emprende');
       const backdrop = document.querySelector('[data-cerrar-emprende].im-bottom-sheet-cortina');
@@ -1390,11 +1313,11 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
     })();
 
     (() => {
-      const box = document.getElementById('form-status');
       const form = document.getElementById('contact-form');
-      const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+      const consultationCounter = document.getElementById('contact-consultation-counter');
+      const messageBox = document.querySelector('[data-impulsa-contact-message]');
 
-      if (!box || !form || !window.ImpulsaAPI?.sendContact) {
+      if (!form) {
         return;
       }
 
@@ -1412,11 +1335,9 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
         label?.remove();
       };
 
-      const contactEmail = form.querySelector('#contact_email');
       const whatsappField = form.querySelector('#contact_whatsapp');
       const objetivoField = form.querySelector('#objetivo');
       const mensajeField = form.querySelector('#mensaje');
-      const consultationCounter = document.getElementById('contact-consultation-counter');
       const captchaRow = form.querySelector('.captcha-row');
       const rows = form.querySelectorAll('.field-row');
       const secondRow = whatsappField?.closest('.field-row');
@@ -1429,8 +1350,6 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
 
         consultationCounter.textContent = `${mensajeField.value.length} / 1000`;
       };
-
-      contactEmail?.setAttribute('required', 'required');
 
       if (whatsappField) {
         whatsappField.type = 'tel';
@@ -1454,7 +1373,6 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
         mensajeField.id = 'contact_consultation';
         mensajeField.name = 'contact_consultation';
         mensajeField.maxLength = 1000;
-        renameLabel(mensajeField, 'Detalle');
         mensajeField.addEventListener('input', updateConsultationCounter);
         updateConsultationCounter();
       }
@@ -1467,68 +1385,9 @@ src="https://www.facebook.com/tr?id=4483489811977003&ev=PageView&noscript=1"
         thirdRow.remove();
       }
 
-      const showStatus = (message, isSuccess = false) => {
-        box.textContent = message;
-        box.hidden = false;
-        box.className = `form-status ${isSuccess ? 'form-status-success' : 'form-status-error'}`;
-        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      };
-
-      const setSubmitting = (submitting) => {
-        if (!submitButton) {
-          return;
-        }
-
-        submitButton.disabled = submitting;
-        submitButton.classList.toggle('is-submitting', submitting);
-        submitButton.textContent = submitting ? 'Enviando...' : 'Quiero que me contacten';
-      };
-
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        box.hidden = true;
-        box.textContent = '';
-        box.className = 'form-status';
-
-        const formData = new FormData(form);
-        const payload = {
-          page: window.location.pathname,
-          contact_nombre: String(formData.get('contact_nombre') || '').trim(),
-          contact_email: String(formData.get('contact_email') || '').trim(),
-          contact_whatsapp: String(formData.get('contact_whatsapp') || '').trim(),
-          contact_description: String(formData.get('contact_description') || '').trim(),
-          contact_consultation: String(formData.get('contact_consultation') || '').trim()
-        };
-
-        if (!payload.contact_nombre || !payload.contact_email || !payload.contact_whatsapp) {
-          showStatus('Completa nombre, correo y WhatsApp para enviar la consulta.');
-          return;
-        }
-
-        if (payload.contact_consultation.length > 1000) {
-          showStatus('El detalle no puede superar los 1000 caracteres.');
-          return;
-        }
-
-        setSubmitting(true);
-
-        try {
-          const response = await window.ImpulsaAPI.sendContact(payload);
-          const result = await response.json();
-
-          if (!response.ok || !result?.success) {
-            throw new Error(result?.message || 'No se pudo enviar el mensaje en este momento.');
-          }
-
-          form.reset();
-          updateConsultationCounter();
-          showStatus(result.message || 'Gracias. Tu mensaje fue enviado y te responderemos a la brevedad.', true);
-        } catch (error) {
-          showStatus(error.message || 'No se pudo enviar el mensaje en este momento. Intenta nuevamente en unos minutos.');
-          console.error('[contact-form]', error);
-        } finally {
-          setSubmitting(false);
+      form.addEventListener('input', () => {
+        if (messageBox?.textContent?.trim()) {
+          messageBox.textContent = '';
         }
       });
     })();
