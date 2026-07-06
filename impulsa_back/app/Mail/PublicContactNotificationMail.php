@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Enums\MailTemplate;
 use App\Models\ApiIntegration;
 use App\Models\UserAuth;
+use App\Support\ImpulsaFrontendUrl;
 
 class PublicContactNotificationMail extends ImpulsaMailable
 {
@@ -62,7 +63,7 @@ class PublicContactNotificationMail extends ImpulsaMailable
             'contact_whatsapp' => (string) ($this->contactData['contact_whatsapp'] ?? '') ?: '—',
             'page' => (string) ($this->contactData['page'] ?? '/'),
             'message_excerpt' => $excerpt,
-            'panel_url' => config('impulsa.frontend_url') . '/emprendedor/contactos?ver=' . $this->contactSubmissionId,
+            'panel_url' => ImpulsaFrontendUrl::to('emprendedor/contactos?ver=' . $this->contactSubmissionId),
         ];
     }
 

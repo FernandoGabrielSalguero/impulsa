@@ -6,6 +6,7 @@ use App\Mail\VerifyEmailMail;
 use App\Models\UserAuth;
 use App\Models\UserContacto;
 use App\Services\Mail\ImpulsaMailService;
+use App\Support\ImpulsaFrontendUrl;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -17,7 +18,7 @@ class EmailVerificationService
 
     public function buildVerificationUrl(string $token): string
     {
-        return config('impulsa.frontend_url').'/verificar-correo?token='.urlencode($token);
+        return ImpulsaFrontendUrl::to('verificar-correo?token=' . urlencode($token));
     }
 
     public function sendVerificationEmail(UserAuth $user, string $token): bool

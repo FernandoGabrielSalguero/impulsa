@@ -4,6 +4,12 @@ return [
 
     'frontend_url' => rtrim((string) env('FRONTEND_URL', 'http://localhost:4200'), '/'),
 
+    /*
+    | Subcarpeta del build Angular en producción (Hostinger: /impulsa_front/).
+    | En local dejar vacío o no definir; localhost no usa este prefijo.
+    */
+    'frontend_app_path' => env('FRONTEND_APP_PATH', 'impulsa_front'),
+
     'public_api_base_url' => rtrim((string) env('PUBLIC_API_BASE_URL', env('APP_URL', 'http://localhost')), '/'),
 
     'public_storage_base_url' => rtrim((string) env('PUBLIC_STORAGE_BASE_URL', ''), '/'),
