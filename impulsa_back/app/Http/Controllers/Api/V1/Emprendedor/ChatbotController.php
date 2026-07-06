@@ -9,8 +9,8 @@ use App\Http\Requests\Emprendedor\UpdateChatbotStatusRequest;
 use App\Http\Resources\EmprendedorChatbotResource;
 use App\Services\Emprendedor\EmprendedorChatbotService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ChatbotController extends Controller
