@@ -1,0 +1,1 @@
+import {T,B as qe,bY as Dg,bf as M}from'./main-7SLSSSRN.js';function w(t){t||(t=T(qe));let i=new M(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Dg(i))}export{w};

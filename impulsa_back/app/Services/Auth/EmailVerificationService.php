@@ -74,7 +74,7 @@ class EmailVerificationService
         if ($user->email_verified_at !== null) {
             return [
                 'status' => 'already_verified',
-                'message' => 'La direcciÃ³n de email de esta cuenta ya fue confirmada anteriormente. Ya podÃ©s ingresar a la plataforma.',
+                'message' => 'La dirección de email de esta cuenta ya fue confirmada anteriormente. Ya podés ingresar a la plataforma.',
             ];
         }
 
@@ -101,7 +101,7 @@ class EmailVerificationService
 
         return [
             'status' => 'verified',
-            'message' => 'Tu direcciÃ³n de email fue confirmada correctamente. Ya podÃ©s ingresar a la plataforma.',
+            'message' => 'Tu dirección de email fue confirmada correctamente. Ya podés ingresar a la plataforma.',
         ];
     }
 }
