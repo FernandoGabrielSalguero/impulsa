@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Legacy\LegacyDeprecationController;
+use App\Http\Controllers\Api\V1\Admin\AcademiaController as AdminAcademiaController;
 use App\Http\Controllers\Api\V1\Admin\AiUsageLogController;
 use App\Http\Controllers\Api\V1\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Api\V1\Admin\ApiIntegrationController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Api\V1\Admin\UserMenuController;
 use App\Http\Controllers\Api\V1\Admin\WebRequestController;
 use App\Http\Controllers\Api\V1\Admin\WebsiteSubscriptionController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\Emprendedor\AcademiaController as EmprendedorAcademiaController;
 use App\Http\Controllers\Api\V1\Emprendedor\BlogController as EmprendedorBlogController;
 use App\Http\Controllers\Api\V1\Emprendedor\ChatbotController as EmprendedorChatbotController;
 use App\Http\Controllers\Api\V1\Emprendedor\ContractController as EmprendedorContractController;
@@ -31,6 +33,7 @@ use App\Http\Controllers\Api\V1\Emprendedor\MetricsController as EmprendedorMetr
 use App\Http\Controllers\Api\V1\Emprendedor\PaginaWebController as EmprendedorPaginaWebController;
 use App\Http\Controllers\Api\V1\Emprendedor\ProductController as EmprendedorProductController;
 use App\Http\Controllers\Api\V1\Emprendedor\WebsiteSubscriptionController as EmprendedorWebsiteSubscriptionController;
+use App\Http\Controllers\Api\V1\Cliente\AcademiaController as ClienteAcademiaController;
 use App\Http\Controllers\Api\V1\Cliente\BlogController as ClienteBlogController;
 use App\Http\Controllers\Api\V1\Cliente\ChatbotController as ClienteChatbotController;
 use App\Http\Controllers\Api\V1\Cliente\ContractController as ClienteContractController;
@@ -150,6 +153,16 @@ Route::prefix('v1')->group(function (): void {
             Route::patch('api-products/{apiProduct}/status', [ApiProductController::class, 'updateStatus']);
             Route::delete('api-products/{apiProduct}', [ApiProductController::class, 'destroy']);
             Route::get('api-products/{apiProduct}/media/{mediaType}', [ApiProductController::class, 'media']);
+            Route::get('academia/summary', [AdminAcademiaController::class, 'summary']);
+            Route::get('academia/options', [AdminAcademiaController::class, 'options']);
+            Route::get('academia/taxonomy', [AdminAcademiaController::class, 'taxonomy']);
+            Route::get('academia', [AdminAcademiaController::class, 'index']);
+            Route::post('academia', [AdminAcademiaController::class, 'store']);
+            Route::get('academia/{academiaVideo}', [AdminAcademiaController::class, 'show']);
+            Route::put('academia/{academiaVideo}', [AdminAcademiaController::class, 'update']);
+            Route::patch('academia/{academiaVideo}/status', [AdminAcademiaController::class, 'updateStatus']);
+            Route::delete('academia/{academiaVideo}', [AdminAcademiaController::class, 'destroy']);
+            Route::get('academia/{academiaVideo}/attachments/{attachmentId}/download', [AdminAcademiaController::class, 'downloadAttachment']);
             Route::get('blog/summary', [AdminBlogController::class, 'summary']);
             Route::get('blog', [AdminBlogController::class, 'index']);
             Route::get('blog/{postId}', [AdminBlogController::class, 'show']);
@@ -232,6 +245,10 @@ Route::prefix('v1')->group(function (): void {
                 ->middleware('throttle:10,1');
             Route::get('metrics/summary', [EmprendedorMetricsController::class, 'summary']);
             Route::get('metrics/dashboard', [EmprendedorMetricsController::class, 'dashboard']);
+            Route::get('academia/taxonomy', [EmprendedorAcademiaController::class, 'taxonomy']);
+            Route::get('academia', [EmprendedorAcademiaController::class, 'index']);
+            Route::get('academia/{videoId}', [EmprendedorAcademiaController::class, 'show']);
+            Route::get('academia/{videoId}/attachments/{attachmentId}/download', [EmprendedorAcademiaController::class, 'downloadAttachment']);
             Route::get('blog/taxonomy', [EmprendedorBlogController::class, 'taxonomy']);
             Route::get('blog', [EmprendedorBlogController::class, 'index']);
             Route::post('blog', [EmprendedorBlogController::class, 'store']);
@@ -276,6 +293,10 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('contact-submissions/{contactSubmission}', [PanelContactSubmissionController::class, 'destroy']);
             Route::get('metrics/summary', [ClienteMetricsController::class, 'summary']);
             Route::get('metrics/dashboard', [ClienteMetricsController::class, 'dashboard']);
+            Route::get('academia/taxonomy', [ClienteAcademiaController::class, 'taxonomy']);
+            Route::get('academia', [ClienteAcademiaController::class, 'index']);
+            Route::get('academia/{videoId}', [ClienteAcademiaController::class, 'show']);
+            Route::get('academia/{videoId}/attachments/{attachmentId}/download', [ClienteAcademiaController::class, 'downloadAttachment']);
             Route::get('blog/taxonomy', [ClienteBlogController::class, 'taxonomy']);
             Route::get('blog', [ClienteBlogController::class, 'index']);
             Route::post('blog', [ClienteBlogController::class, 'store']);

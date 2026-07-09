@@ -84,4 +84,12 @@ return [
         'path_prefix' => env('UPLOAD_PROJECT_CONTRACT_PREFIX', 'project-contracts'),
     ],
 
+    'academia' => [
+        'label' => 'Academia',
+        'description' => 'Adjuntos de videos de Academia.',
+        'storage_path' => env('UPLOAD_ACADEMIA_PATH')
+            ?: storage_path('app/academia'),
+        'path_prefix' => env('UPLOAD_ACADEMIA_PREFIX', 'Academia'),
+    ],
+
 ];

@@ -1,4 +1,38 @@
 📚 Estructura completa de la base de datos: u104036906_impulsaGroup
+📄 Tabla: academia_video_attachments
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+academia_video_id	bigint(20) unsigned	NO	MUL		
+label	varchar(180)	YES			
+file_path	varchar(255)	NO			
+sort_order	int(10) unsigned	NO		1	
+created_at	timestamp	NO		current_timestamp()	
+
+🔗 Relaciones:
+Columna academia_video_id referencia a academia_videos.id
+📄 Tabla: academia_videos
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+title	varchar(180)	NO			
+subtitle	varchar(255)	YES			
+author	varchar(180)	YES			
+author_instagram	varchar(255)	YES			
+author_linkedin	varchar(255)	YES			
+category	varchar(120)	YES			
+subcategory	varchar(120)	YES			
+description_html	longtext	NO			
+youtube_url	varchar(500)	NO			
+youtube_video_id	varchar(20)	NO			
+thumbnail_url	varchar(500)	YES			
+sort_order	int(10) unsigned	NO		1	
+status	enum('draft','active','inactive')	NO		draft	
+is_visible_to_clients	tinyint(1)	NO		0	
+created_by_user_id	int(10) unsigned	YES	MUL		
+created_at	timestamp	NO		current_timestamp()	
+updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
+
+🔗 Relaciones:
+Columna created_by_user_id referencia a user_auth.id
 📄 Tabla: admin_tareas
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment
