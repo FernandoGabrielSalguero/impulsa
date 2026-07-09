@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\CheckEmailRequest;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\VerifyEmailRequest;
 use App\Http\Resources\UserAuthResource;
 use App\Models\UserAuth;
 use App\Models\UserContacto;
 use App\Models\UserInfo;
 use App\Services\Auth\EmailVerificationService;
+use App\Services\Auth\PasswordResetService;
 use App\Support\AuthDashboard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -141,5 +144,65 @@ class AuthController extends Controller
             'valido' => ! $exists,
             'mensaje' => $exists ? 'Ya existe un usuario registrado con ese correo.' : '',
         ]);
+    }
+
+    public function forgotPassword(
+        ForgotPasswordRequest $request,
+        PasswordResetService $passwordResetService,
+    ): JsonResponse {
+        try {
+            $result = $passwordResetService->requestReset($request->validated('correo'));
+
+            return response()->json([
+                'message' => $result['message'],
+            ]);
+        } catch (InvalidArgumentException $exception) {
+            if ($exception->getMessage() === 'not_found') {
+                throw ValidationException::withMessages([
+                    'correo' => ['No encontramos una cuenta registrada con ese correo.'],
+                ]);
+            }
+
+            throw $exception;
+        } catch (Throwable $exception) {
+            Log::error('Error al solicitar recuperación de contraseña', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'correo' => ['No pudimos procesar la solicitud en este momento.'],
+            ]);
+        }
+    }
+
+    public function resetPassword(
+        ResetPasswordRequest $request,
+        PasswordResetService $passwordResetService,
+    ): JsonResponse {
+        try {
+            $result = $passwordResetService->resetPassword(
+                $request->validated('token'),
+                $request->validated('password'),
+            );
+
+            return response()->json($result);
+        } catch (InvalidArgumentException $exception) {
+            $message = match ($exception->getMessage()) {
+                'expired' => 'El enlace de recuperación expiró. Solicitá uno nuevo.',
+                default => 'El enlace de recuperación no es válido o ya fue utilizado.',
+            };
+
+            throw ValidationException::withMessages([
+                'token' => [$message],
+            ]);
+        } catch (Throwable $exception) {
+            Log::error('Error al restablecer contraseña', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'token' => ['No pudimos restablecer la contraseña en este momento.'],
+            ]);
+        }
     }
 }

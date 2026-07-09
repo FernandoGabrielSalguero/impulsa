@@ -18,6 +18,8 @@ class UserAuth extends Authenticatable
         'password',
         'rol',
         'verification_token',
+        'password_reset_token',
+        'password_reset_token_expires_at',
         'email_verified_at',
         'usuario_tipo',
     ];
@@ -25,10 +27,12 @@ class UserAuth extends Authenticatable
     protected $hidden = [
         'password',
         'verification_token',
+        'password_reset_token',
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password_reset_token_expires_at' => 'datetime',
         'password' => 'hashed',
     ];
 

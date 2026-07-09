@@ -69,6 +69,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('verify-email', [AuthController::class, 'verifyEmail']);
         Route::post('check-email', [AuthController::class, 'checkEmail']);
+        Route::post('forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:3,15');
+        Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:10,1');
 
         Route::middleware('auth:sanctum')->group(function (): void {
             Route::get('me', [AuthController::class, 'me']);

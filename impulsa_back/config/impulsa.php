@@ -25,6 +25,8 @@ return [
 
     'verification_token_ttl_hours' => (int) env('EMAIL_VERIFICATION_TTL_HOURS', 24),
 
+    'password_reset_token_ttl_minutes' => (int) env('PASSWORD_RESET_TTL_MINUTES', 60),
+
     /*
     | Feriados Argentina (YYYY-MM-DD) para calcular primer día hábil del mes.
     | Completar manualmente cada año.

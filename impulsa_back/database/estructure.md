@@ -765,6 +765,8 @@ correo	varchar(255)	NO	UNI
 password	varchar(255)	NO			
 rol	enum('impulsa_administrador','impulsa_colaborador','impulsa_emprendedor','impulsa_usuario','impulsa_marketing','impulsa_cliente')	NO			
 verification_token	varchar(100)	YES			
+password_reset_token	varchar(100)	YES			
+password_reset_token_expires_at	timestamp	YES			
 email_verified_at	timestamp	YES			
 created_at	timestamp	NO		current_timestamp()	
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()

@@ -5,6 +5,7 @@ namespace App\Enums;
 enum MailTemplate: string
 {
     case VerifyEmail = 'verificacion_correo';
+    case ResetPassword = 'reset_password';
     case NewUserCliente = 'new_user_cliente';
     case SolicitudPaginaWeb = 'solicitud_pagina_web';
     case RequestPageExternal = 'request_page_external';
