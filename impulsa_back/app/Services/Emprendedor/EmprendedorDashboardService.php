@@ -6,7 +6,9 @@ use App\Models\MarketingPlanSubscription;
 use App\Models\Project;
 use App\Models\UserAuth;
 use App\Support\EmprendedorIntegrationAccess;
+use App\Support\ProjectLabels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class EmprendedorDashboardService
 {
@@ -161,6 +163,89 @@ class EmprendedorDashboardService
                 'signed_at' => $row->signed_at,
             ])
             ->all();
+    }
+
+    /** @return array<string, mixed> */
+    public function projectPhases(UserAuth $user, int $projectId): array
+    {
+        $project = DB::table('projects')
+            ->where('id', $projectId)
+            ->where('client_user_id', $user->id)
+            ->where('client_visible', 1)
+            ->first([
+                'id',
+                'project_name',
+                'status',
+                'progress_percent',
+                'target_delivery_date',
+            ]);
+
+        if ($project === null) {
+            throw ValidationException::withMessages([
+                'project' => 'No encontramos el proyecto solicitado.',
+            ]);
+        }
+
+        $phases = DB::table('project_phases')
+            ->where('project_id', $projectId)
+            ->orderBy('phase_order')
+            ->get([
+                'id',
+                'title',
+                'description',
+                'phase_order',
+                'status',
+                'due_date',
+                'completed_at',
+            ])
+            ->map(static fn ($phase): array => [
+                'id' => (int) $phase->id,
+                'title' => (string) $phase->title,
+                'description' => $phase->description !== null ? (string) $phase->description : null,
+                'phase_order' => (int) $phase->phase_order,
+                'status' => (string) $phase->status,
+                'status_label' => ProjectLabels::phaseStatusLabel((string) $phase->status),
+                'due_date' => $phase->due_date,
+                'completed_at' => $phase->completed_at,
+            ])
+            ->all();
+
+        $deliverables = DB::table('project_deliverables')
+            ->where('project_id', $projectId)
+            ->where('client_visible', 1)
+            ->orderBy('id')
+            ->get([
+                'id',
+                'phase_id',
+                'title',
+                'deliverable_type',
+                'status',
+                'due_date',
+                'delivered_at',
+            ])
+            ->map(static fn ($deliverable): array => [
+                'id' => (int) $deliverable->id,
+                'phase_id' => $deliverable->phase_id !== null ? (int) $deliverable->phase_id : null,
+                'title' => (string) $deliverable->title,
+                'deliverable_type' => (string) $deliverable->deliverable_type,
+                'deliverable_type_label' => ProjectLabels::deliverableTypeLabel((string) $deliverable->deliverable_type),
+                'status' => (string) $deliverable->status,
+                'status_label' => ProjectLabels::deliverableStatusLabel((string) $deliverable->status),
+                'due_date' => $deliverable->due_date,
+                'delivered_at' => $deliverable->delivered_at,
+            ])
+            ->all();
+
+        return [
+            'id' => (int) $project->id,
+            'project_name' => (string) $project->project_name,
+            'status' => (string) $project->status,
+            'status_label' => ProjectLabels::statusLabel((string) $project->status),
+            'progress_percent' => (int) $project->progress_percent,
+            'target_delivery_date' => $project->target_delivery_date,
+            'phases' => $phases,
+            'deliverables' => $deliverables,
+        ];
     }
 
     /** @return array<string, mixed>|null */

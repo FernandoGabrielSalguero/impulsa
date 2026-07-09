@@ -188,6 +188,7 @@ Route::prefix('v1')->group(function (): void {
         ->group(function (): void {
             Route::get('menu', [EmprendedorMenuController::class, 'show']);
             Route::get('dashboard/stats', [EmprendedorDashboardController::class, 'stats']);
+            Route::get('dashboard/projects/{projectId}/phases', [EmprendedorDashboardController::class, 'projectPhases']);
             Route::get('contracts/{contractId}', [EmprendedorContractController::class, 'show']);
             Route::post('contracts/{contractId}/sign', [EmprendedorContractController::class, 'sign']);
             Route::get('marketing/plans', [EmprendedorMarketingController::class, 'plans']);

@@ -19,4 +19,11 @@ class DashboardController extends Controller
             'data' => $this->dashboardService->stats($request->user()),
         ]);
     }
+
+    public function projectPhases(Request $request, int $projectId): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->dashboardService->projectPhases($request->user(), $projectId),
+        ]);
+    }
 }
