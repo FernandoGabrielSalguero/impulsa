@@ -9,7 +9,7 @@ class AdminTaskCollection extends ResourceCollection
 {
     public $collects = AdminTaskResource::class;
 
-    /** @param  array<string, int>  $summary */
+    /** @param array<string, int> $summary */
     public function __construct($resource, private readonly array $summary = [])
     {
         parent::__construct($resource);
@@ -17,15 +17,13 @@ class AdminTaskCollection extends ResourceCollection
 
     public function toArray(Request $request): array
     {
+        return parent::toArray($request);
+    }
+
+    public function with(Request $request): array
+    {
         return [
-            'data' => $this->collection,
-            'meta' => [
-                'current_page' => $this->currentPage(),
-                'last_page' => $this->lastPage(),
-                'total' => $this->total(),
-                'per_page' => $this->perPage(),
-                'summary' => $this->summary,
-            ],
+            'summary' => $this->summary,
         ];
     }
 }

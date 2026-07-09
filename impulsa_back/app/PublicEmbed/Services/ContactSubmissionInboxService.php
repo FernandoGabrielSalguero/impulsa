@@ -10,25 +10,33 @@ use Illuminate\Validation\ValidationException;
 
 class ContactSubmissionInboxService
 {
-    /** @return array{data: LengthAwarePaginator<int, object>} */
-    public function listForAdmin(?string $q, ?int $integrationId, ?string $state, int $perPage = 20): array
-    {
+    public function listForAdmin(
+        ?string $q,
+        ?int $integrationId,
+        ?string $state,
+        int $perPage = 20,
+        int $page = 1,
+    ): LengthAwarePaginator {
         $query = $this->baseQuery()
             ->orderByDesc('f.created_at')
             ->orderByDesc('f.id');
 
         $this->applyFilters($query, $q, $integrationId, $state);
 
-        return ['data' => $query->paginate($perPage)->withQueryString()];
+        return $query->paginate($perPage, ['*'], 'page', max(1, $page))->withQueryString();
     }
 
-    /** @return array{data: LengthAwarePaginator<int, object>} */
-    public function listForUser(UserAuth $user, ?string $q, ?string $state, int $perPage = 20): array
-    {
+    public function listForUser(
+        UserAuth $user,
+        ?string $q,
+        ?string $state,
+        int $perPage = 20,
+        int $page = 1,
+    ): LengthAwarePaginator {
         $integrationIds = $this->integrationIdsForUser($user);
 
         if ($integrationIds === []) {
-            return ['data' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage)];
+            return new LengthAwarePaginator([], 0, $perPage, max(1, $page));
         }
 
         $query = $this->baseQuery()
@@ -38,7 +46,7 @@ class ContactSubmissionInboxService
 
         $this->applyFilters($query, $q, null, $state);
 
-        return ['data' => $query->paginate($perPage)->withQueryString()];
+        return $query->paginate($perPage, ['*'], 'page', max(1, $page))->withQueryString();
     }
 
     public function findForAdmin(int $id): object

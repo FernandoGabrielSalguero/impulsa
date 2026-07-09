@@ -20,14 +20,24 @@ class ContactSubmissionController extends Controller
         /** @var UserAuth $user */
         $user = $request->user();
 
-        $result = $this->inboxService->listForUser(
+        $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
+        $paginator = $this->inboxService->listForUser(
             $user,
             $request->query('q'),
             $request->query('state'),
-            (int) $request->query('per_page', 20),
+            $perPage,
+            (int) $request->integer('page', 1),
         );
 
-        return response()->json($result);
+        return response()->json([
+            'data' => $paginator->items(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
+        ]);
     }
 
     public function show(Request $request, int $contactSubmission): JsonResponse

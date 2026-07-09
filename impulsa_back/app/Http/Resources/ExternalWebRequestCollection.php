@@ -11,14 +11,6 @@ class ExternalWebRequestCollection extends ResourceCollection
 
     public function toArray(Request $request): array
     {
-        return [
-            'data' => $this->collection,
-            'meta' => [
-                'current_page' => $this->currentPage(),
-                'last_page' => $this->lastPage(),
-                'total' => $this->total(),
-                'per_page' => $this->perPage(),
-            ],
-        ];
+        return parent::toArray($request);
     }
 }

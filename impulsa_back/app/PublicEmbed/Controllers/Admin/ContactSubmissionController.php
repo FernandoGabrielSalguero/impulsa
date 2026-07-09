@@ -16,14 +16,24 @@ class ContactSubmissionController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $result = $this->inboxService->listForAdmin(
+        $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
+        $paginator = $this->inboxService->listForAdmin(
             $request->query('q'),
             $request->query('integration_id') !== null ? (int) $request->query('integration_id') : null,
             $request->query('state'),
-            (int) $request->query('per_page', 20),
+            $perPage,
+            (int) $request->integer('page', 1),
         );
 
-        return response()->json($result);
+        return response()->json([
+            'data' => $paginator->items(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
+        ]);
     }
 
     public function show(int $contactSubmission): JsonResponse
