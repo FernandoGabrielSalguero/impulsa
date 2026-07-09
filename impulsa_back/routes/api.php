@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\Admin\MercadoPagoSubscriptionPlanController;
 use App\Http\Controllers\Api\V1\Admin\ProjectController;
 use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Admin\UserIngresoController;
 use App\Http\Controllers\Api\V1\Admin\UserMenuController;
 use App\Http\Controllers\Api\V1\Admin\WebRequestController;
 use App\Http\Controllers\Api\V1\Admin\WebsiteSubscriptionController;
@@ -92,6 +93,8 @@ Route::prefix('v1')->group(function (): void {
             Route::get('ai-usage-logs/options', [AiUsageLogController::class, 'options']);
             Route::get('ai-usage-logs', [AiUsageLogController::class, 'index']);
             Route::get('ai-usage-logs/{aiUsageLog}', [AiUsageLogController::class, 'show']);
+            Route::get('user-ingresos/options', [UserIngresoController::class, 'options']);
+            Route::get('user-ingresos', [UserIngresoController::class, 'index']);
             Route::get('web-requests/internal', [WebRequestController::class, 'indexInternal']);
             Route::get('web-requests/internal/{webRequest}', [WebRequestController::class, 'showInternal']);
             Route::post('web-requests/internal/{webRequest}/create-project', [WebRequestController::class, 'createProjectFromInternal']);
