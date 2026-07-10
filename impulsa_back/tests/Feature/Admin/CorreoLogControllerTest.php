@@ -32,12 +32,21 @@ class CorreoLogControllerTest extends TestCase
             'estado' => 'enviado',
         ]);
 
+        CorreoLog::query()->create([
+            'correo' => 'cliente@impulsa.test',
+            'asunto' => 'Restablecer contraseña',
+            'template' => 'reset_password',
+            'mensaje_html' => '<p>Reset</p>',
+            'mensaje_text' => 'Reset',
+            'estado' => 'enviado',
+        ]);
+
         $response = $this->actingAs($admin)->getJson('/api/v1/admin/mail-logs?per_page=20');
 
         $response->assertOk();
-        $response->assertJsonPath('meta.total', 1);
-        $response->assertJsonPath('data.0.correo', 'cliente@impulsa.test');
-        $response->assertJsonPath('data.0.template_label', 'Alta de usuario cliente');
+        $response->assertJsonPath('meta.total', 2);
+        $response->assertJsonPath('data.0.template_label', 'Restablecer contraseña');
+        $response->assertJsonPath('data.1.template_label', 'Alta de usuario cliente');
     }
 
     private function createSchema(): void
