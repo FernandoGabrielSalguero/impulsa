@@ -12,14 +12,14 @@ class AdminCorreoLogResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'user_auth_id' => $this->user_auth_id,
-            'correo' => $this->correo,
-            'asunto' => $this->asunto,
-            'template' => $this->template,
+            'id' => (int) $this->id,
+            'user_auth_id' => $this->user_auth_id !== null ? (int) $this->user_auth_id : null,
+            'correo' => (string) $this->correo,
+            'asunto' => (string) $this->asunto,
+            'template' => $this->template !== null ? (string) $this->template : null,
             'template_label' => MailTemplateLabels::labelFor($this->template),
-            'estado' => $this->estado,
-            'error' => $this->error,
+            'estado' => (string) $this->estado,
+            'error' => $this->error !== null ? (string) $this->error : null,
             'created_at' => $this->formatDateTime($this->created_at),
             'usuario_relacionado' => $this->resolveRelatedUserName(),
         ];
@@ -27,23 +27,43 @@ class AdminCorreoLogResource extends JsonResource
 
     private function resolveRelatedUserName(): string
     {
-        $info = $this->userAuth?->info;
+        $nombre = trim((string) ($this->usuario_nombre ?? '') . ' ' . (string) ($this->usuario_apellido ?? ''));
 
-        if ($info !== null) {
-            $nombre = trim((string) ($info->nombre ?? '') . ' ' . (string) ($info->apellido ?? ''));
+        if ($nombre !== '') {
+            return $nombre;
+        }
 
-            if ($nombre !== '') {
-                return $nombre;
+        $apodo = trim((string) ($this->usuario_apodo ?? ''));
+
+        if ($apodo !== '') {
+            return $apodo;
+        }
+
+        if ($this->resource && method_exists($this->resource, 'relationLoaded') && $this->resource->relationLoaded('userAuth')) {
+            $info = $this->resource->userAuth?->info;
+
+            if ($info !== null) {
+                $nombreRelacion = trim((string) ($info->nombre ?? '') . ' ' . (string) ($info->apellido ?? ''));
+
+                if ($nombreRelacion !== '') {
+                    return $nombreRelacion;
+                }
+
+                $apodoRelacion = trim((string) ($info->apodo ?? ''));
+
+                if ($apodoRelacion !== '') {
+                    return $apodoRelacion;
+                }
             }
 
-            $apodo = trim((string) ($info->apodo ?? ''));
+            $correoRelacion = trim((string) ($this->resource->userAuth?->correo ?? ''));
 
-            if ($apodo !== '') {
-                return $apodo;
+            if ($correoRelacion !== '') {
+                return $correoRelacion;
             }
         }
 
-        $usuarioCorreo = trim((string) ($this->userAuth?->correo ?? ''));
+        $usuarioCorreo = trim((string) ($this->usuario_correo ?? ''));
 
         return $usuarioCorreo !== '' ? $usuarioCorreo : '-';
     }

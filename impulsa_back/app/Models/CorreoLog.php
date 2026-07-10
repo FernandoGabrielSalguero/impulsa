@@ -24,9 +24,8 @@ class CorreoLog extends Model
     ];
 
     protected $casts = [
-            'created_at' => 'datetime',
-            'meta' => 'array',
-        ];
+        'created_at' => 'datetime',
+    ];
 
     public function userAuth(): BelongsTo
     {

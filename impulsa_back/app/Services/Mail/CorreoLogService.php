@@ -24,7 +24,7 @@ class CorreoLogService
             'mensaje_html' => $mensajeHtml,
             'mensaje_text' => $mensajeText,
             'estado' => 'enviado',
-            'meta' => $meta ?: null,
+            'meta' => $this->encodeMeta($meta),
         ]);
     }
 
@@ -47,7 +47,18 @@ class CorreoLogService
             'mensaje_text' => $mensajeText,
             'estado' => 'fallido',
             'error' => $error,
-            'meta' => $meta ?: null,
+            'meta' => $this->encodeMeta($meta),
         ]);
+    }
+
+    private function encodeMeta(array $meta): ?string
+    {
+        if ($meta === []) {
+            return null;
+        }
+
+        $encoded = json_encode($meta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        return $encoded === false ? null : $encoded;
     }
 }

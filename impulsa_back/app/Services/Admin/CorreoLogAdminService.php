@@ -4,41 +4,56 @@ namespace App\Services\Admin;
 
 use App\Models\CorreoLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class CorreoLogAdminService
 {
     public function list(?string $correo, ?string $asunto, int $perPage = 20): LengthAwarePaginator
     {
-        return $this->baseQuery($correo, $asunto)
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
+        return $this->baseListQuery($correo, $asunto)
+            ->orderByDesc('cl.created_at')
+            ->orderByDesc('cl.id')
             ->paginate($perPage)
             ->withQueryString();
     }
 
     public function find(int $id): ?CorreoLog
     {
-        return $this->baseQuery(null, null)
-            ->where('id', $id)
-            ->first();
+        return CorreoLog::query()
+            ->with(['userAuth.info'])
+            ->find($id);
     }
 
-    private function baseQuery(?string $correo, ?string $asunto): Builder
+    private function baseListQuery(?string $correo, ?string $asunto)
     {
-        $query = CorreoLog::query()
-            ->with(['userAuth.info']);
+        $query = DB::table('correos_log as cl')
+            ->leftJoin('user_auth as ua', 'ua.id', '=', 'cl.user_auth_id')
+            ->leftJoin('user_info as ui', 'ui.user_auth_id', '=', 'ua.id')
+            ->select([
+                'cl.id',
+                'cl.user_auth_id',
+                'cl.correo',
+                'cl.asunto',
+                'cl.template',
+                'cl.estado',
+                'cl.error',
+                'cl.created_at',
+                'ua.correo as usuario_correo',
+                'ui.nombre as usuario_nombre',
+                'ui.apellido as usuario_apellido',
+                'ui.apodo as usuario_apodo',
+            ]);
 
         $correoFilter = trim((string) $correo);
 
         if ($correoFilter !== '') {
-            $query->where('correo', 'like', '%' . $correoFilter . '%');
+            $query->where('cl.correo', 'like', '%' . $correoFilter . '%');
         }
 
         $asuntoFilter = trim((string) $asunto);
 
         if ($asuntoFilter !== '') {
-            $query->where('asunto', 'like', '%' . $asuntoFilter . '%');
+            $query->where('cl.asunto', 'like', '%' . $asuntoFilter . '%');
         }
 
         return $query;
