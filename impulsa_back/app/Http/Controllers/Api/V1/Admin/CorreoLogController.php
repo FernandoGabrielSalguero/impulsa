@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\AdminCorreoLogCollection;
 use App\Http\Resources\AdminCorreoLogDetailResource;
+use App\Http\Resources\AdminCorreoLogResource;
 use App\Models\CorreoLog;
 use App\Services\Admin\CorreoLogAdminService;
 use App\Services\Mail\CorreoLogResendService;
@@ -18,7 +18,7 @@ class CorreoLogController extends Controller
         private readonly CorreoLogResendService $correoLogResendService,
     ) {}
 
-    public function index(Request $request): AdminCorreoLogCollection
+    public function index(Request $request): JsonResponse
     {
         $perPage = max(1, min((int) $request->integer('per_page', 20), 100));
 
@@ -28,7 +28,15 @@ class CorreoLogController extends Controller
             $perPage,
         );
 
-        return new AdminCorreoLogCollection($logs);
+        return response()->json([
+            'data' => AdminCorreoLogResource::collection($logs->items())->resolve(),
+            'meta' => [
+                'current_page' => $logs->currentPage(),
+                'last_page' => $logs->lastPage(),
+                'per_page' => $logs->perPage(),
+                'total' => $logs->total(),
+            ],
+        ]);
     }
 
     public function show(int $correoLog): AdminCorreoLogDetailResource|JsonResponse
