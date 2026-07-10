@@ -2,9 +2,9 @@
 
 namespace App\PublicEmbed\Services;
 
-use App\Models\ApiIntegration;
 use App\Models\UserAuth;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator as LengthAwarePaginatorImpl;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -36,7 +36,7 @@ class ContactSubmissionInboxService
         $integrationIds = $this->integrationIdsForUser($user);
 
         if ($integrationIds === []) {
-            return new LengthAwarePaginator([], 0, $perPage, max(1, $page));
+            return new LengthAwarePaginatorImpl([], 0, $perPage, max(1, $page));
         }
 
         $query = $this->baseQuery()

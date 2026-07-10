@@ -15,6 +15,7 @@ use App\Models\UserContacto;
 use App\Models\UserInfo;
 use App\Services\Auth\EmailVerificationService;
 use App\Services\Auth\PasswordResetService;
+use App\Services\Auth\UserIngresoService;
 use App\Support\AuthDashboard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ use Throwable;
 
 class AuthController extends Controller
 {
-    public function login(LoginRequest $request): JsonResponse
+    public function login(LoginRequest $request, UserIngresoService $userIngresoService): JsonResponse
     {
         $user = UserAuth::query()
             ->where('correo', $request->validated('correo'))
@@ -41,6 +42,8 @@ class AuthController extends Controller
 
         $user->tokens()->delete();
         $token = $user->createToken('auth-token')->plainTextToken;
+
+        $userIngresoService->recordLogin($user);
 
         return response()->json([
             'token' => $token,

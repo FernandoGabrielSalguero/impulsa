@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\CorreoLog;
 use Illuminate\Http\Request;
 
+/** @mixin CorreoLog */
 class AdminCorreoLogDetailResource extends AdminCorreoLogResource
 {
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return array_merge(parent::toArray($request), [
