@@ -10,6 +10,7 @@ enum MailTemplate: string
     case SolicitudPaginaWeb = 'solicitud_pagina_web';
     case RequestPageExternal = 'request_page_external';
     case NewProject = 'new_project';
+    case ProjectProgressUpdate = 'project_progress_update';
     case SolicitudMarketing = 'solicitud_marketing';
     case NotificacionContactoWebPublica = 'notificacion_contacto_web_publica';
     case ReenvioCorreoLog = 'reenvio_correo_log';

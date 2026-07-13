@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Project;
+use App\Support\ProjectLabels;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -11,6 +12,10 @@ use Throwable;
 
 class ProjectStructureService
 {
+    public function __construct(
+        private readonly ProjectClientNotificationService $clientNotificationService,
+    ) {}
+
     /** @return list<array<string, mixed>> */
     public function getPhases(int $projectId): array
     {
@@ -146,9 +151,24 @@ class ProjectStructureService
             'updated_at' => now(),
         ]);
 
-        $this->recalculateProject((int) $project->id);
+        $progress = $this->recalculateProject((int) $project->id);
 
-        return $this->getPhase((int) $project->id, $phaseId);
+        $phase = $this->getPhase((int) $project->id, $phaseId);
+
+        $this->clientNotificationService->notify(
+            project: $project,
+            updateTitle: 'Nueva fase agregada',
+            updateMessage: 'Incorporamos una nueva etapa al plan de trabajo de tu proyecto.',
+            changeLines: [
+                'Fase: ' . $phase['title'],
+                'Estado: ' . ProjectLabels::phaseStatusLabel($phase['status'] ?? null),
+            ],
+            createdByUserId: $this->actorUserId(),
+            phaseId: $phaseId,
+            progress: $progress,
+        );
+
+        return $phase;
     }
 
     /** @param array<string, mixed> $data */
@@ -156,6 +176,7 @@ class ProjectStructureService
     {
         $this->assertPhaseBelongsToProject($phaseId, (int) $project->id);
 
+        $before = $this->getPhase((int) $project->id, $phaseId);
         $title = trim((string) $data['title']);
 
         if ($this->phaseTitleExists((int) $project->id, $title, $phaseId)) {
@@ -176,13 +197,30 @@ class ProjectStructureService
                 'updated_at' => now(),
             ]);
 
-        $this->recalculateProject((int) $project->id);
+        $progress = $this->recalculateProject((int) $project->id);
 
-        return $this->getPhase((int) $project->id, $phaseId);
+        $after = $this->getPhase((int) $project->id, $phaseId);
+        $changeLines = $this->describePhaseChanges($before, $after);
+
+        if ($changeLines !== []) {
+            $this->clientNotificationService->notify(
+                project: $project,
+                updateTitle: 'Fase actualizada',
+                updateMessage: 'Actualizamos una etapa de tu proyecto.',
+                changeLines: $changeLines,
+                createdByUserId: $this->actorUserId(),
+                phaseId: $phaseId,
+                progress: $progress,
+            );
+        }
+
+        return $after;
     }
 
     public function deletePhase(Project $project, int $phaseId): void
     {
+        $phaseTitle = 'Sin nombre';
+
         DB::beginTransaction();
 
         try {
@@ -197,6 +235,8 @@ class ProjectStructureService
                     'phase' => ['La fase seleccionada no pertenece a este proyecto.'],
                 ]);
             }
+
+            $phaseTitle = (string) $phase->title;
 
             $deliverableIds = DB::table('project_deliverables')
                 ->where('phase_id', $phaseId)
@@ -223,7 +263,19 @@ class ProjectStructureService
             throw new RuntimeException('No se pudo eliminar la fase.', 0, $exception);
         }
 
-        $this->recalculateProject((int) $project->id);
+        $progress = $this->recalculateProject((int) $project->id);
+
+        $this->clientNotificationService->notify(
+            project: $project,
+            updateTitle: 'Fase eliminada',
+            updateMessage: 'Reorganizamos el plan de trabajo de tu proyecto.',
+            changeLines: [
+                'Se eliminó la fase: ' . $phaseTitle,
+            ],
+            createdByUserId: $this->actorUserId(),
+            phaseId: null,
+            progress: $progress,
+        );
     }
 
     /** @param array<string, mixed> $data */
@@ -253,9 +305,24 @@ class ProjectStructureService
             'updated_at' => now(),
         ]);
 
-        $this->recalculateProject((int) $project->id);
+        $progress = $this->recalculateProject((int) $project->id);
 
-        return $this->getDeliverable((int) $project->id, $deliverableId);
+        $deliverable = $this->getDeliverable((int) $project->id, $deliverableId);
+
+        $this->clientNotificationService->notify(
+            project: $project,
+            updateTitle: 'Nuevo objetivo agregado',
+            updateMessage: 'Sumamos un nuevo objetivo al avance de tu proyecto.',
+            changeLines: [
+                'Objetivo: ' . $deliverable['title'],
+                'Estado: ' . ProjectLabels::deliverableStatusLabel($deliverable['status'] ?? null),
+            ],
+            createdByUserId: $this->actorUserId(),
+            phaseId: $phaseId,
+            progress: $progress,
+        );
+
+        return $deliverable;
     }
 
     /** @param array<string, mixed> $data */
@@ -263,6 +330,7 @@ class ProjectStructureService
     {
         $this->assertDeliverableBelongsToProject($deliverableId, (int) $project->id);
 
+        $before = $this->getDeliverable((int) $project->id, $deliverableId);
         $phaseId = (int) $data['phase_id'];
         $this->assertPhaseBelongsToProject($phaseId, (int) $project->id);
 
@@ -288,13 +356,31 @@ class ProjectStructureService
                 'updated_at' => now(),
             ]);
 
-        $this->recalculateProject((int) $project->id);
+        $progress = $this->recalculateProject((int) $project->id);
 
-        return $this->getDeliverable((int) $project->id, $deliverableId);
+        $after = $this->getDeliverable((int) $project->id, $deliverableId);
+        $changeLines = $this->describeDeliverableChanges($before, $after);
+
+        if ($changeLines !== []) {
+            $this->clientNotificationService->notify(
+                project: $project,
+                updateTitle: 'Objetivo actualizado',
+                updateMessage: 'Actualizamos un objetivo de tu proyecto.',
+                changeLines: $changeLines,
+                createdByUserId: $this->actorUserId(),
+                phaseId: $phaseId,
+                progress: $progress,
+            );
+        }
+
+        return $after;
     }
 
     public function deleteDeliverable(Project $project, int $deliverableId): void
     {
+        $deliverableTitle = 'Sin nombre';
+        $phaseId = null;
+
         DB::beginTransaction();
 
         try {
@@ -310,6 +396,9 @@ class ProjectStructureService
                 ]);
             }
 
+            $deliverableTitle = (string) $deliverable->title;
+            $phaseId = $deliverable->phase_id !== null ? (int) $deliverable->phase_id : null;
+
             DB::table('project_deliverable_tasks')->where('deliverable_id', $deliverableId)->delete();
             DB::table('project_deliverables')->where('id', $deliverableId)->delete();
 
@@ -324,7 +413,19 @@ class ProjectStructureService
             throw new RuntimeException('No se pudo eliminar el objetivo.', 0, $exception);
         }
 
-        $this->recalculateProject((int) $project->id);
+        $progress = $this->recalculateProject((int) $project->id);
+
+        $this->clientNotificationService->notify(
+            project: $project,
+            updateTitle: 'Objetivo eliminado',
+            updateMessage: 'Reorganizamos los objetivos de tu proyecto.',
+            changeLines: [
+                'Se eliminó el objetivo: ' . $deliverableTitle,
+            ],
+            createdByUserId: $this->actorUserId(),
+            phaseId: $phaseId,
+            progress: $progress,
+        );
     }
 
     /** @return array{target_delivery_date: ?string, progress_percent: int, progress_detail: string} */
@@ -561,5 +662,85 @@ class ProjectStructureService
         }
 
         return ['percent' => 0, 'detail' => 'Sin fases ni objetivos'];
+    }
+
+    private function actorUserId(): ?int
+    {
+        $userId = auth()->id();
+
+        return $userId ? (int) $userId : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $before
+     * @param  array<string, mixed>  $after
+     * @return list<string>
+     */
+    private function describePhaseChanges(array $before, array $after): array
+    {
+        $lines = [];
+        $phaseLabel = (string) ($after['title'] ?? $before['title'] ?? 'Fase');
+
+        if (($before['title'] ?? '') !== ($after['title'] ?? '')) {
+            $lines[] = 'Fase renombrada: ' . ($before['title'] ?? '—') . ' → ' . ($after['title'] ?? '—');
+        }
+
+        if (($before['status'] ?? '') !== ($after['status'] ?? '')) {
+            $lines[] = $phaseLabel . ': ' . ProjectLabels::phaseStatusLabel($before['status'] ?? null)
+                . ' → ' . ProjectLabels::phaseStatusLabel($after['status'] ?? null);
+        }
+
+        if ((int) ($before['phase_order'] ?? 0) !== (int) ($after['phase_order'] ?? 0)) {
+            $lines[] = $phaseLabel . ': orden ' . (int) ($before['phase_order'] ?? 0) . ' → ' . (int) ($after['phase_order'] ?? 0);
+        }
+
+        if (($before['duration_days'] ?? null) !== ($after['duration_days'] ?? null)) {
+            $lines[] = $phaseLabel . ': duración actualizada.';
+        }
+
+        if (($before['description'] ?? null) !== ($after['description'] ?? null)) {
+            $lines[] = $phaseLabel . ': descripción actualizada.';
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @param  array<string, mixed>  $before
+     * @param  array<string, mixed>  $after
+     * @return list<string>
+     */
+    private function describeDeliverableChanges(array $before, array $after): array
+    {
+        $lines = [];
+        $label = (string) ($after['title'] ?? $before['title'] ?? 'Objetivo');
+
+        if (($before['title'] ?? '') !== ($after['title'] ?? '')) {
+            $lines[] = 'Objetivo renombrado: ' . ($before['title'] ?? '—') . ' → ' . ($after['title'] ?? '—');
+        }
+
+        if (($before['status'] ?? '') !== ($after['status'] ?? '')) {
+            $lines[] = $label . ': ' . ProjectLabels::deliverableStatusLabel($before['status'] ?? null)
+                . ' → ' . ProjectLabels::deliverableStatusLabel($after['status'] ?? null);
+        }
+
+        if (($before['deliverable_type'] ?? '') !== ($after['deliverable_type'] ?? '')) {
+            $lines[] = $label . ': tipo ' . ProjectLabels::deliverableTypeLabel($before['deliverable_type'] ?? null)
+                . ' → ' . ProjectLabels::deliverableTypeLabel($after['deliverable_type'] ?? null);
+        }
+
+        if (($before['phase_id'] ?? null) !== ($after['phase_id'] ?? null)) {
+            $lines[] = $label . ': reasignado de fase.';
+        }
+
+        if (($before['due_date'] ?? null) !== ($after['due_date'] ?? null)) {
+            $lines[] = $label . ': fecha objetivo actualizada.';
+        }
+
+        if (($before['description'] ?? null) !== ($after['description'] ?? null)) {
+            $lines[] = $label . ': descripción actualizada.';
+        }
+
+        return $lines;
     }
 }

@@ -7,6 +7,7 @@ use App\Models\UserAuth;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use App\Support\ProjectLabels;
 use Illuminate\Validation\ValidationException;
 
 class ProjectAdminService
@@ -16,6 +17,7 @@ class ProjectAdminService
     public function __construct(
         private readonly ProjectStructureService $structureService,
         private readonly UserAdminService $userAdminService,
+        private readonly ProjectClientNotificationService $clientNotificationService,
     ) {}
 
     public function list(?string $q, int $perPage = 20): LengthAwarePaginator
@@ -91,13 +93,24 @@ class ProjectAdminService
     }
 
     /** @param array<string, mixed> $data */
-    public function updateProject(Project $project, array $data): array
+    public function updateProject(Project $project, array $data, ?int $actorUserId = null): array
     {
         if (! $this->structureService->managerExists((int) $data['manager_user_id'])) {
             throw ValidationException::withMessages([
                 'manager_user_id' => ['El responsable seleccionado no es válido.'],
             ]);
         }
+
+        $before = [
+            'project_name' => $project->project_name,
+            'status' => $project->status,
+            'priority' => $project->priority,
+            'start_date' => $project->start_date?->format('Y-m-d'),
+            'summary' => $project->summary,
+            'scope_summary' => $project->scope_summary,
+            'client_visible' => (bool) $project->client_visible,
+            'progress_percent' => (int) $project->progress_percent,
+        ];
 
         $project->update([
             'project_name' => trim((string) $data['project_name']),
@@ -111,8 +124,24 @@ class ProjectAdminService
         ]);
 
         $this->structureService->recalculateProject((int) $project->id);
+        $detail = $this->getDetail($project->fresh());
+        $changeLines = $this->describeProjectChanges($before, $detail['project']);
 
-        return $this->getDetail($project->fresh());
+        if ($changeLines !== []) {
+            $this->clientNotificationService->notify(
+                project: $project->fresh(),
+                updateTitle: 'Actualización del proyecto',
+                updateMessage: 'Actualizamos la información general de tu proyecto.',
+                changeLines: $changeLines,
+                createdByUserId: $actorUserId,
+                progress: [
+                    'progress_percent' => (int) ($detail['project']['progress_percent'] ?? 0),
+                    'progress_detail' => (string) ($detail['project']['progress_detail'] ?? ''),
+                ],
+            );
+        }
+
+        return $detail;
     }
 
     /**
@@ -345,6 +374,8 @@ class ProjectAdminService
             ->where('project_id', $project->id)
             ->first();
 
+        $isNew = $existing === null;
+
         if ($existing !== null) {
             DB::table('project_contracts')
                 ->where('id', $existing->id)
@@ -370,6 +401,19 @@ class ProjectAdminService
                 'updated_at' => now(),
             ]);
         }
+
+        $this->clientNotificationService->notify(
+            project: $project,
+            updateTitle: $isNew ? 'Contrato disponible' : 'Contrato actualizado',
+            updateMessage: $isNew
+                ? 'Ya podés revisar el contrato de tu proyecto desde el panel.'
+                : 'Actualizamos el contrato de tu proyecto.',
+            changeLines: [
+                'Contrato: ' . $contractName,
+            ],
+            createdByUserId: $adminUserId,
+            progress: $this->structureService->recalculateProject((int) $project->id),
+        );
 
         return $this->getContractRow((int) $project->id) ?? [];
     }
@@ -408,5 +452,53 @@ class ProjectAdminService
             ]);
 
         return $row !== null ? (array) $row : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $before
+     * @param  array<string, mixed>  $after
+     * @return list<string>
+     */
+    private function describeProjectChanges(array $before, array $after): array
+    {
+        $lines = [];
+
+        if (($before['project_name'] ?? '') !== ($after['project_name'] ?? '')) {
+            $lines[] = 'Nombre: ' . ($before['project_name'] ?? '—') . ' → ' . ($after['project_name'] ?? '—');
+        }
+
+        if (($before['status'] ?? '') !== ($after['status'] ?? '')) {
+            $lines[] = 'Estado: ' . ProjectLabels::statusLabel($before['status'] ?? null)
+                . ' → ' . ProjectLabels::statusLabel($after['status'] ?? null);
+        }
+
+        if (($before['priority'] ?? '') !== ($after['priority'] ?? '')) {
+            $lines[] = 'Prioridad: ' . ProjectLabels::priorityLabel($before['priority'] ?? null)
+                . ' → ' . ProjectLabels::priorityLabel($after['priority'] ?? null);
+        }
+
+        if (($before['start_date'] ?? null) !== ($after['start_date'] ?? null)) {
+            $lines[] = 'Fecha de inicio: ' . ($before['start_date'] ?? 'Sin fecha') . ' → ' . ($after['start_date'] ?? 'Sin fecha');
+        }
+
+        if (($before['summary'] ?? null) !== ($after['summary'] ?? null)) {
+            $lines[] = 'Se actualizó el resumen del proyecto.';
+        }
+
+        if (($before['scope_summary'] ?? null) !== ($after['scope_summary'] ?? null)) {
+            $lines[] = 'Se actualizó el alcance del proyecto.';
+        }
+
+        if ((bool) ($before['client_visible'] ?? false) !== (bool) ($after['client_visible'] ?? false)) {
+            $lines[] = (bool) ($after['client_visible'] ?? false)
+                ? 'El proyecto quedó visible para vos en el panel.'
+                : 'El proyecto dejó de estar visible en el panel.';
+        }
+
+        if ((int) ($before['progress_percent'] ?? 0) !== (int) ($after['progress_percent'] ?? 0)) {
+            $lines[] = 'Avance: ' . (int) ($before['progress_percent'] ?? 0) . '% → ' . (int) ($after['progress_percent'] ?? 0) . '%';
+        }
+
+        return $lines;
     }
 }

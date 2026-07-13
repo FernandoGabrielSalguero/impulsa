@@ -22,6 +22,7 @@ class MailTemplateLabels
                 MailTemplate::SolicitudPaginaWeb => 'Solicitud página web',
                 MailTemplate::RequestPageExternal => 'Solicitud página externa',
                 MailTemplate::NewProject => 'Nuevo proyecto',
+                MailTemplate::ProjectProgressUpdate => 'Avance de proyecto',
                 MailTemplate::SolicitudMarketing => 'Solicitud marketing',
                 MailTemplate::NotificacionContactoWebPublica => 'Contacto web pública',
                 MailTemplate::ReenvioCorreoLog => 'Reenvío de correo',
