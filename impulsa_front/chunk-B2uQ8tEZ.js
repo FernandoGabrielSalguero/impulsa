@@ -1,0 +1,1 @@
+import {T,F as Fe,bd as Bl,cI as _}from'./main-S6FSLNX2.js';function w(t){t||(t=T(Fe));let i=new _(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Bl(i))}export{w};
