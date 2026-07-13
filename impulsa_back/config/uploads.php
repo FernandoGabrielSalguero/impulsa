@@ -54,7 +54,7 @@ return [
 
     'user_avatar' => [
         'label' => 'Avatar usuario',
-        'description' => 'Foto de perfil en user_info.avatar_path (futuro).',
+        'description' => 'Foto de perfil en user_info.avatar_path.',
         'storage_path' => env('UPLOAD_USER_AVATAR_PATH')
             ?: storage_path('app/user-avatars'),
         'path_prefix' => env('UPLOAD_USER_AVATAR_PREFIX', 'user-avatars'),

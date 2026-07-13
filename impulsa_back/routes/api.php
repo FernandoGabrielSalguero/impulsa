@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Api\V1\Admin\ApiIntegrationController;
 use App\Http\Controllers\Api\V1\Admin\ApiProductController;
 use App\Http\Controllers\Api\V1\Admin\ChatbotController;
+use App\Http\Controllers\Api\V1\Admin\EmailMarketingContactsController;
 use App\Http\Controllers\Api\V1\Admin\CorreoLogController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\V1\Admin\MarketingDashboardController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Api\V1\Admin\UserIngresoController;
 use App\Http\Controllers\Api\V1\Admin\UserMenuController;
 use App\Http\Controllers\Api\V1\Admin\WebRequestController;
 use App\Http\Controllers\Api\V1\Admin\WebsiteSubscriptionController;
+use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\Emprendedor\AcademiaController as EmprendedorAcademiaController;
 use App\Http\Controllers\Api\V1\Emprendedor\BlogController as EmprendedorBlogController;
@@ -78,6 +80,9 @@ Route::prefix('v1')->group(function (): void {
         Route::middleware('auth:sanctum')->group(function (): void {
             Route::get('me', [AuthController::class, 'me']);
             Route::post('logout', [AuthController::class, 'logout']);
+            Route::get('profile', [ProfileController::class, 'show']);
+            Route::match(['PUT', 'POST'], 'profile', [ProfileController::class, 'update']);
+            Route::get('profile/avatar', [ProfileController::class, 'avatar']);
         });
     });
 
@@ -95,6 +100,8 @@ Route::prefix('v1')->group(function (): void {
             Route::get('mail-logs', [CorreoLogController::class, 'index']);
             Route::get('mail-logs/{correoLog}', [CorreoLogController::class, 'show']);
             Route::post('mail-logs/{correoLog}/resend', [CorreoLogController::class, 'resend']);
+            Route::get('email-marketing/contacts', [EmailMarketingContactsController::class, 'index']);
+            Route::get('email-marketing/contacts/export', [EmailMarketingContactsController::class, 'export']);
             Route::get('ai-usage-logs/options', [AiUsageLogController::class, 'options']);
             Route::get('ai-usage-logs', [AiUsageLogController::class, 'index']);
             Route::get('ai-usage-logs/{aiUsageLog}', [AiUsageLogController::class, 'show']);
