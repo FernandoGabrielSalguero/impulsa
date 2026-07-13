@@ -29,6 +29,22 @@ class EmailMarketingContactsControllerTest extends TestCase
         $response->assertJsonPath('data.0.correo', 'incluido@test.com');
     }
 
+    public function test_admin_can_list_marketing_contacts_with_string_boolean_query_params(): void
+    {
+        $this->createSchema();
+
+        $admin = $this->createAdmin();
+        $included = $this->createUser('incluido@test.com', true, true);
+
+        $response = $this->actingAs($admin)->getJson(
+            '/api/v1/admin/email-marketing/contacts?only_opt_in=true&only_verified=true&page=1&per_page=15',
+        );
+
+        $response->assertOk();
+        $response->assertJsonPath('meta.total', 1);
+        $response->assertJsonPath('data.0.id', $included->id);
+    }
+
     public function test_admin_can_export_marketing_contacts_csv(): void
     {
         $this->createSchema();

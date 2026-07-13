@@ -1,0 +1,1 @@
+import {T,E as We,bs as Dg,bv as M}from'./main-GY4A6SCU.js';function w(t){t||(t=T(We));let i=new M(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Dg(i))}export{w};

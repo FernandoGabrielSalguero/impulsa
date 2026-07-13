@@ -40,9 +40,11 @@ class EmailMarketingContactsController extends Controller
             'q' => ['nullable', 'string', 'max:120'],
             'rol' => ['nullable', 'string', 'in:' . implode(',', array_keys(RoleLabels::all()))],
             'usuario_tipo' => ['nullable', 'string', 'in:interno,externo'],
-            'only_opt_in' => ['nullable', 'boolean'],
-            'only_verified' => ['nullable', 'boolean'],
+            'only_opt_in' => ['nullable'],
+            'only_verified' => ['nullable'],
             'ids' => ['nullable', 'string', 'max:5000'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $ids = collect(explode(',', (string) $request->query('ids', '')))
