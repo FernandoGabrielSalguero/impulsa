@@ -50,54 +50,82 @@ class UserAdminService
 
     public function create(array $data): array
     {
-        $password = rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=') . 'A1!';
+        $password = '';
 
         /** @var UserAuth $user */
-        $user = DB::transaction(function () use ($data, $password): UserAuth {
-            $user = UserAuth::query()->create([
-                'correo' => $data['correo'],
-                'password' => $password,
-                'rol' => $data['rol'],
-                'verification_token' => null,
-                'email_verified_at' => now(),
-                'usuario_tipo' => 'externo',
-            ]);
+        $user = DB::transaction(function () use ($data, &$password): UserAuth {
+            ['user' => $user, 'password' => $password] = $this->persistUserAccount($data);
 
-            UserContacto::query()->create([
-                'user_auth_id' => $user->id,
-                'correo' => $data['correo'],
-                'check_correo' => true,
-                'permison_correo' => true,
-                'whatsapp' => $data['whatsapp'] ?: null,
-                'check_whatsapp' => filled($data['whatsapp']),
-                'permison_whatsapp' => true,
-            ]);
-
-            if (filled($data['nombre']) || filled($data['apellido']) || filled($data['apodo'])) {
-                UserInfo::query()->create([
-                    'user_auth_id' => $user->id,
-                    'nombre' => $data['nombre'] ?: null,
-                    'apellido' => $data['apellido'] ?: null,
-                    'apodo' => $data['apodo'] ?: null,
-                ]);
-            }
-
-            return $user->load(['info', 'contacto', 'params', 'menuViews']);
+            return $user;
         });
 
-        $emailSent = $this->mailService->send(
+        $user->load(['params', 'menuViews']);
+
+        return [
+            'message' => 'Usuario creado correctamente.',
+            'user' => $user,
+            'email_sent' => $this->sendClienteWelcomeEmail($user, $password),
+        ];
+    }
+
+    /**
+     * @param  array{correo: string, rol: string, nombre?: string|null, apellido?: string|null, apodo?: string|null, whatsapp?: string|null}  $data
+     * @return array{user: UserAuth, password: string}
+     */
+    public function persistUserAccount(array $data): array
+    {
+        $password = $this->generatePassword();
+
+        $user = UserAuth::query()->create([
+            'correo' => $data['correo'],
+            'password' => $password,
+            'rol' => $data['rol'],
+            'verification_token' => null,
+            'email_verified_at' => now(),
+            'usuario_tipo' => 'externo',
+        ]);
+
+        UserContacto::query()->create([
+            'user_auth_id' => $user->id,
+            'correo' => $data['correo'],
+            'check_correo' => true,
+            'permison_correo' => true,
+            'whatsapp' => $data['whatsapp'] ?: null,
+            'check_whatsapp' => filled($data['whatsapp'] ?? null),
+            'permison_whatsapp' => true,
+        ]);
+
+        if (filled($data['nombre'] ?? null) || filled($data['apellido'] ?? null) || filled($data['apodo'] ?? null)) {
+            UserInfo::query()->create([
+                'user_auth_id' => $user->id,
+                'nombre' => $data['nombre'] ?: null,
+                'apellido' => $data['apellido'] ?: null,
+                'apodo' => $data['apodo'] ?: null,
+            ]);
+        }
+
+        $user = $user->load(['info', 'contacto']);
+
+        return [
+            'user' => $user,
+            'password' => $password,
+        ];
+    }
+
+    public function sendClienteWelcomeEmail(UserAuth $user, string $password): bool
+    {
+        return $this->mailService->send(
             new NewUserClienteMail(
                 user: $user,
                 password: $password,
                 link: config('impulsa.frontend_url'),
             ),
         );
+    }
 
-        return [
-            'message' => 'Usuario creado correctamente.',
-            'user' => $user,
-            'email_sent' => $emailSent,
-        ];
+    private function generatePassword(): string
+    {
+        return rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=') . 'A1!';
     }
 
     public function update(UserAuth $user, array $data): UserAuth

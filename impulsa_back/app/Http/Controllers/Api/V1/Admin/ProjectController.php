@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProjectDeliverableRequest;
 use App\Http\Requests\Admin\StoreProjectPhaseRequest;
+use App\Http\Requests\Admin\StoreProjectRequest;
 use App\Http\Requests\Admin\UpdateProjectContractRequest;
 use App\Http\Requests\Admin\UpdateProjectRequest;
 use App\Http\Resources\AdminProjectCollection;
@@ -36,6 +37,28 @@ class ProjectController extends Controller
         return response()->json([
             'data' => $this->projectAdminService->listManagers(),
         ]);
+    }
+
+    public function clients(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->projectAdminService->listClients(
+                $request->query('q'),
+                max(1, min((int) $request->integer('limit', 20), 50)),
+            ),
+        ]);
+    }
+
+    public function store(StoreProjectRequest $request): JsonResponse
+    {
+        $result = $this->projectAdminService->create($request->validated());
+
+        return response()->json([
+            'message' => $result['message'],
+            'client_created' => $result['client_created'],
+            'email_sent' => $result['email_sent'],
+            'data' => (new AdminProjectDetailResource($result['detail']))->resolve(),
+        ], 201);
     }
 
     public function options(): JsonResponse

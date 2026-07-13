@@ -116,7 +116,9 @@ Route::prefix('v1')->group(function (): void {
             Route::post('web-requests/external/{webRequest}/create-project', [WebRequestController::class, 'createProjectFromExternal']);
             Route::get('projects/options', [ProjectController::class, 'options']);
             Route::get('projects/managers', [ProjectController::class, 'managers']);
+            Route::get('projects/clients', [ProjectController::class, 'clients']);
             Route::get('projects', [ProjectController::class, 'index']);
+            Route::post('projects', [ProjectController::class, 'store']);
             Route::get('projects/{project}', [ProjectController::class, 'show']);
             Route::put('projects/{project}', [ProjectController::class, 'update']);
             Route::post('projects/{project}/phases', [ProjectController::class, 'storePhase']);

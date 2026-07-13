@@ -18,6 +18,7 @@ class WebRequestActionService
     public function __construct(
         private readonly WebRequestAdminService $webRequestAdminService,
         private readonly ImpulsaMailService $mailService,
+        private readonly ProjectStructureService $projectStructureService,
     ) {}
 
     /**
@@ -238,7 +239,7 @@ class WebRequestActionService
                     'client_visible' => true,
                 ]);
 
-                $this->seedProjectStructure((int) $project->id, $managerUserId, $updateMessage);
+                $this->projectStructureService->seedDefaultStructure((int) $project->id, $managerUserId, $updateMessage);
 
                 return (int) $project->id;
             });
@@ -254,59 +255,6 @@ class WebRequestActionService
                 'message' => 'No se pudo crear el proyecto: ' . $exception->getMessage(),
             ];
         }
-    }
-
-    private function seedProjectStructure(int $projectId, int $managerUserId, string $updateMessage): void
-    {
-        $phases = [
-            ['Relevamiento y alcance', 'Revisión de objetivos, contenido, referencias y criterios de éxito.', 1],
-            ['Diseño y contenidos', 'Definición visual, estructura de secciones y textos principales.', 2],
-            ['Desarrollo y publicación', 'Construcción, pruebas, ajustes finales y puesta online.', 3],
-        ];
-
-        foreach ($phases as [$title, $description, $order]) {
-            DB::table('project_phases')->insert([
-                'project_id' => $projectId,
-                'title' => $title,
-                'description' => $description,
-                'duration_days' => null,
-                'phase_order' => $order,
-                'status' => 'pending',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        $deliverables = [
-            ['Documento de alcance', 'Resumen inicial de objetivos, secciones y materiales necesarios.', 'document'],
-            ['Propuesta visual', 'Base visual y criterio de marca para la página web.', 'design'],
-            ['Página web publicada', 'Entrega de la página construida y publicada.', 'deployment'],
-        ];
-
-        foreach ($deliverables as [$title, $description, $type]) {
-            DB::table('project_deliverables')->insert([
-                'project_id' => $projectId,
-                'phase_id' => null,
-                'title' => $title,
-                'description' => $description,
-                'deliverable_type' => $type,
-                'status' => 'pending',
-                'client_visible' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        DB::table('project_updates')->insert([
-            'project_id' => $projectId,
-            'phase_id' => null,
-            'created_by' => $managerUserId,
-            'title' => 'Proyecto creado',
-            'message' => $updateMessage,
-            'progress_delta' => null,
-            'visible_to_client' => true,
-            'created_at' => now(),
-        ]);
     }
 
     private function resolveInternalRequesterName(LandingPageRequest $solicitud): string
