@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\UserAuth;
 use App\Models\UserContacto;
 use App\Models\UserInfo;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
@@ -18,9 +19,10 @@ class ProjectProgressNotificationTest extends TestCase
         parent::setUp();
 
         $this->createSchema();
+        Cache::flush();
     }
 
-    public function test_updating_project_notifies_client_and_logs_email(): void
+    public function test_updating_project_notifies_client_after_flush(): void
     {
         Mail::fake();
 
@@ -37,16 +39,81 @@ class ProjectProgressNotificationTest extends TestCase
         ]);
 
         $response->assertOk();
+        Mail::assertNothingSent();
+        $this->assertSame(0, (int) \DB::table('correos_log')->count());
+
+        $flushResponse = $this->actingAs($admin)->postJson('/api/v1/admin/projects/' . $project->id . '/client-notification');
+
+        $flushResponse->assertOk()->assertJsonPath('email_sent', true);
 
         $this->assertSame(1, (int) \DB::table('project_updates')->count());
         $this->assertSame(1, (int) \DB::table('correos_log')->count());
         $this->assertSame('project_progress_update', \DB::table('correos_log')->value('template'));
         $this->assertSame('cliente@test.com', \DB::table('correos_log')->value('correo'));
 
-        Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class);
+        Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class, 1);
     }
 
-    public function test_updating_deliverable_status_notifies_client(): void
+    public function test_multiple_updates_send_one_aggregated_email_on_flush(): void
+    {
+        Mail::fake();
+
+        $admin = $this->createAdmin();
+        $client = $this->createClient('cliente@test.com');
+        $project = $this->createProject($admin, $client);
+        $phaseId = (int) \DB::table('project_phases')->insertGetId([
+            'project_id' => $project->id,
+            'title' => 'Diseño',
+            'description' => null,
+            'duration_days' => null,
+            'phase_order' => 1,
+            'status' => 'in_progress',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $deliverableId = (int) \DB::table('project_deliverables')->insertGetId([
+            'project_id' => $project->id,
+            'phase_id' => $phaseId,
+            'title' => 'Propuesta visual',
+            'description' => null,
+            'deliverable_type' => 'design',
+            'status' => 'in_progress',
+            'client_visible' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)->putJson('/api/v1/admin/projects/' . $project->id, [
+            'project_name' => 'Sitio web actualizado',
+            'manager_user_id' => $admin->id,
+            'status' => 'in_progress',
+            'priority' => 'medium',
+            'client_visible' => true,
+        ])->assertOk();
+
+        $this->actingAs($admin)->putJson(
+            '/api/v1/admin/projects/' . $project->id . '/deliverables/' . $deliverableId,
+            [
+                'phase_id' => $phaseId,
+                'title' => 'Propuesta visual',
+                'deliverable_type' => 'design',
+                'status' => 'delivered',
+                'client_visible' => true,
+            ],
+        )->assertOk();
+
+        Mail::assertNothingSent();
+
+        $flushResponse = $this->actingAs($admin)->postJson('/api/v1/admin/projects/' . $project->id . '/client-notification');
+
+        $flushResponse->assertOk()->assertJsonPath('email_sent', true);
+
+        Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class, 1);
+        $this->assertSame(1, (int) \DB::table('correos_log')->count());
+        $this->assertSame('Actualizaciones en tu proyecto', \DB::table('project_updates')->value('title'));
+    }
+
+    public function test_updating_deliverable_status_queues_notification_until_flush(): void
     {
         Mail::fake();
 
@@ -87,7 +154,14 @@ class ProjectProgressNotificationTest extends TestCase
         );
 
         $response->assertOk();
-        Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class);
+        Mail::assertNothingSent();
+
+        $this->actingAs($admin)
+            ->postJson('/api/v1/admin/projects/' . $project->id . '/client-notification')
+            ->assertOk()
+            ->assertJsonPath('email_sent', true);
+
+        Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class, 1);
         $this->assertSame(1, (int) \DB::table('correos_log')->count());
     }
 
@@ -108,6 +182,12 @@ class ProjectProgressNotificationTest extends TestCase
         ]);
 
         $response->assertOk();
+
+        $this->actingAs($admin)
+            ->postJson('/api/v1/admin/projects/' . $project->id . '/client-notification')
+            ->assertOk()
+            ->assertJsonPath('email_sent', null);
+
         Mail::assertNothingSent();
         $this->assertSame(0, (int) \DB::table('correos_log')->count());
     }

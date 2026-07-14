@@ -194,4 +194,27 @@ class ProjectController extends Controller
             'data' => $contract,
         ]);
     }
+
+    public function flushClientNotification(Request $request, Project $project): JsonResponse
+    {
+        $emailSent = $this->projectAdminService->flushClientNotification($project, (int) $request->user()->id);
+
+        return response()->json([
+            'message' => $emailSent === true
+                ? 'Notificación enviada al cliente.'
+                : ($emailSent === false
+                    ? 'No pudimos enviar la notificación al cliente.'
+                    : 'No había cambios pendientes para notificar.'),
+            'email_sent' => $emailSent,
+        ]);
+    }
+
+    public function discardClientNotification(Project $project): JsonResponse
+    {
+        $this->projectAdminService->discardClientNotification($project);
+
+        return response()->json([
+            'message' => 'Cambios pendientes de notificación descartados.',
+        ]);
+    }
 }

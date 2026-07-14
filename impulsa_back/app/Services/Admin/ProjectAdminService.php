@@ -144,6 +144,16 @@ class ProjectAdminService
         return $detail;
     }
 
+    public function flushClientNotification(Project $project, ?int $actorUserId = null): ?bool
+    {
+        return $this->clientNotificationService->flush($project, $actorUserId);
+    }
+
+    public function discardClientNotification(Project $project): void
+    {
+        $this->clientNotificationService->discard($project);
+    }
+
     /**
      * @param  array<string, mixed>  $data
      * @return array{detail: array<string, mixed>, client_created: bool, email_sent: bool|null, message: string}

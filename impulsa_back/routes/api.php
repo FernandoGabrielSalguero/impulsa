@@ -129,6 +129,8 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('projects/{project}/deliverables/{deliverable}', [ProjectController::class, 'destroyDeliverable']);
             Route::get('projects/{project}/contract', [ProjectController::class, 'showContract']);
             Route::put('projects/{project}/contract', [ProjectController::class, 'updateContract']);
+            Route::post('projects/{project}/client-notification', [ProjectController::class, 'flushClientNotification']);
+            Route::delete('projects/{project}/client-notification', [ProjectController::class, 'discardClientNotification']);
             Route::get('tasks/options', [TaskController::class, 'options']);
             Route::get('tasks/assignees', [TaskController::class, 'assignees']);
             Route::get('tasks', [TaskController::class, 'index']);
