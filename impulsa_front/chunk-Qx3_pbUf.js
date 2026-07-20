@@ -1,0 +1,1 @@
+import {T,F as Fe,bk as Bl,cK as _}from'./main-WJ4OKI6F.js';function w(t){t||(t=T(Fe));let i=new _(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Bl(i))}export{w};
