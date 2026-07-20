@@ -80,6 +80,10 @@ class AdminProjectDetailResource extends JsonResource
             'status_label' => ProjectLabels::phaseStatusLabel($phase['status'] ?? null),
             'due_date' => $phase['due_date'],
             'completed_at' => $phase['completed_at'] ?? null,
+            'assigned_user_id' => isset($phase['assigned_user_id']) && $phase['assigned_user_id'] !== null
+                ? (int) $phase['assigned_user_id']
+                : null,
+            'assigned_user_label' => $phase['assigned_user_label'] ?? null,
         ];
     }
 
@@ -100,6 +104,10 @@ class AdminProjectDetailResource extends JsonResource
             'due_date' => $deliverable['due_date'],
             'delivered_at' => $deliverable['delivered_at'] ?? null,
             'client_visible' => (bool) ($deliverable['client_visible'] ?? false),
+            'assigned_user_id' => isset($deliverable['assigned_user_id']) && $deliverable['assigned_user_id'] !== null
+                ? (int) $deliverable['assigned_user_id']
+                : null,
+            'assigned_user_label' => $deliverable['assigned_user_label'] ?? null,
         ];
     }
 

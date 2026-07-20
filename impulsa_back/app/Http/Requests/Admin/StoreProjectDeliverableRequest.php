@@ -16,6 +16,8 @@ class StoreProjectDeliverableRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $projectId = (int) $this->route('project')?->id;
+
         return [
             'phase_id' => ['required', 'integer', 'min:1'],
             'title' => ['required', 'string', 'max:180'],
@@ -24,6 +26,14 @@ class StoreProjectDeliverableRequest extends FormRequest
             'status' => ['required', 'string', Rule::in(ProjectLabels::deliverableStatuses())],
             'due_date' => ['nullable', 'date'],
             'client_visible' => ['required', 'boolean'],
+            'assigned_user_id' => [
+                'nullable',
+                'integer',
+                'min:1',
+                Rule::exists('project_collaborators', 'user_auth_id')->where(
+                    static fn ($query) => $query->where('project_id', $projectId),
+                ),
+            ],
         ];
     }
 }

@@ -16,8 +16,13 @@ class UpdateDeliverableStatusRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $allowed = array_values(array_filter(
+            ProjectLabels::deliverableStatuses(),
+            static fn (string $status): bool => $status !== 'delivered',
+        ));
+
         return [
-            'status' => ['required', 'string', Rule::in(ProjectLabels::deliverableStatuses())],
+            'status' => ['required', 'string', Rule::in($allowed)],
         ];
     }
 }

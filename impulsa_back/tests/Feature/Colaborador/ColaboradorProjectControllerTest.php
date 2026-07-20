@@ -98,10 +98,185 @@ class ColaboradorProjectControllerTest extends TestCase
 
         $deliverableStatus = $this->actingAs($colaborador)->patchJson(
             '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/status',
-            ['status' => 'delivered'],
+            ['status' => 'ready_for_review'],
         );
         $deliverableStatus->assertOk();
-        $deliverableStatus->assertJsonPath('data.deliverables.0.status', 'delivered');
+        $deliverableStatus->assertJsonPath('data.deliverables.0.status', 'ready_for_review');
+    }
+
+    public function test_colaborador_cannot_set_deliverable_delivered_and_options_exclude_it(): void
+    {
+        $colaborador = $this->createColaborador('cola@test.com');
+        $admin = $this->createAdmin();
+        $client = $this->createClient('cliente@test.com');
+        $projectId = $this->createProject($admin->id, $client->id, 'Sin entregado');
+        $this->assignCollaborator($projectId, $colaborador->id);
+
+        $phaseId = (int) DB::table('project_phases')->insertGetId([
+            'project_id' => $projectId,
+            'title' => 'Fase 1',
+            'description' => null,
+            'duration_days' => null,
+            'phase_order' => 1,
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $deliverableId = (int) DB::table('project_deliverables')->insertGetId([
+            'project_id' => $projectId,
+            'phase_id' => $phaseId,
+            'title' => 'Objetivo 1',
+            'description' => null,
+            'deliverable_type' => 'document',
+            'status' => 'pending',
+            'client_visible' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $options = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/options');
+        $options->assertOk();
+        $statuses = collect($options->json('deliverable_statuses'))->pluck('value')->all();
+        $this->assertNotContains('delivered', $statuses);
+
+        $response = $this->actingAs($colaborador)->patchJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/status',
+            ['status' => 'delivered'],
+        );
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['status']);
+    }
+
+    public function test_colaborador_can_comment_on_deliverable_and_unassigned_gets_404(): void
+    {
+        $colaborador = $this->createColaborador('cola@test.com');
+        $other = $this->createColaborador('otro@test.com');
+        $admin = $this->createAdmin();
+        $client = $this->createClient('cliente@test.com');
+        $projectId = $this->createProject($admin->id, $client->id, 'Con comentarios');
+        $this->assignCollaborator($projectId, $colaborador->id);
+
+        $phaseId = (int) DB::table('project_phases')->insertGetId([
+            'project_id' => $projectId,
+            'title' => 'Fase 1',
+            'description' => null,
+            'duration_days' => null,
+            'phase_order' => 1,
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $deliverableId = (int) DB::table('project_deliverables')->insertGetId([
+            'project_id' => $projectId,
+            'phase_id' => $phaseId,
+            'title' => 'Objetivo 1',
+            'description' => 'Detalle',
+            'deliverable_type' => 'document',
+            'status' => 'pending',
+            'client_visible' => true,
+            'assigned_user_id' => $colaborador->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $post = $this->actingAs($colaborador)->postJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
+            ['message' => 'Avance listo para revisión'],
+        );
+        $post->assertCreated();
+        $post->assertJsonPath('data.message', 'Avance listo para revisión');
+        $post->assertJsonPath('data.is_mine', true);
+
+        $list = $this->actingAs($colaborador)->getJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
+        );
+        $list->assertOk();
+        $list->assertJsonCount(1, 'data');
+
+        $adminList = $this->actingAs($admin)->getJson(
+            '/api/v1/admin/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
+        );
+        $adminList->assertOk();
+        $adminList->assertJsonCount(1, 'data');
+
+        $detail = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/' . $projectId);
+        $detail->assertOk();
+        $detail->assertJsonPath('data.deliverables.0.assigned_to_me', true);
+        $detail->assertJsonPath('data.deliverables.0.description', 'Detalle');
+
+        $forbidden = $this->actingAs($other)->postJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
+            ['message' => 'No debería'],
+        );
+        $forbidden->assertNotFound();
+    }
+
+    public function test_admin_rejects_invalid_assignee_and_accepts_project_collaborator(): void
+    {
+        $admin = $this->createAdmin();
+        $colaborador = $this->createColaborador('cola@test.com');
+        $outsider = $this->createColaborador('outsider@test.com');
+        $client = $this->createClient('cliente@test.com');
+        $projectId = $this->createProject($admin->id, $client->id, 'Asignacion');
+        $this->assignCollaborator($projectId, $colaborador->id);
+
+        $invalid = $this->actingAs($admin)->postJson('/api/v1/admin/projects/' . $projectId . '/phases', [
+            'title' => 'Fase con assignee inválido',
+            'description' => null,
+            'duration_days' => null,
+            'phase_order' => 1,
+            'status' => 'pending',
+            'assigned_user_id' => $outsider->id,
+        ]);
+        $invalid->assertStatus(422);
+        $invalid->assertJsonValidationErrors(['assigned_user_id']);
+
+        $valid = $this->actingAs($admin)->postJson('/api/v1/admin/projects/' . $projectId . '/phases', [
+            'title' => 'Fase con assignee válido',
+            'description' => null,
+            'duration_days' => null,
+            'phase_order' => 1,
+            'status' => 'pending',
+            'assigned_user_id' => $colaborador->id,
+        ]);
+        $valid->assertCreated();
+        $valid->assertJsonPath('data.phases.0.assigned_user_id', $colaborador->id);
+
+        $phaseId = (int) $valid->json('data.phases.0.id');
+
+        $deliverableInvalid = $this->actingAs($admin)->postJson(
+            '/api/v1/admin/projects/' . $projectId . '/deliverables',
+            [
+                'phase_id' => $phaseId,
+                'title' => 'Obj inválido',
+                'description' => null,
+                'deliverable_type' => 'document',
+                'status' => 'pending',
+                'due_date' => null,
+                'client_visible' => true,
+                'assigned_user_id' => $outsider->id,
+            ],
+        );
+        $deliverableInvalid->assertStatus(422);
+        $deliverableInvalid->assertJsonValidationErrors(['assigned_user_id']);
+
+        $deliverableValid = $this->actingAs($admin)->postJson(
+            '/api/v1/admin/projects/' . $projectId . '/deliverables',
+            [
+                'phase_id' => $phaseId,
+                'title' => 'Obj válido',
+                'description' => null,
+                'deliverable_type' => 'document',
+                'status' => 'pending',
+                'due_date' => null,
+                'client_visible' => true,
+                'assigned_user_id' => $colaborador->id,
+            ],
+        );
+        $deliverableValid->assertCreated();
+        $deliverableValid->assertJsonPath('data.deliverables.0.assigned_user_id', $colaborador->id);
     }
 
     public function test_colaborador_status_update_rejects_invalid_status(): void
@@ -236,6 +411,7 @@ class ColaboradorProjectControllerTest extends TestCase
 
     private function createSchema(): void
     {
+        Schema::dropIfExists('project_deliverable_comments');
         Schema::dropIfExists('project_collaborators');
         Schema::dropIfExists('project_contracts');
         Schema::dropIfExists('project_updates');
@@ -328,6 +504,7 @@ class ColaboradorProjectControllerTest extends TestCase
             $table->string('status', 30)->default('pending');
             $table->date('due_date')->nullable();
             $table->dateTime('completed_at')->nullable();
+            $table->unsignedInteger('assigned_user_id')->nullable();
             $table->timestamps();
         });
 
@@ -342,6 +519,16 @@ class ColaboradorProjectControllerTest extends TestCase
             $table->date('due_date')->nullable();
             $table->dateTime('delivered_at')->nullable();
             $table->boolean('client_visible')->default(true);
+            $table->unsignedInteger('assigned_user_id')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('project_deliverable_comments', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('deliverable_id');
+            $table->unsignedInteger('user_auth_id');
+            $table->text('message');
             $table->timestamps();
         });
 

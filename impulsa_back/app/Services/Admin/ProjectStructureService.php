@@ -19,12 +19,19 @@ class ProjectStructureService
     /** @return list<array<string, mixed>> */
     public function getPhases(int $projectId): array
     {
-        return DB::table('project_phases')
-            ->where('project_id', $projectId)
-            ->orderBy('phase_order')
-            ->orderBy('id')
-            ->get()
-            ->map(static fn ($row): array => (array) $row)
+        return DB::table('project_phases as pp')
+            ->leftJoin('user_auth as ua', 'ua.id', '=', 'pp.assigned_user_id')
+            ->leftJoin('user_info as ui', 'ui.user_auth_id', '=', 'ua.id')
+            ->where('pp.project_id', $projectId)
+            ->orderBy('pp.phase_order')
+            ->orderBy('pp.id')
+            ->get([
+                'pp.*',
+                'ua.correo as assigned_user_correo',
+                'ui.nombre as assigned_user_nombre',
+                'ui.apellido as assigned_user_apellido',
+            ])
+            ->map(fn ($row): array => $this->withAssigneeLabel((array) $row))
             ->all();
     }
 
@@ -36,6 +43,8 @@ class ProjectStructureService
                 $join->on('pp.id', '=', 'pd.phase_id')
                     ->on('pp.project_id', '=', 'pd.project_id');
             })
+            ->leftJoin('user_auth as ua', 'ua.id', '=', 'pd.assigned_user_id')
+            ->leftJoin('user_info as ui', 'ui.user_auth_id', '=', 'ua.id')
             ->where('pd.project_id', $projectId)
             ->orderByRaw('pd.phase_id IS NULL ASC')
             ->orderBy('pd.phase_id')
@@ -53,9 +62,13 @@ class ProjectStructureService
                 'pd.due_date',
                 'pd.delivered_at',
                 'pd.client_visible',
+                'pd.assigned_user_id',
                 'pp.title as phase_title',
+                'ua.correo as assigned_user_correo',
+                'ui.nombre as assigned_user_nombre',
+                'ui.apellido as assigned_user_apellido',
             ])
-            ->map(static fn ($row): array => (array) $row)
+            ->map(fn ($row): array => $this->withAssigneeLabel((array) $row))
             ->all();
     }
 
@@ -147,6 +160,7 @@ class ProjectStructureService
             'phase_order' => max(1, (int) ($data['phase_order'] ?? 1)),
             'status' => $data['status'],
             'due_date' => null,
+            'assigned_user_id' => $this->resolveAssignedUserId((int) $project->id, $data['assigned_user_id'] ?? null),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -194,6 +208,7 @@ class ProjectStructureService
                 'duration_days' => filled($data['duration_days'] ?? null) ? (int) $data['duration_days'] : null,
                 'phase_order' => max(1, (int) ($data['phase_order'] ?? 1)),
                 'status' => $data['status'],
+                'assigned_user_id' => $this->resolveAssignedUserId((int) $project->id, $data['assigned_user_id'] ?? null),
                 'updated_at' => now(),
             ]);
 
@@ -246,6 +261,7 @@ class ProjectStructureService
 
             if ($deliverableIds !== []) {
                 DB::table('project_deliverable_tasks')->whereIn('deliverable_id', $deliverableIds)->delete();
+                DB::table('project_deliverable_comments')->whereIn('deliverable_id', $deliverableIds)->delete();
                 DB::table('project_deliverables')->whereIn('id', $deliverableIds)->delete();
             }
 
@@ -301,6 +317,7 @@ class ProjectStructureService
             'status' => $data['status'],
             'due_date' => filled($data['due_date'] ?? null) ? $data['due_date'] : null,
             'client_visible' => (bool) ($data['client_visible'] ?? true),
+            'assigned_user_id' => $this->resolveAssignedUserId((int) $project->id, $data['assigned_user_id'] ?? null),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -353,6 +370,7 @@ class ProjectStructureService
                 'status' => $data['status'],
                 'due_date' => filled($data['due_date'] ?? null) ? $data['due_date'] : null,
                 'client_visible' => (bool) ($data['client_visible'] ?? true),
+                'assigned_user_id' => $this->resolveAssignedUserId((int) $project->id, $data['assigned_user_id'] ?? null),
                 'updated_at' => now(),
             ]);
 
@@ -400,6 +418,7 @@ class ProjectStructureService
             $phaseId = $deliverable->phase_id !== null ? (int) $deliverable->phase_id : null;
 
             DB::table('project_deliverable_tasks')->where('deliverable_id', $deliverableId)->delete();
+            DB::table('project_deliverable_comments')->where('deliverable_id', $deliverableId)->delete();
             DB::table('project_deliverables')->where('id', $deliverableId)->delete();
 
             DB::commit();
@@ -580,12 +599,19 @@ class ProjectStructureService
     /** @return array<string, mixed> */
     private function getPhase(int $projectId, int $phaseId): array
     {
-        $row = DB::table('project_phases')
-            ->where('project_id', $projectId)
-            ->where('id', $phaseId)
-            ->first();
+        $row = DB::table('project_phases as pp')
+            ->leftJoin('user_auth as ua', 'ua.id', '=', 'pp.assigned_user_id')
+            ->leftJoin('user_info as ui', 'ui.user_auth_id', '=', 'ua.id')
+            ->where('pp.project_id', $projectId)
+            ->where('pp.id', $phaseId)
+            ->first([
+                'pp.*',
+                'ua.correo as assigned_user_correo',
+                'ui.nombre as assigned_user_nombre',
+                'ui.apellido as assigned_user_apellido',
+            ]);
 
-        return $row !== null ? (array) $row : [];
+        return $row !== null ? $this->withAssigneeLabel((array) $row) : [];
     }
 
     /** @return array<string, mixed> */
@@ -596,6 +622,8 @@ class ProjectStructureService
                 $join->on('pp.id', '=', 'pd.phase_id')
                     ->on('pp.project_id', '=', 'pd.project_id');
             })
+            ->leftJoin('user_auth as ua', 'ua.id', '=', 'pd.assigned_user_id')
+            ->leftJoin('user_info as ui', 'ui.user_auth_id', '=', 'ua.id')
             ->where('pd.project_id', $projectId)
             ->where('pd.id', $deliverableId)
             ->first([
@@ -609,10 +637,62 @@ class ProjectStructureService
                 'pd.due_date',
                 'pd.delivered_at',
                 'pd.client_visible',
+                'pd.assigned_user_id',
                 'pp.title as phase_title',
+                'ua.correo as assigned_user_correo',
+                'ui.nombre as assigned_user_nombre',
+                'ui.apellido as assigned_user_apellido',
             ]);
 
-        return $row !== null ? (array) $row : [];
+        return $row !== null ? $this->withAssigneeLabel((array) $row) : [];
+    }
+
+    private function resolveAssignedUserId(int $projectId, mixed $assignedUserId): ?int
+    {
+        if ($assignedUserId === null || $assignedUserId === '' || (int) $assignedUserId <= 0) {
+            return null;
+        }
+
+        $userId = (int) $assignedUserId;
+        $exists = DB::table('project_collaborators')
+            ->where('project_id', $projectId)
+            ->where('user_auth_id', $userId)
+            ->exists();
+
+        if (! $exists) {
+            throw ValidationException::withMessages([
+                'assigned_user_id' => ['El responsable debe ser un colaborador del proyecto.'],
+            ]);
+        }
+
+        return $userId;
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private function withAssigneeLabel(array $row): array
+    {
+        $assignedUserId = isset($row['assigned_user_id']) && $row['assigned_user_id'] !== null
+            ? (int) $row['assigned_user_id']
+            : null;
+
+        $name = trim((string) (($row['assigned_user_nombre'] ?? '') . ' ' . ($row['assigned_user_apellido'] ?? '')));
+        $correo = trim((string) ($row['assigned_user_correo'] ?? ''));
+
+        $row['assigned_user_id'] = $assignedUserId;
+        $row['assigned_user_label'] = $assignedUserId === null
+            ? null
+            : ($name !== '' ? $name : ($correo !== '' ? $correo : null));
+
+        unset(
+            $row['assigned_user_correo'],
+            $row['assigned_user_nombre'],
+            $row['assigned_user_apellido'],
+        );
+
+        return $row;
     }
 
     private function createDate(mixed $value): ?DateTimeImmutable

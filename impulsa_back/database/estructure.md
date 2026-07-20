@@ -674,6 +674,20 @@ updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 
 🔗 Relaciones:
 Columna deliverable_id referencia a project_deliverables.id
+📄 Tabla: project_deliverable_comments
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+project_id	bigint(20) unsigned	NO	MUL		
+deliverable_id	bigint(20) unsigned	NO	MUL		
+user_auth_id	int(10) unsigned	NO	MUL		
+message	text	NO			
+created_at	timestamp	YES			
+updated_at	timestamp	YES			
+
+🔗 Relaciones:
+Columna project_id referencia a projects.id
+Columna deliverable_id referencia a project_deliverables.id
+Columna user_auth_id referencia a user_auth.id
 📄 Tabla: project_deliverables
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment
@@ -686,12 +700,14 @@ status	enum('pending','in_progress','ready_for_review','delivered')	NO		pending
 due_date	date	YES			
 delivered_at	datetime	YES			
 client_visible	tinyint(1)	NO		1	
+assigned_user_id	int(10) unsigned	YES	MUL		
 created_at	timestamp	NO		current_timestamp()	
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 
 🔗 Relaciones:
 Columna phase_id referencia a project_phases.id
 Columna project_id referencia a projects.id
+Columna assigned_user_id referencia a user_auth.id
 📄 Tabla: project_phases
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment
@@ -703,11 +719,13 @@ phase_order	int(10) unsigned	NO		1
 status	enum('pending','in_progress','blocked','done')	NO	MUL	pending	
 due_date	date	YES			
 completed_at	datetime	YES			
+assigned_user_id	int(10) unsigned	YES	MUL		
 created_at	timestamp	NO		current_timestamp()	
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 
 🔗 Relaciones:
 Columna project_id referencia a projects.id
+Columna assigned_user_id referencia a user_auth.id
 📄 Tabla: project_scope_request
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment

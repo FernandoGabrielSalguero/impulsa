@@ -15,11 +15,18 @@ class ColaboradorProjectDetailResource extends JsonResource
         $project = $payload['project'];
         $phases = $payload['phases'];
         $deliverables = $payload['deliverables'];
+        $viewerId = (int) $request->user()->id;
 
         return [
             'project' => $this->formatProject($project),
-            'phases' => array_map($this->formatPhase(...), $phases),
-            'deliverables' => array_map($this->formatDeliverable(...), $deliverables),
+            'phases' => array_map(
+                fn (array $phase): array => $this->formatPhase($phase, $viewerId),
+                $phases,
+            ),
+            'deliverables' => array_map(
+                fn (array $deliverable): array => $this->formatDeliverable($deliverable, $viewerId),
+                $deliverables,
+            ),
         ];
     }
 
@@ -51,8 +58,12 @@ class ColaboradorProjectDetailResource extends JsonResource
     }
 
     /** @param  array<string, mixed>  $phase */
-    private function formatPhase(array $phase): array
+    private function formatPhase(array $phase, int $viewerId): array
     {
+        $assignedUserId = isset($phase['assigned_user_id']) && $phase['assigned_user_id'] !== null
+            ? (int) $phase['assigned_user_id']
+            : null;
+
         return [
             'id' => (int) $phase['id'],
             'project_id' => (int) $phase['project_id'],
@@ -64,12 +75,19 @@ class ColaboradorProjectDetailResource extends JsonResource
             'status_label' => ProjectLabels::phaseStatusLabel($phase['status'] ?? null),
             'due_date' => $phase['due_date'],
             'completed_at' => $phase['completed_at'] ?? null,
+            'assigned_user_id' => $assignedUserId,
+            'assigned_user_label' => $phase['assigned_user_label'] ?? null,
+            'assigned_to_me' => $assignedUserId !== null && $assignedUserId === $viewerId,
         ];
     }
 
     /** @param  array<string, mixed>  $deliverable */
-    private function formatDeliverable(array $deliverable): array
+    private function formatDeliverable(array $deliverable, int $viewerId): array
     {
+        $assignedUserId = isset($deliverable['assigned_user_id']) && $deliverable['assigned_user_id'] !== null
+            ? (int) $deliverable['assigned_user_id']
+            : null;
+
         return [
             'id' => (int) $deliverable['id'],
             'project_id' => (int) $deliverable['project_id'],
@@ -83,6 +101,9 @@ class ColaboradorProjectDetailResource extends JsonResource
             'status_label' => ProjectLabels::deliverableStatusLabel($deliverable['status'] ?? null),
             'due_date' => $deliverable['due_date'],
             'delivered_at' => $deliverable['delivered_at'] ?? null,
+            'assigned_user_id' => $assignedUserId,
+            'assigned_user_label' => $deliverable['assigned_user_label'] ?? null,
+            'assigned_to_me' => $assignedUserId !== null && $assignedUserId === $viewerId,
         ];
     }
 }

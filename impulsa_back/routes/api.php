@@ -130,6 +130,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('projects/{project}/deliverables', [ProjectController::class, 'storeDeliverable']);
             Route::put('projects/{project}/deliverables/{deliverable}', [ProjectController::class, 'updateDeliverable']);
             Route::delete('projects/{project}/deliverables/{deliverable}', [ProjectController::class, 'destroyDeliverable']);
+            Route::get('projects/{project}/deliverables/{deliverable}/comments', [ProjectController::class, 'deliverableComments']);
             Route::get('projects/{project}/contract', [ProjectController::class, 'showContract']);
             Route::put('projects/{project}/contract', [ProjectController::class, 'updateContract']);
             Route::post('projects/{project}/client-notification', [ProjectController::class, 'flushClientNotification']);
@@ -354,5 +355,7 @@ Route::prefix('v1')->group(function (): void {
             Route::patch('projects/{project}/status', [ColaboradorProjectController::class, 'updateStatus']);
             Route::patch('projects/{project}/phases/{phase}/status', [ColaboradorProjectController::class, 'updatePhaseStatus']);
             Route::patch('projects/{project}/deliverables/{deliverable}/status', [ColaboradorProjectController::class, 'updateDeliverableStatus']);
+            Route::get('projects/{project}/deliverables/{deliverable}/comments', [ColaboradorProjectController::class, 'comments']);
+            Route::post('projects/{project}/deliverables/{deliverable}/comments', [ColaboradorProjectController::class, 'storeComment']);
         });
 });

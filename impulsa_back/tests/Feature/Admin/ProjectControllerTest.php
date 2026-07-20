@@ -156,6 +156,7 @@ class ProjectControllerTest extends TestCase
     private function createSchema(): void
     {
         Schema::dropIfExists('correos_log');
+        Schema::dropIfExists('project_deliverable_comments');
         Schema::dropIfExists('project_contracts');
         Schema::dropIfExists('project_collaborators');
         Schema::dropIfExists('project_updates');
@@ -245,6 +246,7 @@ class ProjectControllerTest extends TestCase
             $table->string('status', 30)->default('pending');
             $table->date('due_date')->nullable();
             $table->dateTime('completed_at')->nullable();
+            $table->unsignedInteger('assigned_user_id')->nullable();
             $table->timestamps();
         });
 
@@ -259,6 +261,16 @@ class ProjectControllerTest extends TestCase
             $table->date('due_date')->nullable();
             $table->dateTime('delivered_at')->nullable();
             $table->boolean('client_visible')->default(true);
+            $table->unsignedInteger('assigned_user_id')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('project_deliverable_comments', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('deliverable_id');
+            $table->unsignedInteger('user_auth_id');
+            $table->text('message');
             $table->timestamps();
         });
 

@@ -13,6 +13,7 @@ use App\Http\Resources\AdminProjectDetailResource;
 use App\Models\Project;
 use App\Services\Admin\ProjectAdminService;
 use App\Services\Admin\ProjectStructureService;
+use App\Services\Colaborador\DeliverableCommentService;
 use App\Support\ProjectLabels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ class ProjectController extends Controller
     public function __construct(
         private readonly ProjectAdminService $projectAdminService,
         private readonly ProjectStructureService $structureService,
+        private readonly DeliverableCommentService $commentService,
     ) {}
 
     public function index(Request $request): AdminProjectCollection
@@ -176,6 +178,19 @@ class ProjectController extends Controller
         return response()->json([
             'message' => 'Objetivo eliminado correctamente.',
             'data' => (new AdminProjectDetailResource($detail))->resolve(),
+        ]);
+    }
+
+    public function deliverableComments(Request $request, Project $project, int $deliverable): JsonResponse
+    {
+        $comments = $this->commentService->listForAdmin(
+            (int) $project->id,
+            $deliverable,
+            (int) $request->user()->id,
+        );
+
+        return response()->json([
+            'data' => $comments,
         ]);
     }
 
