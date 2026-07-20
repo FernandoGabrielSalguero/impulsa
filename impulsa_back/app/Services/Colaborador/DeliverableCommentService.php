@@ -2,12 +2,17 @@
 
 namespace App\Services\Colaborador;
 
+use App\Services\Notifications\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class DeliverableCommentService
 {
+    public function __construct(
+        private readonly NotificationService $notificationService,
+    ) {}
+
     /**
      * @return list<array<string, mixed>>
      */
@@ -82,6 +87,13 @@ class DeliverableCommentService
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        $this->notificationService->notifyProjectCommentCreated(
+            $projectId,
+            $deliverableId,
+            $commentId,
+            $userAuthId,
+        );
 
         $comments = $this->listComments($projectId, $deliverableId, $userAuthId);
 

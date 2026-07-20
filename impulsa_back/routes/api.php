@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\Admin\UserIngresoController;
 use App\Http\Controllers\Api\V1\Admin\UserMenuController;
 use App\Http\Controllers\Api\V1\Admin\WebRequestController;
 use App\Http\Controllers\Api\V1\Admin\WebsiteSubscriptionController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\Emprendedor\AcademiaController as EmprendedorAcademiaController;
@@ -86,6 +87,14 @@ Route::prefix('v1')->group(function (): void {
             Route::match(['PUT', 'POST'], 'profile', [ProfileController::class, 'update']);
             Route::get('profile/avatar', [ProfileController::class, 'avatar']);
         });
+    });
+
+    Route::middleware('auth:sanctum')->group(function (): void {
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllRead']);
+        Route::patch('notifications/{notification}/read', [NotificationController::class, 'markRead']);
+        Route::delete('notifications/{notification}', [NotificationController::class, 'dismiss']);
     });
 
     Route::middleware(['auth:sanctum', 'role:impulsa_administrador'])

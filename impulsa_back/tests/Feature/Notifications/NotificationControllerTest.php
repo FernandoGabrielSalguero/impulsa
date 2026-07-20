@@ -1,170 +1,203 @@
 <?php
 
-namespace Tests\Feature\Admin;
+namespace Tests\Feature\Notifications;
 
 use App\Models\UserAuth;
-use App\Models\UserContacto;
 use App\Models\UserInfo;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
-class ProjectControllerTest extends TestCase
+class NotificationControllerTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->createSchema();
     }
 
-    public function test_admin_can_create_project_with_existing_client(): void
+    public function test_comment_notifies_project_collaborators_but_not_actor_or_client(): void
     {
-        Mail::fake();
+        $admin = $this->createUser('admin@test.com', 'impulsa_administrador');
+        $actor = $this->createUser('actor@test.com', 'impulsa_colaborador', 'Actor', 'Uno');
+        $peer = $this->createUser('peer@test.com', 'impulsa_colaborador', 'Peer', 'Dos');
+        $client = $this->createUser('cliente@test.com', 'impulsa_cliente', 'Cliente', 'Test');
+        $projectId = $this->createProject($admin->id, $client->id, 'Proyecto notif');
+        $this->assignCollaborator($projectId, $actor->id);
+        $this->assignCollaborator($projectId, $peer->id);
 
-        $admin = $this->createAdmin();
-        $client = $this->createClient('cliente@test.com', 'María', 'García');
+        $phaseId = (int) DB::table('project_phases')->insertGetId([
+            'project_id' => $projectId,
+            'title' => 'Fase',
+            'phase_order' => 1,
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        $response = $this->actingAs($admin)->postJson('/api/v1/admin/projects', [
-            'project_name' => 'Sitio web Mi Negocio',
-            'manager_user_id' => $admin->id,
-            'client_user_id' => $client->id,
-            'summary' => 'Resumen inicial',
+        $deliverableId = (int) DB::table('project_deliverables')->insertGetId([
+            'project_id' => $projectId,
+            'phase_id' => $phaseId,
+            'title' => 'Objetivo',
+            'deliverable_type' => 'document',
+            'status' => 'pending',
             'client_visible' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
+        $response = $this->actingAs($actor)->postJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
+            ['message' => 'Hola equipo'],
+        );
         $response->assertCreated();
-        $response->assertJsonPath('client_created', false);
-        $response->assertJsonPath('email_sent', null);
-        $response->assertJsonPath('data.project.project_name', 'Sitio web Mi Negocio');
-        $response->assertJsonPath('data.project.client_user_id', $client->id);
 
-        $this->assertSame(1, (int) \DB::table('projects')->count());
-        $this->assertSame(3, (int) \DB::table('project_phases')->count());
-        $this->assertSame(3, (int) \DB::table('project_deliverables')->count());
-        $this->assertSame(0, (int) \DB::table('correos_log')->count());
-
-        Mail::assertNothingSent();
+        $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $peer->id,
+            'type' => 'project.comment_created',
+        ]);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $admin->id,
+            'type' => 'project.comment_created',
+        ]);
+        $this->assertDatabaseMissing('user_notifications', [
+            'user_auth_id' => $actor->id,
+            'type' => 'project.comment_created',
+        ]);
+        $this->assertDatabaseMissing('user_notifications', [
+            'user_auth_id' => $client->id,
+            'type' => 'project.comment_created',
+        ]);
     }
 
-    public function test_admin_can_create_project_with_new_client_and_log_welcome_email(): void
+    public function test_phase_creation_notifies_collaborator_and_client_when_visible(): void
     {
-        Mail::fake();
+        $admin = $this->createUser('admin@test.com', 'impulsa_administrador');
+        $colaborador = $this->createUser('cola@test.com', 'impulsa_colaborador');
+        $client = $this->createUser('cliente@test.com', 'impulsa_cliente');
+        $projectId = $this->createProject($admin->id, $client->id, 'Proyecto fase', true);
+        $this->assignCollaborator($projectId, $colaborador->id);
 
-        $admin = $this->createAdmin();
-
-        $response = $this->actingAs($admin)->postJson('/api/v1/admin/projects', [
-            'project_name' => 'Proyecto Beta',
-            'manager_user_id' => $admin->id,
-            'create_client' => [
-                'correo' => 'nuevo@test.com',
-                'nombre' => 'Juan',
-                'apellido' => 'Pérez',
-                'whatsapp' => '+5491111111111',
-            ],
-            'client_visible' => true,
+        $response = $this->actingAs($admin)->postJson('/api/v1/admin/projects/' . $projectId . '/phases', [
+            'title' => 'Nueva fase',
+            'description' => null,
+            'duration_days' => null,
+            'phase_order' => 1,
+            'status' => 'pending',
         ]);
-
         $response->assertCreated();
-        $response->assertJsonPath('client_created', true);
-        $response->assertJsonPath('email_sent', true);
-        $response->assertJsonPath('data.project.client_email', 'nuevo@test.com');
 
-        $this->assertSame(2, (int) \DB::table('user_auth')->count());
-        $this->assertSame(1, (int) \DB::table('projects')->count());
-
-        $client = UserAuth::query()->where('correo', 'nuevo@test.com')->first();
-        $this->assertNotNull($client);
-        $this->assertSame('impulsa_cliente', $client->rol);
-
-        $this->assertSame(1, (int) \DB::table('correos_log')->count());
-        $this->assertSame('new_user_cliente', \DB::table('correos_log')->value('template'));
-        $this->assertSame('enviado', \DB::table('correos_log')->value('estado'));
-        $this->assertSame('nuevo@test.com', \DB::table('correos_log')->value('correo'));
-
-        Mail::assertSent(\App\Mail\NewUserClienteMail::class);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $colaborador->id,
+            'type' => 'project.phase_created',
+        ]);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $client->id,
+            'type' => 'project.phase_created',
+        ]);
+        $this->assertDatabaseMissing('user_notifications', [
+            'user_auth_id' => $admin->id,
+            'type' => 'project.phase_created',
+        ]);
     }
 
-    public function test_create_project_rejects_duplicate_client_email(): void
+    public function test_unread_count_mark_read_and_dismiss(): void
     {
-        $admin = $this->createAdmin();
-        $this->createClient('existente@test.com');
+        $user = $this->createUser('user@test.com', 'impulsa_colaborador');
 
-        $response = $this->actingAs($admin)->postJson('/api/v1/admin/projects', [
-            'project_name' => 'Proyecto duplicado',
-            'manager_user_id' => $admin->id,
-            'create_client' => [
-                'correo' => 'existente@test.com',
-                'nombre' => 'Otro',
-            ],
+        $id = (int) DB::table('user_notifications')->insertGetId([
+            'user_auth_id' => $user->id,
+            'type' => 'project.comment_created',
+            'title' => 'Test',
+            'body' => 'Cuerpo editable',
+            'payload' => json_encode(['project_id' => 1]),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['create_client.correo']);
-        $this->assertSame(0, (int) \DB::table('projects')->count());
+        $count = $this->actingAs($user)->getJson('/api/v1/notifications/unread-count');
+        $count->assertOk();
+        $count->assertJsonPath('unread_count', 1);
+
+        $list = $this->actingAs($user)->getJson('/api/v1/notifications');
+        $list->assertOk();
+        $list->assertJsonPath('data.0.title', 'Test');
+        $list->assertJsonPath('data.0.body', 'Cuerpo editable');
+
+        $read = $this->actingAs($user)->patchJson('/api/v1/notifications/' . $id . '/read');
+        $read->assertOk();
+        $read->assertJsonPath('unread_count', 0);
+
+        $dismiss = $this->actingAs($user)->deleteJson('/api/v1/notifications/' . $id);
+        $dismiss->assertOk();
+
+        $listAfter = $this->actingAs($user)->getJson('/api/v1/notifications');
+        $listAfter->assertJsonCount(0, 'data');
     }
 
-    private function createAdmin(): UserAuth
-    {
-        $admin = UserAuth::query()->create([
-            'correo' => 'admin@test.com',
+    private function createUser(
+        string $correo,
+        string $rol,
+        string $nombre = 'Nombre',
+        string $apellido = 'Apellido',
+    ): UserAuth {
+        $user = UserAuth::query()->create([
+            'correo' => $correo,
             'password' => 'secret',
-            'rol' => 'impulsa_administrador',
+            'rol' => $rol,
             'email_verified_at' => now(),
             'usuario_tipo' => 'externo',
         ]);
 
         UserInfo::query()->create([
-            'user_auth_id' => $admin->id,
-            'nombre' => 'Admin',
-            'apellido' => 'Impulsa',
+            'user_auth_id' => $user->id,
+            'nombre' => $nombre,
+            'apellido' => $apellido,
         ]);
 
-        return $admin;
+        return $user;
     }
 
-    private function createClient(string $correo, ?string $nombre = null, ?string $apellido = null): UserAuth
+    private function createProject(int $managerId, int $clientId, string $name, bool $clientVisible = true): int
     {
-        $client = UserAuth::query()->create([
-            'correo' => $correo,
-            'password' => 'secret',
-            'rol' => 'impulsa_cliente',
-            'email_verified_at' => now(),
-            'usuario_tipo' => 'externo',
+        return (int) DB::table('projects')->insertGetId([
+            'source_type' => 'admin_manual',
+            'project_name' => $name,
+            'project_type' => 'website',
+            'client_user_id' => $clientId,
+            'manager_user_id' => $managerId,
+            'client_name' => 'Cliente Test',
+            'client_email' => 'cliente@test.com',
+            'status' => 'planned',
+            'priority' => 'medium',
+            'progress_percent' => 0,
+            'client_visible' => $clientVisible,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
+    }
 
-        UserContacto::query()->create([
-            'user_auth_id' => $client->id,
-            'correo' => $correo,
-            'check_correo' => true,
-            'permison_correo' => true,
-            'permison_whatsapp' => true,
+    private function assignCollaborator(int $projectId, int $userAuthId): void
+    {
+        DB::table('project_collaborators')->insert([
+            'project_id' => $projectId,
+            'user_auth_id' => $userAuthId,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
-
-        if ($nombre !== null || $apellido !== null) {
-            UserInfo::query()->create([
-                'user_auth_id' => $client->id,
-                'nombre' => $nombre,
-                'apellido' => $apellido,
-            ]);
-        }
-
-        return $client;
     }
 
     private function createSchema(): void
     {
-        Schema::dropIfExists('correos_log');
         Schema::dropIfExists('user_notifications');
         Schema::dropIfExists('project_deliverable_comments');
-        Schema::dropIfExists('project_contracts');
         Schema::dropIfExists('project_collaborators');
+        Schema::dropIfExists('project_contracts');
         Schema::dropIfExists('project_updates');
         Schema::dropIfExists('project_deliverables');
         Schema::dropIfExists('project_phases');
         Schema::dropIfExists('projects');
-        Schema::dropIfExists('user_contacto');
         Schema::dropIfExists('user_info');
         Schema::dropIfExists('personal_access_tokens');
         Schema::dropIfExists('user_auth');
@@ -188,18 +221,6 @@ class ProjectControllerTest extends TestCase
             $table->string('nombre', 100)->nullable();
             $table->string('apellido', 100)->nullable();
             $table->string('apodo', 100)->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('user_contacto', function (Blueprint $table): void {
-            $table->increments('id');
-            $table->unsignedInteger('user_auth_id')->unique();
-            $table->string('correo');
-            $table->boolean('check_correo')->default(false);
-            $table->boolean('permison_correo')->default(true);
-            $table->string('whatsapp', 30)->nullable();
-            $table->boolean('check_whatsapp')->default(false);
-            $table->boolean('permison_whatsapp')->default(true);
             $table->timestamps();
         });
 
@@ -266,15 +287,6 @@ class ProjectControllerTest extends TestCase
             $table->timestamps();
         });
 
-        Schema::create('project_deliverable_comments', function (Blueprint $table): void {
-            $table->id();
-            $table->unsignedBigInteger('project_id');
-            $table->unsignedBigInteger('deliverable_id');
-            $table->unsignedInteger('user_auth_id');
-            $table->text('message');
-            $table->timestamps();
-        });
-
         Schema::create('project_updates', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('project_id');
@@ -310,18 +322,13 @@ class ProjectControllerTest extends TestCase
             $table->unique(['project_id', 'user_auth_id']);
         });
 
-        Schema::create('correos_log', function (Blueprint $table): void {
-            $table->increments('id');
-            $table->unsignedInteger('user_auth_id')->nullable();
-            $table->string('correo');
-            $table->string('asunto');
-            $table->string('template', 100)->nullable();
-            $table->longText('mensaje_html')->nullable();
-            $table->text('mensaje_text')->nullable();
-            $table->string('estado', 20)->default('fallido');
-            $table->text('error')->nullable();
-            $table->longText('meta')->nullable();
-            $table->timestamp('created_at')->nullable();
+        Schema::create('project_deliverable_comments', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('deliverable_id');
+            $table->unsignedInteger('user_auth_id');
+            $table->text('message');
+            $table->timestamps();
         });
 
         Schema::create('user_notifications', function (Blueprint $table): void {

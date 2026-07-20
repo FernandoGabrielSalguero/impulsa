@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\Project;
+use App\Services\Notifications\NotificationService;
 use App\Support\ProjectLabels;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ class ProjectStructureService
 {
     public function __construct(
         private readonly ProjectClientNotificationService $clientNotificationService,
+        private readonly NotificationService $notificationService,
     ) {}
 
     /** @return list<array<string, mixed>> */
@@ -182,6 +184,14 @@ class ProjectStructureService
             progress: $progress,
         );
 
+        $this->notificationService->notifyProjectPhaseCreated(
+            projectId: (int) $project->id,
+            phaseId: $phaseId,
+            phaseTitle: (string) $phase['title'],
+            actorUserId: $this->actorUserId(),
+            notifyClient: (bool) ($project->client_visible ?? false),
+        );
+
         return $phase;
     }
 
@@ -337,6 +347,17 @@ class ProjectStructureService
             createdByUserId: $this->actorUserId(),
             phaseId: $phaseId,
             progress: $progress,
+        );
+
+        $notifyClient = (bool) ($project->client_visible ?? false)
+            && (bool) ($deliverable['client_visible'] ?? false);
+
+        $this->notificationService->notifyProjectDeliverableCreated(
+            projectId: (int) $project->id,
+            deliverableId: $deliverableId,
+            deliverableTitle: (string) $deliverable['title'],
+            actorUserId: $this->actorUserId(),
+            notifyClient: $notifyClient,
         );
 
         return $deliverable;

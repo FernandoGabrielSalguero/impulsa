@@ -836,6 +836,22 @@ created_at	timestamp	NO		current_timestamp()
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 usuario_tipo	enum('interno','externo')	NO		externo	
 
+📄 Tabla: user_notifications
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+user_auth_id	int(10) unsigned	NO	MUL		
+type	varchar(80)	NO	MUL		
+title	varchar(255)	NO			
+body	text	YES			
+payload	json	YES			
+read_at	timestamp	YES			
+dismissed_at	timestamp	YES			
+created_at	timestamp	YES			
+updated_at	timestamp	YES			
+
+🔗 Relaciones:
+Columna user_auth_id referencia a user_auth.id
+Índices (user_auth_id, read_at, created_at) y (user_auth_id, dismissed_at)
 📄 Tabla: user_contacto
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	int(10) unsigned	NO	PRI		auto_increment

@@ -427,6 +427,7 @@ class ColaboradorProjectControllerTest extends TestCase
 
     private function createSchema(): void
     {
+        Schema::dropIfExists('user_notifications');
         Schema::dropIfExists('project_deliverable_comments');
         Schema::dropIfExists('project_collaborators');
         Schema::dropIfExists('project_contracts');
@@ -581,6 +582,18 @@ class ColaboradorProjectControllerTest extends TestCase
             $table->unsignedInteger('user_auth_id');
             $table->timestamps();
             $table->unique(['project_id', 'user_auth_id']);
+        });
+
+        Schema::create('user_notifications', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedInteger('user_auth_id');
+            $table->string('type', 80);
+            $table->string('title', 255);
+            $table->text('body')->nullable();
+            $table->json('payload')->nullable();
+            $table->timestamp('read_at')->nullable();
+            $table->timestamp('dismissed_at')->nullable();
+            $table->timestamps();
         });
     }
 }
