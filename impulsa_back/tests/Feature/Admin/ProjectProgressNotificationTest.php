@@ -41,6 +41,7 @@ class ProjectProgressNotificationTest extends TestCase
         $response->assertOk();
         Mail::assertNothingSent();
         $this->assertSame(0, (int) \DB::table('correos_log')->count());
+        $this->assertSame(1, (int) \DB::table('project_updates')->count());
 
         $flushResponse = $this->actingAs($admin)->postJson('/api/v1/admin/projects/' . $project->id . '/client-notification');
 
@@ -98,6 +99,7 @@ class ProjectProgressNotificationTest extends TestCase
                 'title' => 'Propuesta visual',
                 'deliverable_type' => 'design',
                 'status' => 'delivered',
+                'defcon' => 5,
                 'client_visible' => true,
             ],
         )->assertOk();
@@ -110,7 +112,7 @@ class ProjectProgressNotificationTest extends TestCase
 
         Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class, 1);
         $this->assertSame(1, (int) \DB::table('correos_log')->count());
-        $this->assertSame('Actualizaciones en tu proyecto', \DB::table('project_updates')->value('title'));
+        $this->assertGreaterThanOrEqual(2, (int) \DB::table('project_updates')->count());
     }
 
     public function test_updating_deliverable_status_queues_notification_until_flush(): void
@@ -149,6 +151,7 @@ class ProjectProgressNotificationTest extends TestCase
                 'title' => 'Propuesta visual',
                 'deliverable_type' => 'design',
                 'status' => 'delivered',
+                'defcon' => 5,
                 'client_visible' => true,
             ],
         );
@@ -259,11 +262,13 @@ class ProjectProgressNotificationTest extends TestCase
     private function createSchema(): void
     {
         Schema::dropIfExists('correos_log');
+        Schema::dropIfExists('user_notifications');
         Schema::dropIfExists('project_contracts');
         Schema::dropIfExists('project_updates');
         Schema::dropIfExists('project_deliverable_tasks');
         Schema::dropIfExists('project_deliverables');
         Schema::dropIfExists('project_phases');
+        Schema::dropIfExists('project_collaborators');
         Schema::dropIfExists('projects');
         Schema::dropIfExists('user_contacto');
         Schema::dropIfExists('user_info');
@@ -341,6 +346,7 @@ class ProjectProgressNotificationTest extends TestCase
             $table->string('status', 30)->default('pending');
             $table->date('due_date')->nullable();
             $table->dateTime('completed_at')->nullable();
+            $table->unsignedInteger('assigned_user_id')->nullable();
             $table->timestamps();
         });
 
@@ -352,9 +358,11 @@ class ProjectProgressNotificationTest extends TestCase
             $table->text('description')->nullable();
             $table->string('deliverable_type', 30)->default('other');
             $table->string('status', 30)->default('pending');
+            $table->unsignedTinyInteger('defcon')->default(5);
             $table->date('due_date')->nullable();
             $table->dateTime('delivered_at')->nullable();
             $table->boolean('client_visible')->default(true);
+            $table->unsignedInteger('assigned_user_id')->nullable();
             $table->timestamps();
         });
 
@@ -376,6 +384,14 @@ class ProjectProgressNotificationTest extends TestCase
             $table->timestamp('created_at')->nullable();
         });
 
+        Schema::create('project_collaborators', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedInteger('user_auth_id');
+            $table->timestamps();
+            $table->unique(['project_id', 'user_auth_id']);
+        });
+
         Schema::create('project_contracts', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('project_id');
@@ -395,6 +411,18 @@ class ProjectProgressNotificationTest extends TestCase
             $table->text('error')->nullable();
             $table->longText('meta')->nullable();
             $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('user_notifications', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedInteger('user_auth_id');
+            $table->string('type', 80);
+            $table->string('title', 255);
+            $table->text('body')->nullable();
+            $table->json('payload')->nullable();
+            $table->timestamp('read_at')->nullable();
+            $table->timestamp('dismissed_at')->nullable();
+            $table->timestamps();
         });
     }
 }

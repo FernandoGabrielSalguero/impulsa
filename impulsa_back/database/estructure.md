@@ -701,6 +701,7 @@ due_date	date	YES
 delivered_at	datetime	YES			
 client_visible	tinyint(1)	NO		1	
 assigned_user_id	int(10) unsigned	YES	MUL		
+defcon	tinyint(3) unsigned	NO		5	
 created_at	timestamp	NO		current_timestamp()	
 updated_at	timestamp	NO		current_timestamp()	on update current_timestamp()
 

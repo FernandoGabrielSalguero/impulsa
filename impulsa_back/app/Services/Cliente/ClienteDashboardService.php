@@ -190,6 +190,7 @@ class ClienteDashboardService
                 'pd.description',
                 'pd.deliverable_type',
                 'pd.status',
+                'pd.defcon',
                 'pd.due_date',
                 'pd.delivered_at',
                 'pp.title as phase_title',

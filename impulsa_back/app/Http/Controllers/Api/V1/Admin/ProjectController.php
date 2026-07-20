@@ -94,6 +94,10 @@ class ProjectController extends Controller
                 'value' => $value,
                 'label' => ProjectLabels::deliverableStatusLabel($value),
             ])->values(),
+            'defcon_levels' => collect(ProjectLabels::defconLevels())->map(static fn (int $value): array => [
+                'value' => $value,
+                'label' => ProjectLabels::defconLabel($value),
+            ])->values(),
         ]);
     }
 

@@ -15,6 +15,8 @@ class NotificationService
 
     public const TYPE_PROJECT_DELIVERABLE = 'project.deliverable_created';
 
+    public const TYPE_PROJECT_CLIENT_UPDATE = 'project.client_update';
+
     /**
      * @param  list<int>  $userIds
      * @param  array<string, mixed>  $payload
@@ -146,8 +148,14 @@ class NotificationService
             $actorLabel,
         );
 
+        $recipients = collect($this->projectInternalRecipients($projectId, $actorUserId))
+            ->merge($this->adminRecipientIds($actorUserId))
+            ->unique()
+            ->values()
+            ->all();
+
         $this->notifyMany(
-            $this->projectInternalRecipients($projectId, $actorUserId),
+            $recipients,
             self::TYPE_PROJECT_COMMENT,
             $copy['title'],
             $copy['body'],
@@ -254,6 +262,23 @@ class NotificationService
             ->all();
     }
 
+    /** @return list<int> */
+    public function adminRecipientIds(?int $excludeUserId = null): array
+    {
+        return DB::table('user_auth')
+            ->where('rol', 'impulsa_administrador')
+            ->pluck('id')
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->when(
+                $excludeUserId !== null && $excludeUserId > 0,
+                static fn (Collection $ids) => $ids->reject(static fn (int $id): bool => $id === $excludeUserId),
+            )
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     private function findOwned(int $userAuthId, int $notificationId): object
     {
         $row = DB::table('user_notifications')
@@ -293,6 +318,7 @@ class NotificationService
                 self::TYPE_PROJECT_COMMENT => 'chat',
                 self::TYPE_PROJECT_PHASE => 'view_timeline',
                 self::TYPE_PROJECT_DELIVERABLE => 'flag',
+                self::TYPE_PROJECT_CLIENT_UPDATE => 'campaign',
                 default => 'notifications',
             },
         ];

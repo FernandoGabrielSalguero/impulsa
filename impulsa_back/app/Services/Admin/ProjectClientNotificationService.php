@@ -6,6 +6,8 @@ use App\Mail\ProjectProgressUpdateMail;
 use App\Models\Project;
 use App\Models\UserAuth;
 use App\Services\Mail\ImpulsaMailService;
+use App\Services\Notifications\NotificationService;
+use App\Support\NotificationCopy;
 use App\Support\ProjectLabels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,7 @@ class ProjectClientNotificationService
 
     public function __construct(
         private readonly ImpulsaMailService $mailService,
+        private readonly NotificationService $notificationService,
     ) {}
 
     /**
@@ -37,12 +40,6 @@ class ProjectClientNotificationService
             return null;
         }
 
-        $clientEmail = strtolower(trim((string) $project->client_email));
-
-        if ($clientEmail === '' || ! filter_var($clientEmail, FILTER_VALIDATE_EMAIL)) {
-            return null;
-        }
-
         if ($changeLines === [] && trim($updateMessage) === '') {
             return null;
         }
@@ -51,6 +48,51 @@ class ProjectClientNotificationService
             'progress_percent' => (int) ($progress['progress_percent'] ?? $project->progress_percent),
             'progress_detail' => (string) ($progress['progress_detail'] ?? ''),
         ];
+
+        $actorId = $createdByUserId
+            ?: (int) ($project->manager_user_id ?: 0);
+
+        if ($actorId > 0) {
+            DB::table('project_updates')->insert([
+                'project_id' => $project->id,
+                'phase_id' => $phaseId,
+                'created_by' => $actorId,
+                'title' => $updateTitle,
+                'message' => $this->buildUpdateRecordMessage(
+                    trim($updateMessage),
+                    $changeLines,
+                    $progressSnapshot,
+                ),
+                'progress_delta' => null,
+                'visible_to_client' => true,
+                'created_at' => now(),
+            ]);
+        }
+
+        if ($project->client_user_id) {
+            $copy = NotificationCopy::projectUpdatedForClient(
+                (string) $project->project_name,
+                $updateTitle,
+            );
+
+            $this->notificationService->notifyMany(
+                [(int) $project->client_user_id],
+                NotificationService::TYPE_PROJECT_CLIENT_UPDATE,
+                $copy['title'],
+                $copy['body'],
+                [
+                    'project_id' => (int) $project->id,
+                    'phase_id' => $phaseId,
+                    'actor_user_id' => $actorId > 0 ? $actorId : null,
+                ],
+            );
+        }
+
+        $clientEmail = strtolower(trim((string) $project->client_email));
+
+        if ($clientEmail === '' || ! filter_var($clientEmail, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
 
         $this->appendChange((int) $project->id, [
             'update_title' => $updateTitle,
@@ -95,27 +137,6 @@ class ProjectClientNotificationService
                 'progress_percent' => (int) $project->progress_percent,
                 'progress_detail' => '',
             ];
-
-        $actorId = $actorUserId
-            ?? (int) ($buffer['created_by_user_id'] ?? 0)
-            ?: (int) ($project->manager_user_id ?: 0);
-
-        if ($actorId > 0) {
-            DB::table('project_updates')->insert([
-                'project_id' => $project->id,
-                'phase_id' => $aggregated['phase_id'],
-                'created_by' => $actorId,
-                'title' => $aggregated['update_title'],
-                'message' => $this->buildUpdateRecordMessage(
-                    $aggregated['update_message'],
-                    $aggregated['change_lines'],
-                    $progressSnapshot,
-                ),
-                'progress_delta' => null,
-                'visible_to_client' => true,
-                'created_at' => now(),
-            ]);
-        }
 
         $clientUser = $project->client_user_id
             ? UserAuth::query()->with('info')->find($project->client_user_id)

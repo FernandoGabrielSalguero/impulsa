@@ -61,6 +61,7 @@ class ProjectStructureService
                 'pd.description',
                 'pd.deliverable_type',
                 'pd.status',
+                'pd.defcon',
                 'pd.due_date',
                 'pd.delivered_at',
                 'pd.client_visible',
@@ -189,7 +190,7 @@ class ProjectStructureService
             phaseId: $phaseId,
             phaseTitle: (string) $phase['title'],
             actorUserId: $this->actorUserId(),
-            notifyClient: (bool) ($project->client_visible ?? false),
+            notifyClient: false,
         );
 
         return $phase;
@@ -325,6 +326,7 @@ class ProjectStructureService
             'description' => filled($data['description'] ?? null) ? trim((string) $data['description']) : null,
             'deliverable_type' => $data['deliverable_type'],
             'status' => $data['status'],
+            'defcon' => (int) ($data['defcon'] ?? 5),
             'due_date' => filled($data['due_date'] ?? null) ? $data['due_date'] : null,
             'client_visible' => (bool) ($data['client_visible'] ?? true),
             'assigned_user_id' => $this->resolveAssignedUserId((int) $project->id, $data['assigned_user_id'] ?? null),
@@ -343,21 +345,19 @@ class ProjectStructureService
             changeLines: [
                 'Objetivo: ' . $deliverable['title'],
                 'Estado: ' . ProjectLabels::deliverableStatusLabel($deliverable['status'] ?? null),
+                'Prioridad: ' . ProjectLabels::defconLabel((int) ($deliverable['defcon'] ?? 5)),
             ],
             createdByUserId: $this->actorUserId(),
             phaseId: $phaseId,
             progress: $progress,
         );
 
-        $notifyClient = (bool) ($project->client_visible ?? false)
-            && (bool) ($deliverable['client_visible'] ?? false);
-
         $this->notificationService->notifyProjectDeliverableCreated(
             projectId: (int) $project->id,
             deliverableId: $deliverableId,
             deliverableTitle: (string) $deliverable['title'],
             actorUserId: $this->actorUserId(),
-            notifyClient: $notifyClient,
+            notifyClient: false,
         );
 
         return $deliverable;
@@ -389,6 +389,7 @@ class ProjectStructureService
                 'description' => filled($data['description'] ?? null) ? trim((string) $data['description']) : null,
                 'deliverable_type' => $data['deliverable_type'],
                 'status' => $data['status'],
+                'defcon' => (int) ($data['defcon'] ?? 5),
                 'due_date' => filled($data['due_date'] ?? null) ? $data['due_date'] : null,
                 'client_visible' => (bool) ($data['client_visible'] ?? true),
                 'assigned_user_id' => $this->resolveAssignedUserId((int) $project->id, $data['assigned_user_id'] ?? null),
@@ -655,6 +656,7 @@ class ProjectStructureService
                 'pd.description',
                 'pd.deliverable_type',
                 'pd.status',
+                'pd.defcon',
                 'pd.due_date',
                 'pd.delivered_at',
                 'pd.client_visible',
@@ -836,6 +838,13 @@ class ProjectStructureService
 
         if (($before['due_date'] ?? null) !== ($after['due_date'] ?? null)) {
             $lines[] = $label . ': fecha objetivo actualizada.';
+        }
+
+        if ((int) ($before['defcon'] ?? 5) !== (int) ($after['defcon'] ?? 5)) {
+            $lines[] = $label . ': prioridad '
+                . ProjectLabels::defconLabel((int) ($before['defcon'] ?? 5))
+                . ' → '
+                . ProjectLabels::defconLabel((int) ($after['defcon'] ?? 5));
         }
 
         if (($before['description'] ?? null) !== ($after['description'] ?? null)) {

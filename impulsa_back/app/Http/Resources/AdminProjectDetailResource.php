@@ -101,6 +101,8 @@ class AdminProjectDetailResource extends JsonResource
             'deliverable_type_label' => ProjectLabels::deliverableTypeLabel($deliverable['deliverable_type'] ?? null),
             'status' => $deliverable['status'],
             'status_label' => ProjectLabels::deliverableStatusLabel($deliverable['status'] ?? null),
+            'defcon' => (int) ($deliverable['defcon'] ?? 5),
+            'defcon_label' => ProjectLabels::defconLabel((int) ($deliverable['defcon'] ?? 5)),
             'due_date' => $deliverable['due_date'],
             'delivered_at' => $deliverable['delivered_at'] ?? null,
             'client_visible' => (bool) ($deliverable['client_visible'] ?? false),

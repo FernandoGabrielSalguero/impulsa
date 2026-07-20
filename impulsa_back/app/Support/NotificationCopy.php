@@ -34,4 +34,13 @@ class NotificationCopy
             'body' => 'Se agregó el objetivo "'.$deliverableTitle.'" en '.$projectName.'.',
         ];
     }
+
+    /** @return array{title: string, body: string} */
+    public static function projectUpdatedForClient(string $projectName, string $updateTitle): array
+    {
+        return [
+            'title' => 'Actualización de tu proyecto',
+            'body' => $updateTitle.' en '.$projectName.'.',
+        ];
+    }
 }

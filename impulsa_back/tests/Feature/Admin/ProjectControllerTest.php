@@ -259,6 +259,7 @@ class ProjectControllerTest extends TestCase
             $table->text('description')->nullable();
             $table->string('deliverable_type', 30)->default('other');
             $table->string('status', 30)->default('pending');
+            $table->unsignedTinyInteger('defcon')->default(5);
             $table->date('due_date')->nullable();
             $table->dateTime('delivered_at')->nullable();
             $table->boolean('client_visible')->default(true);

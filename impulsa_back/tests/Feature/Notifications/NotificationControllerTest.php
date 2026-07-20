@@ -20,10 +20,14 @@ class NotificationControllerTest extends TestCase
     public function test_comment_notifies_project_collaborators_but_not_actor_or_client(): void
     {
         $admin = $this->createUser('admin@test.com', 'impulsa_administrador');
+        $otherAdmin = $this->createUser('admin2@test.com', 'impulsa_administrador');
+        $managerCola = $this->createUser('manager@test.com', 'impulsa_colaborador', 'Manager', 'Cola');
         $actor = $this->createUser('actor@test.com', 'impulsa_colaborador', 'Actor', 'Uno');
         $peer = $this->createUser('peer@test.com', 'impulsa_colaborador', 'Peer', 'Dos');
         $client = $this->createUser('cliente@test.com', 'impulsa_cliente', 'Cliente', 'Test');
-        $projectId = $this->createProject($admin->id, $client->id, 'Proyecto notif');
+        // Manager del proyecto es colaborador: el admin igual debe enterarse del comentario.
+        $projectId = $this->createProject($managerCola->id, $client->id, 'Proyecto notif');
+        $this->assignCollaborator($projectId, $managerCola->id);
         $this->assignCollaborator($projectId, $actor->id);
         $this->assignCollaborator($projectId, $peer->id);
 
@@ -58,7 +62,15 @@ class NotificationControllerTest extends TestCase
             'type' => 'project.comment_created',
         ]);
         $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $managerCola->id,
+            'type' => 'project.comment_created',
+        ]);
+        $this->assertDatabaseHas('user_notifications', [
             'user_auth_id' => $admin->id,
+            'type' => 'project.comment_created',
+        ]);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $otherAdmin->id,
             'type' => 'project.comment_created',
         ]);
         $this->assertDatabaseMissing('user_notifications', [
@@ -94,7 +106,7 @@ class NotificationControllerTest extends TestCase
         ]);
         $this->assertDatabaseHas('user_notifications', [
             'user_auth_id' => $client->id,
-            'type' => 'project.phase_created',
+            'type' => 'project.client_update',
         ]);
         $this->assertDatabaseMissing('user_notifications', [
             'user_auth_id' => $admin->id,
@@ -280,6 +292,7 @@ class NotificationControllerTest extends TestCase
             $table->text('description')->nullable();
             $table->string('deliverable_type', 30)->default('other');
             $table->string('status', 30)->default('pending');
+            $table->unsignedTinyInteger('defcon')->default(5);
             $table->date('due_date')->nullable();
             $table->dateTime('delivered_at')->nullable();
             $table->boolean('client_visible')->default(true);

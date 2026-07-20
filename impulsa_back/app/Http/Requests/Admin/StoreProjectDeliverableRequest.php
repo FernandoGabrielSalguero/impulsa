@@ -24,6 +24,7 @@ class StoreProjectDeliverableRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'deliverable_type' => ['required', 'string', Rule::in(ProjectLabels::deliverableTypes())],
             'status' => ['required', 'string', Rule::in(ProjectLabels::deliverableStatuses())],
+            'defcon' => ['required', 'integer', Rule::in(ProjectLabels::defconLevels())],
             'due_date' => ['nullable', 'date'],
             'client_visible' => ['required', 'boolean'],
             'assigned_user_id' => [

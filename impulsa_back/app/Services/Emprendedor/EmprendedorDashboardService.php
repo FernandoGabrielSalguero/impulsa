@@ -74,6 +74,7 @@ class EmprendedorDashboardService
             'website_subscription_status' => $websiteSubscriptionStatus,
             'definicion' => $this->definicionSummary($user),
             'proyectos' => $this->proyectos($user),
+            'actualizaciones' => $this->actualizaciones($user),
             'contratos' => $this->contratos($user),
             'pagina_web_solicitud' => $this->paginaWebSolicitud($user),
         ];
@@ -133,6 +134,36 @@ class EmprendedorDashboardService
                 'target_delivery_date' => $row->target_delivery_date,
                 'fases_total' => (int) $row->fases_total,
                 'entregables_total' => (int) $row->entregables_total,
+            ])
+            ->all();
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function actualizaciones(UserAuth $user): array
+    {
+        return DB::table('project_updates as pu')
+            ->join('projects as p', 'p.id', '=', 'pu.project_id')
+            ->leftJoin('project_phases as pp', 'pp.id', '=', 'pu.phase_id')
+            ->where('p.client_user_id', $user->id)
+            ->where('p.client_visible', 1)
+            ->where('pu.visible_to_client', 1)
+            ->orderByDesc('pu.created_at')
+            ->limit(10)
+            ->get([
+                'pu.id',
+                'pu.title',
+                'pu.message',
+                'pu.created_at',
+                'p.project_name',
+                'pp.title as phase_title',
+            ])
+            ->map(static fn ($row): array => [
+                'id' => (int) $row->id,
+                'title' => (string) $row->title,
+                'message' => $row->message !== null ? (string) $row->message : null,
+                'created_at' => $row->created_at,
+                'project_name' => (string) $row->project_name,
+                'phase_title' => $row->phase_title !== null ? (string) $row->phase_title : null,
             ])
             ->all();
     }
@@ -220,6 +251,7 @@ class EmprendedorDashboardService
                 'title',
                 'deliverable_type',
                 'status',
+                'defcon',
                 'due_date',
                 'delivered_at',
             ])
@@ -231,6 +263,8 @@ class EmprendedorDashboardService
                 'deliverable_type_label' => ProjectLabels::deliverableTypeLabel((string) $deliverable->deliverable_type),
                 'status' => (string) $deliverable->status,
                 'status_label' => ProjectLabels::deliverableStatusLabel((string) $deliverable->status),
+                'defcon' => (int) ($deliverable->defcon ?? 5),
+                'defcon_label' => ProjectLabels::defconLabel((int) ($deliverable->defcon ?? 5)),
                 'due_date' => $deliverable->due_date,
                 'delivered_at' => $deliverable->delivered_at,
             ])

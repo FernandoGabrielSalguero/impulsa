@@ -270,6 +270,7 @@ class ColaboradorProjectControllerTest extends TestCase
                 'description' => null,
                 'deliverable_type' => 'document',
                 'status' => 'pending',
+                'defcon' => 3,
                 'due_date' => null,
                 'client_visible' => true,
                 'assigned_user_id' => $outsider->id,
@@ -286,6 +287,7 @@ class ColaboradorProjectControllerTest extends TestCase
                 'description' => null,
                 'deliverable_type' => 'document',
                 'status' => 'pending',
+                'defcon' => 2,
                 'due_date' => null,
                 'client_visible' => true,
                 'assigned_user_id' => $colaborador->id,
@@ -533,6 +535,7 @@ class ColaboradorProjectControllerTest extends TestCase
             $table->text('description')->nullable();
             $table->string('deliverable_type', 30)->default('other');
             $table->string('status', 30)->default('pending');
+            $table->unsignedTinyInteger('defcon')->default(5);
             $table->date('due_date')->nullable();
             $table->dateTime('delivered_at')->nullable();
             $table->boolean('client_visible')->default(true);

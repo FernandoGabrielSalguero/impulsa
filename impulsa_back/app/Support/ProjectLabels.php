@@ -87,6 +87,21 @@ final class ProjectLabels
         return self::DELIVERABLE_STATUS[$status ?? ''] ?? ($status ?? '—');
     }
 
+    public static function defconLabel(?int $level): string
+    {
+        if ($level === null || $level < 1 || $level > 5) {
+            return '—';
+        }
+
+        return 'Defcon '.$level;
+    }
+
+    /** @return list<int> */
+    public static function defconLevels(): array
+    {
+        return [1, 2, 3, 4, 5];
+    }
+
     /** @return list<string> */
     public static function statuses(): array
     {
