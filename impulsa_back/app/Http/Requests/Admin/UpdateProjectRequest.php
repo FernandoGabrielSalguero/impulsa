@@ -25,6 +25,8 @@ class UpdateProjectRequest extends FormRequest
             'priority' => ['required', 'string', Rule::in(ProjectLabels::priorities())],
             'start_date' => ['nullable', 'date'],
             'client_visible' => ['required', 'boolean'],
+            'collaborator_user_ids' => ['nullable', 'array'],
+            'collaborator_user_ids.*' => ['integer', 'min:1', 'distinct'],
         ];
     }
 }

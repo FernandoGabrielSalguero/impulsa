@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Http\Resources;
+
+use App\Support\ProjectLabels;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class ColaboradorProjectDetailResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        /** @var array<string, mixed> $payload */
+        $payload = $this->resource;
+        $project = $payload['project'];
+        $phases = $payload['phases'];
+        $deliverables = $payload['deliverables'];
+
+        return [
+            'project' => $this->formatProject($project),
+            'phases' => array_map($this->formatPhase(...), $phases),
+            'deliverables' => array_map($this->formatDeliverable(...), $deliverables),
+        ];
+    }
+
+    /** @param  array<string, mixed>  $project */
+    private function formatProject(array $project): array
+    {
+        return [
+            'id' => (int) $project['id'],
+            'project_name' => $project['project_name'],
+            'project_type' => $project['project_type'],
+            'project_type_label' => ProjectLabels::projectTypeLabel($project['project_type'] ?? null),
+            'client_name' => $project['client_name'],
+            'client_email' => $project['client_email'],
+            'client_whatsapp' => $project['client_whatsapp'],
+            'manager_correo' => $project['manager_correo'] ?? null,
+            'summary' => $project['summary'],
+            'scope_summary' => $project['scope_summary'],
+            'status' => $project['status'],
+            'status_label' => ProjectLabels::statusLabel($project['status'] ?? null),
+            'priority' => $project['priority'],
+            'priority_label' => ProjectLabels::priorityLabel($project['priority'] ?? null),
+            'start_date' => $project['start_date'],
+            'target_delivery_date' => $project['target_delivery_date'] ?? null,
+            'progress_percent' => (int) ($project['progress_percent'] ?? 0),
+            'progress_detail' => $project['progress_detail'] ?? null,
+            'updated_at' => $project['updated_at'],
+            'created_at' => $project['created_at'],
+        ];
+    }
+
+    /** @param  array<string, mixed>  $phase */
+    private function formatPhase(array $phase): array
+    {
+        return [
+            'id' => (int) $phase['id'],
+            'project_id' => (int) $phase['project_id'],
+            'title' => $phase['title'],
+            'description' => $phase['description'],
+            'duration_days' => $phase['duration_days'] !== null ? (int) $phase['duration_days'] : null,
+            'phase_order' => (int) $phase['phase_order'],
+            'status' => $phase['status'],
+            'status_label' => ProjectLabels::phaseStatusLabel($phase['status'] ?? null),
+            'due_date' => $phase['due_date'],
+            'completed_at' => $phase['completed_at'] ?? null,
+        ];
+    }
+
+    /** @param  array<string, mixed>  $deliverable */
+    private function formatDeliverable(array $deliverable): array
+    {
+        return [
+            'id' => (int) $deliverable['id'],
+            'project_id' => (int) $deliverable['project_id'],
+            'phase_id' => $deliverable['phase_id'] !== null ? (int) $deliverable['phase_id'] : null,
+            'phase_title' => $deliverable['phase_title'] ?? null,
+            'title' => $deliverable['title'],
+            'description' => $deliverable['description'],
+            'deliverable_type' => $deliverable['deliverable_type'],
+            'deliverable_type_label' => ProjectLabels::deliverableTypeLabel($deliverable['deliverable_type'] ?? null),
+            'status' => $deliverable['status'],
+            'status_label' => ProjectLabels::deliverableStatusLabel($deliverable['status'] ?? null),
+            'due_date' => $deliverable['due_date'],
+            'delivered_at' => $deliverable['delivered_at'] ?? null,
+        ];
+    }
+}

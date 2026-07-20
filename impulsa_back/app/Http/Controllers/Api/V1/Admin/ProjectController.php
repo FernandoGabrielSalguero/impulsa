@@ -39,6 +39,13 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function collaborators(): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->projectAdminService->listCollaboratorCandidates(),
+        ]);
+    }
+
     public function clients(Request $request): JsonResponse
     {
         return response()->json([

@@ -16,12 +16,19 @@ class AdminProjectDetailResource extends JsonResource
         $phases = $payload['phases'];
         $deliverables = $payload['deliverables'];
         $contract = $payload['contract'];
+        $collaborators = $payload['collaborators'] ?? [];
 
         return [
             'project' => $this->formatProject($project),
             'phases' => array_map($this->formatPhase(...), $phases),
             'deliverables' => array_map($this->formatDeliverable(...), $deliverables),
             'contract' => $contract ? $this->formatContract($contract) : null,
+            'collaborators' => array_map(static fn (array $collaborator): array => [
+                'id' => (int) $collaborator['id'],
+                'correo' => $collaborator['correo'],
+                'nombre' => $collaborator['nombre'] ?? null,
+                'label' => $collaborator['label'],
+            ], $collaborators),
         ];
     }
 

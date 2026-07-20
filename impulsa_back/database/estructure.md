@@ -648,6 +648,18 @@ Columna created_by_user_id referencia a user_auth.id
 Columna project_id referencia a projects.id
 Columna signed_by_user_id referencia a user_auth.id
 Columna updated_by_user_id referencia a user_auth.id
+📄 Tabla: project_collaborators
+Columna	Tipo	Nulo	Clave	Default	Extra
+id	bigint(20) unsigned	NO	PRI		auto_increment
+project_id	bigint(20) unsigned	NO	MUL		
+user_auth_id	int(10) unsigned	NO	MUL		
+created_at	timestamp	YES			
+updated_at	timestamp	YES			
+
+🔗 Relaciones:
+Columna project_id referencia a projects.id
+Columna user_auth_id referencia a user_auth.id
+Índice único (project_id, user_auth_id)
 📄 Tabla: project_deliverable_tasks
 Columna	Tipo	Nulo	Clave	Default	Extra
 id	bigint(20) unsigned	NO	PRI		auto_increment

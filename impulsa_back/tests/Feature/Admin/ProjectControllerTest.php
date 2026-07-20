@@ -157,6 +157,7 @@ class ProjectControllerTest extends TestCase
     {
         Schema::dropIfExists('correos_log');
         Schema::dropIfExists('project_contracts');
+        Schema::dropIfExists('project_collaborators');
         Schema::dropIfExists('project_updates');
         Schema::dropIfExists('project_deliverables');
         Schema::dropIfExists('project_phases');
@@ -286,6 +287,14 @@ class ProjectControllerTest extends TestCase
             $table->unsignedInteger('created_by_user_id')->nullable();
             $table->unsignedInteger('updated_by_user_id')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('project_collaborators', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedInteger('user_auth_id');
+            $table->timestamps();
+            $table->unique(['project_id', 'user_auth_id']);
         });
 
         Schema::create('correos_log', function (Blueprint $table): void {

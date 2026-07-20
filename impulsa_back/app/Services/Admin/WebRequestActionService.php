@@ -19,6 +19,7 @@ class WebRequestActionService
         private readonly WebRequestAdminService $webRequestAdminService,
         private readonly ImpulsaMailService $mailService,
         private readonly ProjectStructureService $projectStructureService,
+        private readonly ProjectAdminService $projectAdminService,
     ) {}
 
     /**
@@ -240,6 +241,7 @@ class WebRequestActionService
                 ]);
 
                 $this->projectStructureService->seedDefaultStructure((int) $project->id, $managerUserId, $updateMessage);
+                $this->projectAdminService->ensureManagerCollaborator((int) $project->id, $managerUserId);
 
                 return (int) $project->id;
             });

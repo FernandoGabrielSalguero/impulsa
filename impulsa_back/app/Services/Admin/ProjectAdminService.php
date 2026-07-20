@@ -78,6 +78,7 @@ class ProjectAdminService
         $phases = $this->structureService->getPhases((int) $project->id);
         $deliverables = $this->structureService->getDeliverables((int) $project->id);
         $contract = $this->getContractRow((int) $project->id);
+        $collaborators = $this->listProjectCollaborators((int) $project->id);
         $recalculated = $this->structureService->recalculateProject((int) $project->id);
 
         $row['target_delivery_date'] = $recalculated['target_delivery_date'];
@@ -89,6 +90,7 @@ class ProjectAdminService
             'phases' => $phases,
             'deliverables' => $deliverables,
             'contract' => $contract,
+            'collaborators' => $collaborators,
         ];
     }
 
@@ -122,6 +124,16 @@ class ProjectAdminService
             'start_date' => filled($data['start_date'] ?? null) ? $data['start_date'] : null,
             'client_visible' => (bool) ($data['client_visible'] ?? false),
         ]);
+
+        if (array_key_exists('collaborator_user_ids', $data)) {
+            $this->syncCollaborators(
+                (int) $project->id,
+                $data['collaborator_user_ids'] ?? [],
+                (int) $data['manager_user_id'],
+            );
+        } else {
+            $this->ensureManagerCollaborator((int) $project->id, (int) $data['manager_user_id']);
+        }
 
         $this->structureService->recalculateProject((int) $project->id);
         $detail = $this->getDetail($project->fresh());
@@ -228,6 +240,12 @@ class ProjectAdminService
                 (int) $project->id,
                 $managerUserId,
                 'El proyecto fue creado manualmente desde el panel de administración.',
+            );
+
+            $this->syncCollaborators(
+                (int) $project->id,
+                $data['collaborator_user_ids'] ?? [],
+                $managerUserId,
             );
 
             return $project;
@@ -357,6 +375,156 @@ class ProjectAdminService
                     'label' => $name !== '' ? $name . ' (' . $user->correo . ')' : $user->correo,
                 ];
             });
+    }
+
+    /** @return Collection<int, array<string, mixed>> */
+    public function listCollaboratorCandidates(): Collection
+    {
+        return DB::table('user_auth as ua')
+            ->leftJoin('user_info as ui', 'ui.user_auth_id', '=', 'ua.id')
+            ->where('ua.rol', 'impulsa_colaborador')
+            ->orderByRaw('ui.nombre IS NULL ASC')
+            ->orderBy('ui.nombre')
+            ->orderBy('ua.correo')
+            ->get([
+                'ua.id',
+                'ua.correo',
+                'ui.nombre',
+                'ui.apellido',
+            ])
+            ->map(static function ($user): array {
+                $name = trim((string) (($user->nombre ?? '') . ' ' . ($user->apellido ?? '')));
+
+                return [
+                    'id' => (int) $user->id,
+                    'correo' => $user->correo,
+                    'nombre' => $name !== '' ? $name : null,
+                    'label' => $name !== '' ? $name . ' (' . $user->correo . ')' : $user->correo,
+                ];
+            });
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function listProjectCollaborators(int $projectId): array
+    {
+        return DB::table('project_collaborators as pc')
+            ->join('user_auth as ua', 'ua.id', '=', 'pc.user_auth_id')
+            ->leftJoin('user_info as ui', 'ui.user_auth_id', '=', 'ua.id')
+            ->where('pc.project_id', $projectId)
+            ->orderByRaw('ui.nombre IS NULL ASC')
+            ->orderBy('ui.nombre')
+            ->orderBy('ua.correo')
+            ->get([
+                'ua.id',
+                'ua.correo',
+                'ui.nombre',
+                'ui.apellido',
+            ])
+            ->map(static function ($user): array {
+                $name = trim((string) (($user->nombre ?? '') . ' ' . ($user->apellido ?? '')));
+
+                return [
+                    'id' => (int) $user->id,
+                    'correo' => $user->correo,
+                    'nombre' => $name !== '' ? $name : null,
+                    'label' => $name !== '' ? $name . ' (' . $user->correo . ')' : $user->correo,
+                ];
+            })
+            ->all();
+    }
+
+    /**
+     * @param  list<int|string>  $collaboratorUserIds
+     */
+    public function syncCollaborators(int $projectId, array $collaboratorUserIds, int $managerUserId): void
+    {
+        $ids = collect($collaboratorUserIds)
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($this->isCollaboratorUser($managerUserId)) {
+            $ids = $ids->push($managerUserId)->unique()->values();
+        }
+
+        if ($ids->isNotEmpty()) {
+            $validIds = DB::table('user_auth')
+                ->whereIn('id', $ids->all())
+                ->where('rol', 'impulsa_colaborador')
+                ->pluck('id')
+                ->map(static fn ($id): int => (int) $id)
+                ->all();
+
+            $invalidIds = $ids->diff($validIds)->values()->all();
+
+            if ($invalidIds !== []) {
+                throw ValidationException::withMessages([
+                    'collaborator_user_ids' => ['Uno o más colaboradores seleccionados no son válidos.'],
+                ]);
+            }
+
+            $ids = collect($validIds);
+        }
+
+        $existingIds = DB::table('project_collaborators')
+            ->where('project_id', $projectId)
+            ->pluck('user_auth_id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
+
+        $desiredIds = $ids->all();
+        $toDelete = array_values(array_diff($existingIds, $desiredIds));
+        $toInsert = array_values(array_diff($desiredIds, $existingIds));
+
+        if ($toDelete !== []) {
+            DB::table('project_collaborators')
+                ->where('project_id', $projectId)
+                ->whereIn('user_auth_id', $toDelete)
+                ->delete();
+        }
+
+        $now = now();
+
+        foreach ($toInsert as $userAuthId) {
+            DB::table('project_collaborators')->insert([
+                'project_id' => $projectId,
+                'user_auth_id' => $userAuthId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+    }
+
+    public function ensureManagerCollaborator(int $projectId, int $managerUserId): void
+    {
+        if (! $this->isCollaboratorUser($managerUserId)) {
+            return;
+        }
+
+        $exists = DB::table('project_collaborators')
+            ->where('project_id', $projectId)
+            ->where('user_auth_id', $managerUserId)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        DB::table('project_collaborators')->insert([
+            'project_id' => $projectId,
+            'user_auth_id' => $managerUserId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function isCollaboratorUser(int $userAuthId): bool
+    {
+        return DB::table('user_auth')
+            ->where('id', $userAuthId)
+            ->where('rol', 'impulsa_colaborador')
+            ->exists();
     }
 
     /** @return array<string, mixed>|null */

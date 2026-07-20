@@ -12,11 +12,14 @@ class AuthDashboard
 
     public const ROLE_CLIENTE = 'impulsa_cliente';
 
+    public const ROLE_COLABORADOR = 'impulsa_colaborador';
+
     private const ROUTES = [
         self::ROLE_ADMIN => '/admin',
         self::ROLE_MARKETING => '/marketing',
         self::ROLE_EMPRENDEDOR => '/emprendedor',
         self::ROLE_CLIENTE => '/cliente',
+        self::ROLE_COLABORADOR => '/colaborador',
     ];
 
     private const REGISTER_PROFILES = [

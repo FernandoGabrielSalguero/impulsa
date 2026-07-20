@@ -34,6 +34,9 @@ class UserMenuCatalog
             ['key' => 'resultados', 'label' => 'Resultados', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingResultadosController.php'],
             ['key' => 'usuarios', 'label' => 'Usuarios', 'legacy_href' => '/impulsa_emprende/controller/marketing/marketingUsuariosController.php'],
         ],
+        'impulsa_colaborador' => [
+            ['key' => 'proyectos', 'label' => 'Proyectos', 'legacy_href' => '/colaborador/proyectos'],
+        ],
     ];
 
     public static function configurableRoles(): array
@@ -67,8 +70,10 @@ class UserMenuCatalog
             return [];
         }
 
-        $allowed = array_flip(self::keysForRole($role));
-        $selected = ['dashboard' => true];
+        $keys = self::keysForRole($role);
+        $defaultKey = $keys[0];
+        $allowed = array_flip($keys);
+        $selected = [$defaultKey => true];
 
         foreach ($menuKeys as $menuKey) {
             $menuKey = trim((string) $menuKey);
@@ -86,7 +91,7 @@ class UserMenuCatalog
             }
         }
 
-        return $normalized === [] ? ['dashboard'] : $normalized;
+        return $normalized === [] ? [$defaultKey] : $normalized;
     }
 
     public static function resolveStoredPageKey(string $role, ?string $page): ?string

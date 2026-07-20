@@ -52,6 +52,7 @@ class UserDeletionService
             $this->updateToNull('project_contracts', 'updated_by_user_id', $userId);
             $this->deleteWhere('project_updates', 'created_by', $userId);
 
+            $this->deleteWhere('project_collaborators', 'user_auth_id', $userId);
             $this->deleteWhere('user_menu_view', 'user_auth_id', $userId);
             $this->deleteWhere('user_params', 'user_auth_id', $userId);
             $this->deleteWhere('user_contacto', 'user_auth_id', $userId);
@@ -95,6 +96,7 @@ class UserDeletionService
         $deliverableIds = $this->fetchIdsByColumn('project_deliverables', 'project_id', $projectIds);
 
         $this->deleteByIds('project_deliverable_tasks', 'deliverable_id', $deliverableIds);
+        $this->deleteByIds('project_collaborators', 'project_id', $projectIds);
         $this->deleteByIds('project_updates', 'phase_id', $phaseIds);
         $this->deleteByIds('project_updates', 'project_id', $projectIds);
         $this->deleteByIds('project_contracts', 'project_id', $projectIds);

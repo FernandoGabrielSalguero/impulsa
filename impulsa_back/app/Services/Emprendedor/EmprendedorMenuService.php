@@ -34,9 +34,11 @@ class EmprendedorMenuService
             }
         }
 
+        $defaultHome = UserMenuCatalog::keysForRole($user->rol)[0] ?? 'dashboard';
+
         return [
             'menu_items' => $menuItems,
-            'home_page' => $user->params?->page ?? 'dashboard',
+            'home_page' => $user->params?->page ?? $defaultHome,
             'nombre' => $user->info?->nombre,
         ];
     }

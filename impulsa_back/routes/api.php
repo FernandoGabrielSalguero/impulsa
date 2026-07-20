@@ -44,6 +44,8 @@ use App\Http\Controllers\Api\V1\Cliente\MarketingController as ClienteMarketingC
 use App\Http\Controllers\Api\V1\Cliente\MenuController as ClienteMenuController;
 use App\Http\Controllers\Api\V1\Cliente\MetricsController as ClienteMetricsController;
 use App\Http\Controllers\Api\V1\Cliente\ProductController as ClienteProductController;
+use App\Http\Controllers\Api\V1\Colaborador\MenuController as ColaboradorMenuController;
+use App\Http\Controllers\Api\V1\Colaborador\ProjectController as ColaboradorProjectController;
 use App\Http\Controllers\Api\V1\Marketing\DashboardController as MarketingUserDashboardController;
 use App\Http\Controllers\Api\V1\Marketing\MenuController as MarketingUserMenuController;
 use App\Http\Controllers\Api\V1\Marketing\MonitorController as MarketingUserMonitorController;
@@ -116,6 +118,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('web-requests/external/{webRequest}/create-project', [WebRequestController::class, 'createProjectFromExternal']);
             Route::get('projects/options', [ProjectController::class, 'options']);
             Route::get('projects/managers', [ProjectController::class, 'managers']);
+            Route::get('projects/collaborators', [ProjectController::class, 'collaborators']);
             Route::get('projects/clients', [ProjectController::class, 'clients']);
             Route::get('projects', [ProjectController::class, 'index']);
             Route::post('projects', [ProjectController::class, 'store']);
@@ -339,5 +342,17 @@ Route::prefix('v1')->group(function (): void {
             Route::post('monitor/import-csv', [MarketingUserMonitorController::class, 'importCsv']);
             Route::get('results', [MarketingUserResultsController::class, 'index']);
             Route::get('users', [MarketingUserUsersController::class, 'index']);
+        });
+
+    Route::middleware(['auth:sanctum', 'role:impulsa_colaborador'])
+        ->prefix('colaborador')
+        ->group(function (): void {
+            Route::get('menu', [ColaboradorMenuController::class, 'show']);
+            Route::get('projects/options', [ColaboradorProjectController::class, 'options']);
+            Route::get('projects', [ColaboradorProjectController::class, 'index']);
+            Route::get('projects/{project}', [ColaboradorProjectController::class, 'show']);
+            Route::patch('projects/{project}/status', [ColaboradorProjectController::class, 'updateStatus']);
+            Route::patch('projects/{project}/phases/{phase}/status', [ColaboradorProjectController::class, 'updatePhaseStatus']);
+            Route::patch('projects/{project}/deliverables/{deliverable}/status', [ColaboradorProjectController::class, 'updateDeliverableStatus']);
         });
 });

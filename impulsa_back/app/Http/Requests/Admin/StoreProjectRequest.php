@@ -28,6 +28,8 @@ class StoreProjectRequest extends FormRequest
             'summary' => ['nullable', 'string'],
             'scope_summary' => ['nullable', 'string'],
             'client_visible' => ['nullable', 'boolean'],
+            'collaborator_user_ids' => ['nullable', 'array'],
+            'collaborator_user_ids.*' => ['integer', 'min:1', 'distinct'],
         ];
     }
 

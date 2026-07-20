@@ -12,10 +12,12 @@ class UserMenuCatalogTest extends TestCase
         $emprendedorKeys = UserMenuCatalog::keysForRole('impulsa_emprendedor');
         $clienteKeys = UserMenuCatalog::keysForRole('impulsa_cliente');
         $marketingKeys = UserMenuCatalog::keysForRole('impulsa_marketing');
+        $colaboradorKeys = UserMenuCatalog::keysForRole('impulsa_colaborador');
 
         $this->assertNotSame([], $emprendedorKeys);
         $this->assertNotSame([], $clienteKeys);
         $this->assertNotSame([], $marketingKeys);
+        $this->assertNotSame([], $colaboradorKeys);
 
         $this->assertContains('definicion', $emprendedorKeys);
         $this->assertContains('pagina_web', $emprendedorKeys);
@@ -29,5 +31,8 @@ class UserMenuCatalogTest extends TestCase
         $this->assertContains('constructor', $marketingKeys);
         $this->assertNotContains('constructor', $emprendedorKeys);
         $this->assertNotContains('constructor', $clienteKeys);
+
+        $this->assertSame(['proyectos'], $colaboradorKeys);
+        $this->assertSame(['proyectos'], UserMenuCatalog::normalizeSelection('impulsa_colaborador', []));
     }
 }
