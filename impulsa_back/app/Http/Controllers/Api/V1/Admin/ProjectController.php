@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreDeliverableCommentRequest;
 use App\Http\Requests\Admin\StoreProjectDeliverableRequest;
 use App\Http\Requests\Admin\StoreProjectPhaseRequest;
 use App\Http\Requests\Admin\StoreProjectRequest;
@@ -192,6 +193,24 @@ class ProjectController extends Controller
         return response()->json([
             'data' => $comments,
         ]);
+    }
+
+    public function storeDeliverableComment(
+        StoreDeliverableCommentRequest $request,
+        Project $project,
+        int $deliverable,
+    ): JsonResponse {
+        $comment = $this->commentService->createForAdmin(
+            (int) $request->user()->id,
+            (int) $project->id,
+            $deliverable,
+            $request->validated('message'),
+        );
+
+        return response()->json([
+            'message' => 'Comentario publicado correctamente.',
+            'data' => $comment,
+        ], 201);
     }
 
     public function showContract(Project $project): JsonResponse

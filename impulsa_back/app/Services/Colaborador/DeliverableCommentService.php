@@ -29,6 +29,41 @@ class DeliverableCommentService
         string $message,
     ): array {
         $this->assertCollaboratorAssigned($userAuthId, $projectId);
+
+        return $this->createComment($userAuthId, $projectId, $deliverableId, $message);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function listForAdmin(int $projectId, int $deliverableId, ?int $viewerUserId = null): array
+    {
+        $this->assertDeliverableBelongsToProject($projectId, $deliverableId);
+
+        return $this->listComments($projectId, $deliverableId, $viewerUserId);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function createForAdmin(
+        int $userAuthId,
+        int $projectId,
+        int $deliverableId,
+        string $message,
+    ): array {
+        return $this->createComment($userAuthId, $projectId, $deliverableId, $message);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function createComment(
+        int $userAuthId,
+        int $projectId,
+        int $deliverableId,
+        string $message,
+    ): array {
         $this->assertDeliverableBelongsToProject($projectId, $deliverableId);
 
         $trimmed = trim($message);
@@ -57,16 +92,6 @@ class DeliverableCommentService
         }
 
         throw new NotFoundHttpException('No pudimos recuperar el comentario creado.');
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    public function listForAdmin(int $projectId, int $deliverableId, ?int $viewerUserId = null): array
-    {
-        $this->assertDeliverableBelongsToProject($projectId, $deliverableId);
-
-        return $this->listComments($projectId, $deliverableId, $viewerUserId);
     }
 
     /**

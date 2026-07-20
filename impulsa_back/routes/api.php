@@ -131,6 +131,7 @@ Route::prefix('v1')->group(function (): void {
             Route::put('projects/{project}/deliverables/{deliverable}', [ProjectController::class, 'updateDeliverable']);
             Route::delete('projects/{project}/deliverables/{deliverable}', [ProjectController::class, 'destroyDeliverable']);
             Route::get('projects/{project}/deliverables/{deliverable}/comments', [ProjectController::class, 'deliverableComments']);
+            Route::post('projects/{project}/deliverables/{deliverable}/comments', [ProjectController::class, 'storeDeliverableComment']);
             Route::get('projects/{project}/contract', [ProjectController::class, 'showContract']);
             Route::put('projects/{project}/contract', [ProjectController::class, 'updateContract']);
             Route::post('projects/{project}/client-notification', [ProjectController::class, 'flushClientNotification']);

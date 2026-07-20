@@ -201,6 +201,22 @@ class ColaboradorProjectControllerTest extends TestCase
         $adminList->assertOk();
         $adminList->assertJsonCount(1, 'data');
 
+        $adminPost = $this->actingAs($admin)->postJson(
+            '/api/v1/admin/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
+            ['message' => 'Respuesta del admin'],
+        );
+        $adminPost->assertCreated();
+        $adminPost->assertJsonPath('data.message', 'Respuesta del admin');
+        $adminPost->assertJsonPath('data.is_mine', true);
+
+        $thread = $this->actingAs($colaborador)->getJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
+        );
+        $thread->assertOk();
+        $thread->assertJsonCount(2, 'data');
+        $thread->assertJsonPath('data.1.message', 'Respuesta del admin');
+        $thread->assertJsonPath('data.1.is_mine', false);
+
         $detail = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/' . $projectId);
         $detail->assertOk();
         $detail->assertJsonPath('data.deliverables.0.assigned_to_me', true);
