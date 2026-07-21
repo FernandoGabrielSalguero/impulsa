@@ -1,1 +1,0 @@
-import {T,E as We,bP as Dg,bh as M}from'./main-PSXJOLY4.js';function w(t){t||(t=T(We));let i=new M(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Dg(i))}export{w};

@@ -1,1 +1,0 @@
-import {T,F as Fe,bk as Bl,cR as _}from'./main-5J3WFXSP.js';function w(t){t||(t=T(Fe));let i=new _(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Bl(i))}export{w};

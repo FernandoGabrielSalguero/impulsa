@@ -1,1 +1,0 @@
-import {T,E as qe,bU as Dg,bf as M}from'./main-3WN2FR7S.js';function w(t){t||(t=T(qe));let i=new M(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Dg(i))}export{w};

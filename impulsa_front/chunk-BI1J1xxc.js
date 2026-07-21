@@ -1,1 +1,0 @@
-import {T,B as qe,bM as Dg,by as M}from'./main-GKG6RN24.js';function w(t){t||(t=T(qe));let i=new M(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Dg(i))}export{w};
