@@ -439,6 +439,7 @@ class ColaboradorProjectControllerTest extends TestCase
         Schema::dropIfExists('projects');
         Schema::dropIfExists('user_menu_view');
         Schema::dropIfExists('user_params');
+        Schema::dropIfExists('user_contacto');
         Schema::dropIfExists('user_info');
         Schema::dropIfExists('personal_access_tokens');
         Schema::dropIfExists('user_auth');
@@ -462,6 +463,19 @@ class ColaboradorProjectControllerTest extends TestCase
             $table->string('nombre', 100)->nullable();
             $table->string('apellido', 100)->nullable();
             $table->string('apodo', 100)->nullable();
+            $table->string('avatar_path', 255)->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('user_contacto', function (Blueprint $table): void {
+            $table->increments('id');
+            $table->unsignedInteger('user_auth_id')->unique();
+            $table->string('correo')->nullable();
+            $table->string('whatsapp', 80)->nullable();
+            $table->boolean('check_correo')->default(true);
+            $table->boolean('permison_correo')->default(true);
+            $table->boolean('check_whatsapp')->default(false);
+            $table->boolean('permison_whatsapp')->default(true);
             $table->timestamps();
         });
 

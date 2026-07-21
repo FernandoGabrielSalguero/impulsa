@@ -6,9 +6,11 @@ use App\Models\Project;
 use App\Services\Admin\ProjectClientNotificationService;
 use App\Services\Admin\ProjectStructureService;
 use App\Services\Notifications\NotificationService;
+use App\Services\Profile\UserAvatarStorageService;
 use App\Support\ProjectLabels;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -18,6 +20,7 @@ class ColaboradorProjectService
         private readonly ProjectStructureService $structureService,
         private readonly NotificationService $notificationService,
         private readonly ProjectClientNotificationService $clientNotificationService,
+        private readonly UserAvatarStorageService $avatarStorage,
     ) {}
 
     public function listForUser(int $userAuthId, ?string $q, int $perPage = 20): LengthAwarePaginator
@@ -84,7 +87,64 @@ class ColaboradorProjectService
             'project' => $row,
             'phases' => $this->structureService->getPhases($projectId),
             'deliverables' => $this->structureService->getDeliverables($projectId),
+            'collaborators' => $this->listProjectCollaborators($projectId),
         ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function listProjectCollaborators(int $projectId): array
+    {
+        $hasAvatarPath = Schema::hasColumn('user_info', 'avatar_path');
+        $hasContacto = Schema::hasTable('user_contacto');
+
+        $query = DB::table('project_collaborators as pc')
+            ->join('user_auth as ua', 'ua.id', '=', 'pc.user_auth_id')
+            ->leftJoin('user_info as ui', 'ui.user_auth_id', '=', 'ua.id')
+            ->where('pc.project_id', $projectId)
+            ->orderByRaw('ui.nombre IS NULL ASC')
+            ->orderBy('ui.nombre')
+            ->orderBy('ua.correo');
+
+        if ($hasContacto) {
+            $query->leftJoin('user_contacto as uc', 'uc.user_auth_id', '=', 'ua.id');
+        }
+
+        $columns = [
+            'ua.id',
+            'ua.correo',
+            'ui.nombre',
+            'ui.apellido',
+        ];
+
+        if ($hasAvatarPath) {
+            $columns[] = 'ui.avatar_path';
+        }
+
+        if ($hasContacto) {
+            $columns[] = 'uc.whatsapp';
+            $columns[] = 'uc.correo as correo_contacto';
+        }
+
+        return $query
+            ->get($columns)
+            ->map(function ($user) use ($hasAvatarPath, $hasContacto): array {
+                $name = trim((string) (($user->nombre ?? '') . ' ' . ($user->apellido ?? '')));
+                $avatarPath = $hasAvatarPath ? trim((string) ($user->avatar_path ?? '')) : '';
+                $correoContacto = $hasContacto
+                    ? (($user->correo_contacto ?? null) ?: $user->correo)
+                    : $user->correo;
+                $whatsapp = $hasContacto ? ($user->whatsapp ?: null) : null;
+
+                return [
+                    'id' => (int) $user->id,
+                    'correo' => $user->correo,
+                    'correo_contacto' => $correoContacto,
+                    'nombre' => $name !== '' ? $name : null,
+                    'whatsapp' => $whatsapp,
+                    'has_avatar' => $avatarPath !== '' && $this->avatarStorage->isManagedPath($avatarPath),
+                ];
+            })
+            ->all();
     }
 
     /** @return array<string, mixed> */

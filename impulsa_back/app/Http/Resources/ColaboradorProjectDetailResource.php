@@ -15,6 +15,7 @@ class ColaboradorProjectDetailResource extends JsonResource
         $project = $payload['project'];
         $phases = $payload['phases'];
         $deliverables = $payload['deliverables'];
+        $collaborators = $payload['collaborators'] ?? [];
         $viewerId = (int) $request->user()->id;
 
         return [
@@ -26,6 +27,17 @@ class ColaboradorProjectDetailResource extends JsonResource
             'deliverables' => array_map(
                 fn (array $deliverable): array => $this->formatDeliverable($deliverable, $viewerId),
                 $deliverables,
+            ),
+            'collaborators' => array_map(
+                static fn (array $collaborator): array => [
+                    'id' => (int) $collaborator['id'],
+                    'nombre' => $collaborator['nombre'] ?? null,
+                    'correo' => $collaborator['correo'],
+                    'correo_contacto' => $collaborator['correo_contacto'] ?? $collaborator['correo'],
+                    'whatsapp' => $collaborator['whatsapp'] ?? null,
+                    'has_avatar' => (bool) ($collaborator['has_avatar'] ?? false),
+                ],
+                $collaborators,
             ),
         ];
     }
