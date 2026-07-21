@@ -238,6 +238,14 @@ class ProjectStructureService
                 phaseId: $phaseId,
                 progress: $progress,
             );
+
+            $this->notificationService->notifyProjectPhaseUpdated(
+                projectId: (int) $project->id,
+                phaseId: $phaseId,
+                phaseTitle: (string) ($after['title'] ?? $before['title'] ?? 'Fase'),
+                actorUserId: $this->actorUserId(),
+                changeLines: $changeLines,
+            );
         }
 
         return $after;
@@ -302,6 +310,12 @@ class ProjectStructureService
             createdByUserId: $this->actorUserId(),
             phaseId: null,
             progress: $progress,
+        );
+
+        $this->notificationService->notifyProjectPhaseDeleted(
+            projectId: (int) $project->id,
+            phaseTitle: $phaseTitle,
+            actorUserId: $this->actorUserId(),
         );
     }
 
@@ -411,6 +425,14 @@ class ProjectStructureService
                 phaseId: $phaseId,
                 progress: $progress,
             );
+
+            $this->notificationService->notifyProjectDeliverableUpdated(
+                projectId: (int) $project->id,
+                deliverableId: $deliverableId,
+                deliverableTitle: (string) ($after['title'] ?? $before['title'] ?? 'Objetivo'),
+                actorUserId: $this->actorUserId(),
+                changeLines: $changeLines,
+            );
         }
 
         return $after;
@@ -466,6 +488,12 @@ class ProjectStructureService
             createdByUserId: $this->actorUserId(),
             phaseId: $phaseId,
             progress: $progress,
+        );
+
+        $this->notificationService->notifyProjectDeliverableDeleted(
+            projectId: (int) $project->id,
+            deliverableTitle: $deliverableTitle,
+            actorUserId: $this->actorUserId(),
         );
     }
 
@@ -801,6 +829,13 @@ class ProjectStructureService
             $lines[] = $phaseLabel . ': duración actualizada.';
         }
 
+        if (($before['assigned_user_id'] ?? null) !== ($after['assigned_user_id'] ?? null)) {
+            $lines[] = $phaseLabel . ': responsable '
+                . (($before['assigned_user_label'] ?? null) ?: 'Sin asignar')
+                . ' → '
+                . (($after['assigned_user_label'] ?? null) ?: 'Sin asignar');
+        }
+
         if (($before['description'] ?? null) !== ($after['description'] ?? null)) {
             $lines[] = $phaseLabel . ': descripción actualizada.';
         }
@@ -845,6 +880,13 @@ class ProjectStructureService
                 . ProjectLabels::defconLabel((int) ($before['defcon'] ?? 5))
                 . ' → '
                 . ProjectLabels::defconLabel((int) ($after['defcon'] ?? 5));
+        }
+
+        if (($before['assigned_user_id'] ?? null) !== ($after['assigned_user_id'] ?? null)) {
+            $lines[] = $label . ': responsable '
+                . (($before['assigned_user_label'] ?? null) ?: 'Sin asignar')
+                . ' → '
+                . (($after['assigned_user_label'] ?? null) ?: 'Sin asignar');
         }
 
         if (($before['description'] ?? null) !== ($after['description'] ?? null)) {

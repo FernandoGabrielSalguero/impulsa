@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\Project;
 use App\Models\UserAuth;
+use App\Services\Notifications\NotificationService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,7 @@ class ProjectAdminService
         private readonly ProjectStructureService $structureService,
         private readonly UserAdminService $userAdminService,
         private readonly ProjectClientNotificationService $clientNotificationService,
+        private readonly NotificationService $notificationService,
     ) {}
 
     public function list(?string $q, int $perPage = 20): LengthAwarePaginator
@@ -151,6 +153,12 @@ class ProjectAdminService
                     'progress_detail' => (string) ($detail['project']['progress_detail'] ?? ''),
                 ],
             );
+
+            $this->notificationService->notifyProjectUpdated(
+                projectId: (int) $project->id,
+                actorUserId: $actorUserId,
+                changeLines: $changeLines,
+            );
         }
 
         return $detail;
@@ -170,7 +178,7 @@ class ProjectAdminService
      * @param  array<string, mixed>  $data
      * @return array{detail: array<string, mixed>, client_created: bool, email_sent: bool|null, message: string}
      */
-    public function create(array $data): array
+    public function create(array $data, ?int $actorUserId = null): array
     {
         $managerUserId = (int) $data['manager_user_id'];
 
@@ -264,6 +272,12 @@ class ProjectAdminService
                 ? 'Proyecto creado y credenciales enviadas por correo.'
                 : 'Proyecto creado, pero falló el envío del correo con credenciales.';
         }
+
+        $this->notificationService->notifyProjectCreated(
+            (int) $project->id,
+            $actorUserId,
+            (bool) $project->client_visible,
+        );
 
         return [
             'detail' => $this->getDetail($project),

@@ -61,7 +61,7 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request): JsonResponse
     {
-        $result = $this->projectAdminService->create($request->validated());
+        $result = $this->projectAdminService->create($request->validated(), (int) $request->user()->id);
 
         return response()->json([
             'message' => $result['message'],

@@ -86,6 +86,7 @@ class NotificationControllerTest extends TestCase
     public function test_phase_creation_notifies_collaborator_and_client_when_visible(): void
     {
         $admin = $this->createUser('admin@test.com', 'impulsa_administrador');
+        $otherAdmin = $this->createUser('admin2@test.com', 'impulsa_administrador');
         $colaborador = $this->createUser('cola@test.com', 'impulsa_colaborador');
         $client = $this->createUser('cliente@test.com', 'impulsa_cliente');
         $projectId = $this->createProject($admin->id, $client->id, 'Proyecto fase', true);
@@ -105,12 +106,77 @@ class NotificationControllerTest extends TestCase
             'type' => 'project.phase_created',
         ]);
         $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $otherAdmin->id,
+            'type' => 'project.phase_created',
+        ]);
+        $this->assertDatabaseHas('user_notifications', [
             'user_auth_id' => $client->id,
             'type' => 'project.client_update',
         ]);
         $this->assertDatabaseMissing('user_notifications', [
             'user_auth_id' => $admin->id,
             'type' => 'project.phase_created',
+        ]);
+    }
+
+    public function test_admin_deliverable_update_notifies_collaborators_and_admins(): void
+    {
+        $admin = $this->createUser('admin@test.com', 'impulsa_administrador');
+        $otherAdmin = $this->createUser('admin2@test.com', 'impulsa_administrador');
+        $colaborador = $this->createUser('cola@test.com', 'impulsa_colaborador');
+        $client = $this->createUser('cliente@test.com', 'impulsa_cliente');
+        $projectId = $this->createProject($admin->id, $client->id, 'Proyecto objetivo', true);
+        $this->assignCollaborator($projectId, $colaborador->id);
+
+        $phaseId = (int) DB::table('project_phases')->insertGetId([
+            'project_id' => $projectId,
+            'title' => 'Fase',
+            'phase_order' => 1,
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $deliverableId = (int) DB::table('project_deliverables')->insertGetId([
+            'project_id' => $projectId,
+            'phase_id' => $phaseId,
+            'title' => 'Objetivo',
+            'deliverable_type' => 'document',
+            'status' => 'pending',
+            'defcon' => 5,
+            'client_visible' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)->putJson(
+            '/api/v1/admin/projects/' . $projectId . '/deliverables/' . $deliverableId,
+            [
+                'phase_id' => $phaseId,
+                'title' => 'Objetivo renombrado',
+                'deliverable_type' => 'document',
+                'status' => 'in_progress',
+                'defcon' => 1,
+                'client_visible' => true,
+            ],
+        );
+        $response->assertOk();
+
+        $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $colaborador->id,
+            'type' => 'project.deliverable_updated',
+        ]);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $otherAdmin->id,
+            'type' => 'project.deliverable_updated',
+        ]);
+        $this->assertDatabaseHas('user_notifications', [
+            'user_auth_id' => $client->id,
+            'type' => 'project.client_update',
+        ]);
+        $this->assertDatabaseMissing('user_notifications', [
+            'user_auth_id' => $admin->id,
+            'type' => 'project.deliverable_updated',
         ]);
     }
 

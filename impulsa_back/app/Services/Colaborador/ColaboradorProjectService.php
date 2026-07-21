@@ -3,7 +3,9 @@
 namespace App\Services\Colaborador;
 
 use App\Models\Project;
+use App\Services\Admin\ProjectClientNotificationService;
 use App\Services\Admin\ProjectStructureService;
+use App\Services\Notifications\NotificationService;
 use App\Support\ProjectLabels;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,8 @@ class ColaboradorProjectService
 {
     public function __construct(
         private readonly ProjectStructureService $structureService,
+        private readonly NotificationService $notificationService,
+        private readonly ProjectClientNotificationService $clientNotificationService,
     ) {}
 
     public function listForUser(int $userAuthId, ?string $q, int $perPage = 20): LengthAwarePaginator
@@ -94,12 +98,33 @@ class ColaboradorProjectService
             ]);
         }
 
+        $before = (string) (DB::table('projects')->where('id', $projectId)->value('status') ?? '');
+
         DB::table('projects')
             ->where('id', $projectId)
             ->update([
                 'status' => $status,
                 'updated_at' => now(),
             ]);
+
+        if ($before !== $status) {
+            $statusLabel = ProjectLabels::statusLabel($status);
+            $this->notificationService->notifyProjectStatusChanged(
+                projectId: $projectId,
+                entityLabel: 'el proyecto',
+                statusLabel: $statusLabel,
+                actorUserId: $userAuthId,
+                payload: ['entity' => 'project'],
+            );
+
+            $this->notifyClientStatusChange(
+                $projectId,
+                $userAuthId,
+                'Estado del proyecto actualizado',
+                'Actualizamos el estado general de tu proyecto.',
+                ['Estado: ' . ProjectLabels::statusLabel($before) . ' → ' . $statusLabel],
+            );
+        }
 
         return $this->getDetailForUser($userAuthId, $projectId);
     }
@@ -115,7 +140,20 @@ class ColaboradorProjectService
             ]);
         }
 
-        $updated = DB::table('project_phases')
+        $phase = DB::table('project_phases')
+            ->where('id', $phaseId)
+            ->where('project_id', $projectId)
+            ->first(['id', 'title', 'status']);
+
+        if ($phase === null) {
+            throw ValidationException::withMessages([
+                'phase' => ['La fase seleccionada no pertenece a este proyecto.'],
+            ]);
+        }
+
+        $before = (string) $phase->status;
+
+        DB::table('project_phases')
             ->where('id', $phaseId)
             ->where('project_id', $projectId)
             ->update([
@@ -124,13 +162,36 @@ class ColaboradorProjectService
                 'updated_at' => now(),
             ]);
 
-        if ($updated === 0) {
-            throw ValidationException::withMessages([
-                'phase' => ['La fase seleccionada no pertenece a este proyecto.'],
-            ]);
-        }
+        $progress = $this->structureService->recalculateProject($projectId);
 
-        $this->structureService->recalculateProject($projectId);
+        if ($before !== $status) {
+            $statusLabel = ProjectLabels::phaseStatusLabel($status);
+            $phaseTitle = (string) $phase->title;
+
+            $this->notificationService->notifyProjectStatusChanged(
+                projectId: $projectId,
+                entityLabel: 'la fase "'.$phaseTitle.'"',
+                statusLabel: $statusLabel,
+                actorUserId: $userAuthId,
+                payload: [
+                    'entity' => 'phase',
+                    'phase_id' => $phaseId,
+                ],
+            );
+
+            $this->notifyClientStatusChange(
+                $projectId,
+                $userAuthId,
+                'Fase actualizada',
+                'Actualizamos el estado de una etapa de tu proyecto.',
+                [
+                    'Fase: '.$phaseTitle,
+                    'Estado: '.ProjectLabels::phaseStatusLabel($before).' → '.$statusLabel,
+                ],
+                $phaseId,
+                $progress,
+            );
+        }
 
         return $this->getDetailForUser($userAuthId, $projectId);
     }
@@ -146,7 +207,20 @@ class ColaboradorProjectService
             ]);
         }
 
-        $updated = DB::table('project_deliverables')
+        $deliverable = DB::table('project_deliverables')
+            ->where('id', $deliverableId)
+            ->where('project_id', $projectId)
+            ->first(['id', 'title', 'status', 'phase_id']);
+
+        if ($deliverable === null) {
+            throw ValidationException::withMessages([
+                'deliverable' => ['El objetivo seleccionado no pertenece a este proyecto.'],
+            ]);
+        }
+
+        $before = (string) $deliverable->status;
+
+        DB::table('project_deliverables')
             ->where('id', $deliverableId)
             ->where('project_id', $projectId)
             ->update([
@@ -155,15 +229,68 @@ class ColaboradorProjectService
                 'updated_at' => now(),
             ]);
 
-        if ($updated === 0) {
-            throw ValidationException::withMessages([
-                'deliverable' => ['El objetivo seleccionado no pertenece a este proyecto.'],
-            ]);
+        $progress = $this->structureService->recalculateProject($projectId);
+
+        if ($before !== $status) {
+            $statusLabel = ProjectLabels::deliverableStatusLabel($status);
+            $deliverableTitle = (string) $deliverable->title;
+
+            $this->notificationService->notifyProjectStatusChanged(
+                projectId: $projectId,
+                entityLabel: 'el objetivo "'.$deliverableTitle.'"',
+                statusLabel: $statusLabel,
+                actorUserId: $userAuthId,
+                payload: [
+                    'entity' => 'deliverable',
+                    'deliverable_id' => $deliverableId,
+                ],
+            );
+
+            $this->notifyClientStatusChange(
+                $projectId,
+                $userAuthId,
+                'Objetivo actualizado',
+                'Actualizamos el estado de un objetivo de tu proyecto.',
+                [
+                    'Objetivo: '.$deliverableTitle,
+                    'Estado: '.ProjectLabels::deliverableStatusLabel($before).' → '.$statusLabel,
+                ],
+                $deliverable->phase_id !== null ? (int) $deliverable->phase_id : null,
+                $progress,
+            );
         }
 
-        $this->structureService->recalculateProject($projectId);
-
         return $this->getDetailForUser($userAuthId, $projectId);
+    }
+
+    /**
+     * @param  list<string>  $changeLines
+     * @param  array{target_delivery_date?: ?string, progress_percent?: int, progress_detail?: string}|null  $progress
+     */
+    private function notifyClientStatusChange(
+        int $projectId,
+        int $actorUserId,
+        string $updateTitle,
+        string $updateMessage,
+        array $changeLines,
+        ?int $phaseId = null,
+        ?array $progress = null,
+    ): void {
+        $project = Project::query()->find($projectId);
+
+        if ($project === null) {
+            return;
+        }
+
+        $this->clientNotificationService->notify(
+            project: $project,
+            updateTitle: $updateTitle,
+            updateMessage: $updateMessage,
+            changeLines: $changeLines,
+            createdByUserId: $actorUserId,
+            phaseId: $phaseId,
+            progress: $progress,
+        );
     }
 
     private function assertAssigned(int $userAuthId, int $projectId): void

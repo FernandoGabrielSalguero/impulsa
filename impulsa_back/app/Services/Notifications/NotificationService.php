@@ -11,9 +11,23 @@ class NotificationService
 {
     public const TYPE_PROJECT_COMMENT = 'project.comment_created';
 
+    public const TYPE_PROJECT_CREATED = 'project.created';
+
+    public const TYPE_PROJECT_UPDATED = 'project.updated';
+
     public const TYPE_PROJECT_PHASE = 'project.phase_created';
 
+    public const TYPE_PROJECT_PHASE_UPDATED = 'project.phase_updated';
+
+    public const TYPE_PROJECT_PHASE_DELETED = 'project.phase_deleted';
+
     public const TYPE_PROJECT_DELIVERABLE = 'project.deliverable_created';
+
+    public const TYPE_PROJECT_DELIVERABLE_UPDATED = 'project.deliverable_updated';
+
+    public const TYPE_PROJECT_DELIVERABLE_DELETED = 'project.deliverable_deleted';
+
+    public const TYPE_PROJECT_STATUS = 'project.status_changed';
 
     public const TYPE_PROJECT_CLIENT_UPDATE = 'project.client_update';
 
@@ -148,14 +162,9 @@ class NotificationService
             $actorLabel,
         );
 
-        $recipients = collect($this->projectInternalRecipients($projectId, $actorUserId))
-            ->merge($this->adminRecipientIds($actorUserId))
-            ->unique()
-            ->values()
-            ->all();
-
-        $this->notifyMany(
-            $recipients,
+        $this->notifyTeam(
+            $projectId,
+            $actorUserId,
             self::TYPE_PROJECT_COMMENT,
             $copy['title'],
             $copy['body'],
@@ -168,12 +177,85 @@ class NotificationService
         );
     }
 
+    public function notifyProjectCreated(int $projectId, ?int $actorUserId, bool $notifyClient = false): void
+    {
+        $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name', 'client_user_id']);
+
+        if ($project === null) {
+            return;
+        }
+
+        $actorLabel = $actorUserId ? ($this->userLabel($actorUserId) ?? 'Alguien') : 'Alguien';
+        $copy = NotificationCopy::projectCreated((string) $project->project_name, $actorLabel);
+
+        $this->notifyTeam(
+            $projectId,
+            $actorUserId,
+            self::TYPE_PROJECT_CREATED,
+            $copy['title'],
+            $copy['body'],
+            [
+                'project_id' => $projectId,
+                'actor_user_id' => $actorUserId,
+            ],
+        );
+
+        if ($notifyClient && $project->client_user_id) {
+            $clientId = (int) $project->client_user_id;
+            if ($actorUserId === null || $clientId !== $actorUserId) {
+                $clientCopy = NotificationCopy::projectUpdatedForClient(
+                    (string) $project->project_name,
+                    'Proyecto creado',
+                );
+
+                $this->notifyMany(
+                    [$clientId],
+                    self::TYPE_PROJECT_CLIENT_UPDATE,
+                    $clientCopy['title'],
+                    $clientCopy['body'],
+                    [
+                        'project_id' => $projectId,
+                        'actor_user_id' => $actorUserId,
+                    ],
+                );
+            }
+        }
+    }
+
+    /**
+     * @param  list<string>  $changeLines
+     */
+    public function notifyProjectUpdated(int $projectId, ?int $actorUserId, array $changeLines = []): void
+    {
+        $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name']);
+
+        if ($project === null || $changeLines === []) {
+            return;
+        }
+
+        $actorLabel = $actorUserId ? ($this->userLabel($actorUserId) ?? 'Alguien') : 'Alguien';
+        $copy = NotificationCopy::projectUpdated((string) $project->project_name, $actorLabel, $changeLines);
+
+        $this->notifyTeam(
+            $projectId,
+            $actorUserId,
+            self::TYPE_PROJECT_UPDATED,
+            $copy['title'],
+            $copy['body'],
+            [
+                'project_id' => $projectId,
+                'actor_user_id' => $actorUserId,
+                'changes' => $changeLines,
+            ],
+        );
+    }
+
     public function notifyProjectPhaseCreated(
         int $projectId,
         int $phaseId,
         string $phaseTitle,
         ?int $actorUserId,
-        bool $notifyClient,
+        bool $notifyClient = false,
     ): void {
         $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name', 'client_user_id']);
 
@@ -182,7 +264,7 @@ class NotificationService
         }
 
         $copy = NotificationCopy::projectPhaseCreated((string) $project->project_name, $phaseTitle);
-        $recipients = $this->projectInternalRecipients($projectId, $actorUserId);
+        $recipients = $this->teamRecipientIds($projectId, $actorUserId);
 
         if ($notifyClient && $project->client_user_id) {
             $clientId = (int) $project->client_user_id;
@@ -204,12 +286,78 @@ class NotificationService
         );
     }
 
+    /**
+     * @param  list<string>  $changeLines
+     */
+    public function notifyProjectPhaseUpdated(
+        int $projectId,
+        int $phaseId,
+        string $phaseTitle,
+        ?int $actorUserId,
+        array $changeLines = [],
+    ): void {
+        $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name']);
+
+        if ($project === null || $changeLines === []) {
+            return;
+        }
+
+        $actorLabel = $actorUserId ? ($this->userLabel($actorUserId) ?? 'Alguien') : 'Alguien';
+        $copy = NotificationCopy::projectPhaseUpdated(
+            (string) $project->project_name,
+            $phaseTitle,
+            $actorLabel,
+            $changeLines,
+        );
+
+        $this->notifyTeam(
+            $projectId,
+            $actorUserId,
+            self::TYPE_PROJECT_PHASE_UPDATED,
+            $copy['title'],
+            $copy['body'],
+            [
+                'project_id' => $projectId,
+                'phase_id' => $phaseId,
+                'actor_user_id' => $actorUserId,
+                'changes' => $changeLines,
+            ],
+        );
+    }
+
+    public function notifyProjectPhaseDeleted(
+        int $projectId,
+        string $phaseTitle,
+        ?int $actorUserId,
+    ): void {
+        $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name']);
+
+        if ($project === null) {
+            return;
+        }
+
+        $actorLabel = $actorUserId ? ($this->userLabel($actorUserId) ?? 'Alguien') : 'Alguien';
+        $copy = NotificationCopy::projectPhaseDeleted((string) $project->project_name, $phaseTitle, $actorLabel);
+
+        $this->notifyTeam(
+            $projectId,
+            $actorUserId,
+            self::TYPE_PROJECT_PHASE_DELETED,
+            $copy['title'],
+            $copy['body'],
+            [
+                'project_id' => $projectId,
+                'actor_user_id' => $actorUserId,
+            ],
+        );
+    }
+
     public function notifyProjectDeliverableCreated(
         int $projectId,
         int $deliverableId,
         string $deliverableTitle,
         ?int $actorUserId,
-        bool $notifyClient,
+        bool $notifyClient = false,
     ): void {
         $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name', 'client_user_id']);
 
@@ -218,7 +366,7 @@ class NotificationService
         }
 
         $copy = NotificationCopy::projectDeliverableCreated((string) $project->project_name, $deliverableTitle);
-        $recipients = $this->projectInternalRecipients($projectId, $actorUserId);
+        $recipients = $this->teamRecipientIds($projectId, $actorUserId);
 
         if ($notifyClient && $project->client_user_id) {
             $clientId = (int) $project->client_user_id;
@@ -238,6 +386,140 @@ class NotificationService
                 'actor_user_id' => $actorUserId,
             ],
         );
+    }
+
+    /**
+     * @param  list<string>  $changeLines
+     */
+    public function notifyProjectDeliverableUpdated(
+        int $projectId,
+        int $deliverableId,
+        string $deliverableTitle,
+        ?int $actorUserId,
+        array $changeLines = [],
+    ): void {
+        $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name']);
+
+        if ($project === null || $changeLines === []) {
+            return;
+        }
+
+        $actorLabel = $actorUserId ? ($this->userLabel($actorUserId) ?? 'Alguien') : 'Alguien';
+        $copy = NotificationCopy::projectDeliverableUpdated(
+            (string) $project->project_name,
+            $deliverableTitle,
+            $actorLabel,
+            $changeLines,
+        );
+
+        $this->notifyTeam(
+            $projectId,
+            $actorUserId,
+            self::TYPE_PROJECT_DELIVERABLE_UPDATED,
+            $copy['title'],
+            $copy['body'],
+            [
+                'project_id' => $projectId,
+                'deliverable_id' => $deliverableId,
+                'actor_user_id' => $actorUserId,
+                'changes' => $changeLines,
+            ],
+        );
+    }
+
+    public function notifyProjectDeliverableDeleted(
+        int $projectId,
+        string $deliverableTitle,
+        ?int $actorUserId,
+    ): void {
+        $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name']);
+
+        if ($project === null) {
+            return;
+        }
+
+        $actorLabel = $actorUserId ? ($this->userLabel($actorUserId) ?? 'Alguien') : 'Alguien';
+        $copy = NotificationCopy::projectDeliverableDeleted(
+            (string) $project->project_name,
+            $deliverableTitle,
+            $actorLabel,
+        );
+
+        $this->notifyTeam(
+            $projectId,
+            $actorUserId,
+            self::TYPE_PROJECT_DELIVERABLE_DELETED,
+            $copy['title'],
+            $copy['body'],
+            [
+                'project_id' => $projectId,
+                'actor_user_id' => $actorUserId,
+            ],
+        );
+    }
+
+    public function notifyProjectStatusChanged(
+        int $projectId,
+        string $entityLabel,
+        string $statusLabel,
+        ?int $actorUserId,
+        array $payload = [],
+    ): void {
+        $project = DB::table('projects')->where('id', $projectId)->first(['id', 'project_name']);
+
+        if ($project === null) {
+            return;
+        }
+
+        $actorLabel = $actorUserId ? ($this->userLabel($actorUserId) ?? 'Alguien') : 'Alguien';
+        $copy = NotificationCopy::projectStatusChanged(
+            (string) $project->project_name,
+            $entityLabel,
+            $statusLabel,
+            $actorLabel,
+        );
+
+        $this->notifyTeam(
+            $projectId,
+            $actorUserId,
+            self::TYPE_PROJECT_STATUS,
+            $copy['title'],
+            $copy['body'],
+            array_merge([
+                'project_id' => $projectId,
+                'actor_user_id' => $actorUserId,
+            ], $payload),
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public function notifyTeam(
+        int $projectId,
+        ?int $actorUserId,
+        string $type,
+        string $title,
+        ?string $body,
+        array $payload = [],
+    ): void {
+        $this->notifyMany(
+            $this->teamRecipientIds($projectId, $actorUserId),
+            $type,
+            $title,
+            $body,
+            $payload,
+        );
+    }
+
+    /** @return list<int> */
+    public function teamRecipientIds(int $projectId, ?int $excludeUserId = null): array
+    {
+        return collect($this->projectInternalRecipients($projectId, $excludeUserId))
+            ->merge($this->adminRecipientIds($excludeUserId))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /** @return list<int> */
@@ -316,8 +598,15 @@ class NotificationService
             'is_unread' => $row->read_at === null,
             'icon_hint' => match ((string) $row->type) {
                 self::TYPE_PROJECT_COMMENT => 'chat',
-                self::TYPE_PROJECT_PHASE => 'view_timeline',
-                self::TYPE_PROJECT_DELIVERABLE => 'flag',
+                self::TYPE_PROJECT_CREATED => 'folder',
+                self::TYPE_PROJECT_UPDATED => 'edit_note',
+                self::TYPE_PROJECT_PHASE,
+                self::TYPE_PROJECT_PHASE_UPDATED,
+                self::TYPE_PROJECT_PHASE_DELETED => 'view_timeline',
+                self::TYPE_PROJECT_DELIVERABLE,
+                self::TYPE_PROJECT_DELIVERABLE_UPDATED,
+                self::TYPE_PROJECT_DELIVERABLE_DELETED => 'flag',
+                self::TYPE_PROJECT_STATUS => 'sync_alt',
                 self::TYPE_PROJECT_CLIENT_UPDATE => 'campaign',
                 default => 'notifications',
             },
