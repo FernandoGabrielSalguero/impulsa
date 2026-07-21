@@ -291,6 +291,7 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('finanzas/pricing-items/{itemId}', [EmprendedorFinanzasController::class, 'destroyPricingItem']);
             Route::post('finanzas/pricing/preview', [EmprendedorFinanzasController::class, 'pricingPreview']);
             Route::post('finanzas/break-even/preview', [EmprendedorFinanzasController::class, 'breakEvenPreview']);
+            Route::get('finanzas/product-references', [EmprendedorFinanzasController::class, 'productReferences']);
             Route::get('finanzas/projection/baseline', [EmprendedorFinanzasController::class, 'projectionBaseline']);
             Route::post('finanzas/projection/preview', [EmprendedorFinanzasController::class, 'projectionPreview']);
             Route::get('finanzas/projections', [EmprendedorFinanzasController::class, 'projections']);
@@ -370,6 +371,7 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('finanzas/pricing-items/{itemId}', [ClienteFinanzasController::class, 'destroyPricingItem']);
             Route::post('finanzas/pricing/preview', [ClienteFinanzasController::class, 'pricingPreview']);
             Route::post('finanzas/break-even/preview', [ClienteFinanzasController::class, 'breakEvenPreview']);
+            Route::get('finanzas/product-references', [ClienteFinanzasController::class, 'productReferences']);
             Route::get('finanzas/projection/baseline', [ClienteFinanzasController::class, 'projectionBaseline']);
             Route::post('finanzas/projection/preview', [ClienteFinanzasController::class, 'projectionPreview']);
             Route::get('finanzas/projections', [ClienteFinanzasController::class, 'projections']);

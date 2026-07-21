@@ -368,6 +368,29 @@ class EmprendedorFinanzasService
         );
     }
 
+    /** @return list<array{id: int, title: string, price: float|null}> */
+    public function productReferences(UserAuth $user): array
+    {
+        $integration = $this->integrationAccess->integrationForUser($user);
+
+        if ($integration === null || $integration->status !== 'active') {
+            return [];
+        }
+
+        return ApiProduct::query()
+            ->where('api_integration_id', $integration->id)
+            ->orderBy('title')
+            ->limit(100)
+            ->get(['id', 'title', 'price'])
+            ->map(static fn (ApiProduct $product): array => [
+                'id' => (int) $product->id,
+                'title' => (string) $product->title,
+                'price' => $product->price !== null ? (float) $product->price : null,
+            ])
+            ->values()
+            ->all();
+    }
+
     /** @return array<string, mixed> */
     public function projectionBaseline(UserAuth $user): array
     {

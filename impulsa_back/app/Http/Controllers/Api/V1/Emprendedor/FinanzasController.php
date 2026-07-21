@@ -189,6 +189,13 @@ class FinanzasController extends Controller
         ]);
     }
 
+    public function productReferences(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->finanzasService->productReferences($request->user()),
+        ]);
+    }
+
     public function projectionBaseline(Request $request): JsonResponse
     {
         return response()->json([

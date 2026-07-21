@@ -11,6 +11,45 @@ class FinanceProjectionPreviewRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $payload = [];
+
+        foreach ([
+            'months',
+            'baseline_monthly_income',
+            'baseline_monthly_expense',
+            'baseline_monthly_investment',
+            'fixed_costs_monthly',
+            'growth_income_percent',
+            'growth_expense_percent',
+            'opening_balance',
+        ] as $field) {
+            if (! $this->exists($field)) {
+                continue;
+            }
+
+            $value = $this->input($field);
+
+            if ($value === '' || $value === null) {
+                $payload[$field] = null;
+                continue;
+            }
+
+            if (is_numeric($value)) {
+                $payload[$field] = $field === 'months' ? (int) $value : (float) $value;
+            }
+        }
+
+        if (array_key_exists('months', $payload) && ($payload['months'] === null || (int) $payload['months'] < 1)) {
+            $payload['months'] = 6;
+        }
+
+        if ($payload !== []) {
+            $this->merge($payload);
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {
