@@ -1,1 +1,0 @@
-import {T,A as je,bp as Ul,bA as _}from'./main-YY444RXS.js';function w(t){t||(t=T(je));let i=new _(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe(Ul(i))}export{w};
