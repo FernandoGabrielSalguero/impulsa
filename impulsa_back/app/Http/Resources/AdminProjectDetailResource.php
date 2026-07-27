@@ -110,6 +110,7 @@ class AdminProjectDetailResource extends JsonResource
                 ? (int) $deliverable['assigned_user_id']
                 : null,
             'assigned_user_label' => $deliverable['assigned_user_label'] ?? null,
+            'unread_comments_count' => (int) ($deliverable['unread_comments_count'] ?? 0),
         ];
     }
 

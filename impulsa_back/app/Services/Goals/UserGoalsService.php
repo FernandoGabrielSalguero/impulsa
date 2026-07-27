@@ -87,7 +87,7 @@ class UserGoalsService
     /** @param array{title: string, description?: string|null, start_date?: string|null, due_date?: string|null} $payload */
     public function createGoal(UserAuth $user, array $payload): array
     {
-        $goal = UserGoal::query()->create([
+        $goal = new UserGoal([
             'user_auth_id' => $user->id,
             'title' => trim($payload['title']),
             'description' => $this->nullableTrim($payload['description'] ?? null),
@@ -96,6 +96,9 @@ class UserGoalsService
             'status' => 'pending',
             'progress_percent' => 0,
         ]);
+
+        $this->validateGoalDates($goal);
+        $goal->save();
 
         return $this->serializeGoalListItem($goal);
     }

@@ -219,8 +219,22 @@ class ColaboradorProjectControllerTest extends TestCase
 
         $detail = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/' . $projectId);
         $detail->assertOk();
+        $detail->assertJsonPath('data.deliverables.0.unread_comments_count', 1);
         $detail->assertJsonPath('data.deliverables.0.assigned_to_me', true);
         $detail->assertJsonPath('data.deliverables.0.description', 'Detalle');
+
+        $adminDetail = $this->actingAs($admin)->getJson('/api/v1/admin/projects/' . $projectId);
+        $adminDetail->assertOk();
+        $adminDetail->assertJsonPath('data.deliverables.0.unread_comments_count', 0);
+
+        $markRead = $this->actingAs($colaborador)->postJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments/read',
+        );
+        $markRead->assertOk();
+        $markRead->assertJsonPath('unread_comments_count', 0);
+
+        $detailAfterRead = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/' . $projectId);
+        $detailAfterRead->assertJsonPath('data.deliverables.0.unread_comments_count', 0);
 
         $forbidden = $this->actingAs($other)->postJson(
             '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
@@ -430,6 +444,7 @@ class ColaboradorProjectControllerTest extends TestCase
     private function createSchema(): void
     {
         Schema::dropIfExists('user_notifications');
+        Schema::dropIfExists('project_deliverable_comment_reads');
         Schema::dropIfExists('project_deliverable_comments');
         Schema::dropIfExists('project_collaborators');
         Schema::dropIfExists('project_contracts');
@@ -564,6 +579,16 @@ class ColaboradorProjectControllerTest extends TestCase
             $table->unsignedInteger('user_auth_id');
             $table->text('message');
             $table->timestamps();
+        });
+
+        Schema::create('project_deliverable_comment_reads', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedInteger('user_auth_id');
+            $table->unsignedBigInteger('deliverable_id');
+            $table->unsignedBigInteger('last_read_comment_id')->nullable();
+            $table->timestamp('last_read_at')->nullable();
+            $table->timestamps();
+            $table->unique(['user_auth_id', 'deliverable_id']);
         });
 
         Schema::create('project_updates', function (Blueprint $table): void {

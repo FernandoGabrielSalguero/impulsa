@@ -13,6 +13,27 @@ class UpdateUserGoalRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $merge = [];
+
+        if ($this->has('start_date')) {
+            $merge['start_date'] = $this->input('start_date') ?: null;
+        }
+
+        if ($this->has('due_date')) {
+            $merge['due_date'] = $this->input('due_date') ?: null;
+        }
+
+        if ($this->has('description')) {
+            $merge['description'] = $this->input('description') ?: null;
+        }
+
+        if ($merge !== []) {
+            $this->merge($merge);
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {

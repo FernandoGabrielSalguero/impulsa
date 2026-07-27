@@ -101,9 +101,11 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function show(Project $project): AdminProjectDetailResource
+    public function show(Request $request, Project $project): AdminProjectDetailResource
     {
-        return new AdminProjectDetailResource($this->projectAdminService->getDetail($project));
+        return new AdminProjectDetailResource(
+            $this->projectAdminService->getDetail($project, (int) $request->user()->id),
+        );
     }
 
     public function update(UpdateProjectRequest $request, Project $project): JsonResponse
@@ -119,7 +121,7 @@ class ProjectController extends Controller
     public function storePhase(StoreProjectPhaseRequest $request, Project $project): JsonResponse
     {
         $phase = $this->structureService->createPhase($project, $request->validated());
-        $detail = $this->projectAdminService->getDetail($project);
+        $detail = $this->projectAdminService->getDetail($project, (int) $request->user()->id);
 
         return response()->json([
             'message' => 'Fase creada correctamente.',
@@ -131,7 +133,7 @@ class ProjectController extends Controller
     public function updatePhase(StoreProjectPhaseRequest $request, Project $project, int $phase): JsonResponse
     {
         $updatedPhase = $this->structureService->updatePhase($project, $phase, $request->validated());
-        $detail = $this->projectAdminService->getDetail($project);
+        $detail = $this->projectAdminService->getDetail($project, (int) $request->user()->id);
 
         return response()->json([
             'message' => 'Fase actualizada correctamente.',
@@ -140,10 +142,10 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function destroyPhase(Project $project, int $phase): JsonResponse
+    public function destroyPhase(Request $request, Project $project, int $phase): JsonResponse
     {
         $this->structureService->deletePhase($project, $phase);
-        $detail = $this->projectAdminService->getDetail($project);
+        $detail = $this->projectAdminService->getDetail($project, (int) $request->user()->id);
 
         return response()->json([
             'message' => 'Fase eliminada correctamente.',
@@ -154,7 +156,7 @@ class ProjectController extends Controller
     public function storeDeliverable(StoreProjectDeliverableRequest $request, Project $project): JsonResponse
     {
         $deliverable = $this->structureService->createDeliverable($project, $request->validated());
-        $detail = $this->projectAdminService->getDetail($project);
+        $detail = $this->projectAdminService->getDetail($project, (int) $request->user()->id);
 
         return response()->json([
             'message' => 'Objetivo creado correctamente.',
@@ -166,7 +168,7 @@ class ProjectController extends Controller
     public function updateDeliverable(StoreProjectDeliverableRequest $request, Project $project, int $deliverable): JsonResponse
     {
         $updatedDeliverable = $this->structureService->updateDeliverable($project, $deliverable, $request->validated());
-        $detail = $this->projectAdminService->getDetail($project);
+        $detail = $this->projectAdminService->getDetail($project, (int) $request->user()->id);
 
         return response()->json([
             'message' => 'Objetivo actualizado correctamente.',
@@ -175,10 +177,10 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function destroyDeliverable(Project $project, int $deliverable): JsonResponse
+    public function destroyDeliverable(Request $request, Project $project, int $deliverable): JsonResponse
     {
         $this->structureService->deleteDeliverable($project, $deliverable);
-        $detail = $this->projectAdminService->getDetail($project);
+        $detail = $this->projectAdminService->getDetail($project, (int) $request->user()->id);
 
         return response()->json([
             'message' => 'Objetivo eliminado correctamente.',
@@ -215,6 +217,23 @@ class ProjectController extends Controller
             'message' => 'Comentario publicado correctamente.',
             'data' => $comment,
         ], 201);
+    }
+
+    public function markDeliverableCommentsRead(
+        Request $request,
+        Project $project,
+        int $deliverable,
+    ): JsonResponse {
+        $unreadCount = $this->commentService->markReadForAdmin(
+            (int) $request->user()->id,
+            (int) $project->id,
+            $deliverable,
+        );
+
+        return response()->json([
+            'message' => 'Comentarios marcados como leídos.',
+            'unread_comments_count' => $unreadCount,
+        ]);
     }
 
     public function showContract(Project $project): JsonResponse

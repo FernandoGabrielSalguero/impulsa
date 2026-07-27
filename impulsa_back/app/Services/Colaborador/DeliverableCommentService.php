@@ -4,6 +4,7 @@ namespace App\Services\Colaborador;
 
 use App\Services\Notifications\NotificationService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -60,6 +61,92 @@ class DeliverableCommentService
         return $this->createComment($userAuthId, $projectId, $deliverableId, $message);
     }
 
+    public function markReadForCollaborator(int $userAuthId, int $projectId, int $deliverableId): int
+    {
+        $this->assertCollaboratorAssigned($userAuthId, $projectId);
+        $this->assertDeliverableBelongsToProject($projectId, $deliverableId);
+
+        $this->markDeliverableCommentsRead($userAuthId, $deliverableId);
+
+        return 0;
+    }
+
+    public function markReadForAdmin(int $userAuthId, int $projectId, int $deliverableId): int
+    {
+        $this->assertDeliverableBelongsToProject($projectId, $deliverableId);
+        $this->markDeliverableCommentsRead($userAuthId, $deliverableId);
+
+        return 0;
+    }
+
+    /**
+     * @param  list<int>  $deliverableIds
+     * @return array<int, int>
+     */
+    public function unreadCountsByDeliverable(int $userAuthId, array $deliverableIds): array
+    {
+        if (! $this->readsTableExists()) {
+            return [];
+        }
+
+        $ids = collect($deliverableIds)
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $counts = array_fill_keys($ids, 0);
+
+        $rows = DB::table('project_deliverable_comments as c')
+            ->leftJoin('project_deliverable_comment_reads as r', function ($join) use ($userAuthId): void {
+                $join->on('r.deliverable_id', '=', 'c.deliverable_id')
+                    ->where('r.user_auth_id', '=', $userAuthId);
+            })
+            ->whereIn('c.deliverable_id', $ids)
+            ->where('c.user_auth_id', '!=', $userAuthId)
+            ->whereRaw('c.id > COALESCE(r.last_read_comment_id, 0)')
+            ->groupBy('c.deliverable_id')
+            ->selectRaw('c.deliverable_id, COUNT(*) as unread_count')
+            ->get();
+
+        foreach ($rows as $row) {
+            $counts[(int) $row->deliverable_id] = (int) $row->unread_count;
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $deliverables
+     * @return list<array<string, mixed>>
+     */
+    public function attachUnreadCounts(array $deliverables, ?int $viewerUserId): array
+    {
+        if ($viewerUserId === null || $deliverables === []) {
+            return array_map(static function (array $deliverable): array {
+                $deliverable['unread_comments_count'] = 0;
+
+                return $deliverable;
+            }, $deliverables);
+        }
+
+        $counts = $this->unreadCountsByDeliverable(
+            $viewerUserId,
+            array_map(static fn (array $deliverable): int => (int) $deliverable['id'], $deliverables),
+        );
+
+        return array_map(static function (array $deliverable) use ($counts): array {
+            $deliverable['unread_comments_count'] = $counts[(int) $deliverable['id']] ?? 0;
+
+            return $deliverable;
+        }, $deliverables);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -94,6 +181,8 @@ class DeliverableCommentService
             $commentId,
             $userAuthId,
         );
+
+        $this->markDeliverableCommentsRead($userAuthId, $deliverableId);
 
         $comments = $this->listComments($projectId, $deliverableId, $userAuthId);
 
@@ -140,6 +229,50 @@ class DeliverableCommentService
                 ];
             })
             ->all();
+    }
+
+    private function markDeliverableCommentsRead(int $userAuthId, int $deliverableId): void
+    {
+        if (! $this->readsTableExists()) {
+            return;
+        }
+
+        $maxCommentId = DB::table('project_deliverable_comments')
+            ->where('deliverable_id', $deliverableId)
+            ->max('id');
+
+        $now = now();
+
+        $existing = DB::table('project_deliverable_comment_reads')
+            ->where('user_auth_id', $userAuthId)
+            ->where('deliverable_id', $deliverableId)
+            ->first();
+
+        $payload = [
+            'last_read_comment_id' => $maxCommentId !== null ? (int) $maxCommentId : null,
+            'last_read_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        if ($existing !== null) {
+            DB::table('project_deliverable_comment_reads')
+                ->where('id', $existing->id)
+                ->update($payload);
+
+            return;
+        }
+
+        DB::table('project_deliverable_comment_reads')->insert([
+            ...$payload,
+            'user_auth_id' => $userAuthId,
+            'deliverable_id' => $deliverableId,
+            'created_at' => $now,
+        ]);
+    }
+
+    private function readsTableExists(): bool
+    {
+        return Schema::hasTable('project_deliverable_comment_reads');
     }
 
     private function assertCollaboratorAssigned(int $userAuthId, int $projectId): void

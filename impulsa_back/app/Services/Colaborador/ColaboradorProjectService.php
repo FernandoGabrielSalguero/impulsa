@@ -5,6 +5,7 @@ namespace App\Services\Colaborador;
 use App\Models\Project;
 use App\Services\Admin\ProjectClientNotificationService;
 use App\Services\Admin\ProjectStructureService;
+use App\Services\Colaborador\DeliverableCommentService;
 use App\Services\Notifications\NotificationService;
 use App\Services\Profile\UserAvatarStorageService;
 use App\Support\ProjectLabels;
@@ -21,6 +22,7 @@ class ColaboradorProjectService
         private readonly NotificationService $notificationService,
         private readonly ProjectClientNotificationService $clientNotificationService,
         private readonly UserAvatarStorageService $avatarStorage,
+        private readonly DeliverableCommentService $commentService,
     ) {}
 
     public function listForUser(int $userAuthId, ?string $q, int $perPage = 20): LengthAwarePaginator
@@ -86,7 +88,10 @@ class ColaboradorProjectService
         return [
             'project' => $row,
             'phases' => $this->structureService->getPhases($projectId),
-            'deliverables' => $this->structureService->getDeliverables($projectId),
+            'deliverables' => $this->commentService->attachUnreadCounts(
+                $this->structureService->getDeliverables($projectId),
+                $userAuthId,
+            ),
             'collaborators' => $this->listProjectCollaborators($projectId),
         ];
     }

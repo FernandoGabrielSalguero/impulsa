@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\Project;
 use App\Models\UserAuth;
+use App\Services\Colaborador\DeliverableCommentService;
 use App\Services\Notifications\NotificationService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -20,6 +21,7 @@ class ProjectAdminService
         private readonly UserAdminService $userAdminService,
         private readonly ProjectClientNotificationService $clientNotificationService,
         private readonly NotificationService $notificationService,
+        private readonly DeliverableCommentService $commentService,
     ) {}
 
     public function list(?string $q, int $perPage = 20): LengthAwarePaginator
@@ -67,7 +69,7 @@ class ProjectAdminService
     }
 
     /** @return array<string, mixed> */
-    public function getDetail(Project $project): array
+    public function getDetail(Project $project, ?int $viewerUserId = null): array
     {
         $row = $this->findProjectRow((int) $project->id);
 
@@ -78,7 +80,10 @@ class ProjectAdminService
         }
 
         $phases = $this->structureService->getPhases((int) $project->id);
-        $deliverables = $this->structureService->getDeliverables((int) $project->id);
+        $deliverables = $this->commentService->attachUnreadCounts(
+            $this->structureService->getDeliverables((int) $project->id),
+            $viewerUserId,
+        );
         $contract = $this->getContractRow((int) $project->id);
         $collaborators = $this->listProjectCollaborators((int) $project->id);
         $recalculated = $this->structureService->recalculateProject((int) $project->id);
@@ -138,7 +143,7 @@ class ProjectAdminService
         }
 
         $this->structureService->recalculateProject((int) $project->id);
-        $detail = $this->getDetail($project->fresh());
+        $detail = $this->getDetail($project->fresh(), $actorUserId);
         $changeLines = $this->describeProjectChanges($before, $detail['project']);
 
         if ($changeLines !== []) {
@@ -280,7 +285,7 @@ class ProjectAdminService
         );
 
         return [
-            'detail' => $this->getDetail($project),
+            'detail' => $this->getDetail($project, $actorUserId),
             'client_created' => $clientCreated,
             'email_sent' => $emailSent,
             'message' => $message,

@@ -280,6 +280,7 @@ class ProjectStructureService
 
             if ($deliverableIds !== []) {
                 DB::table('project_deliverable_tasks')->whereIn('deliverable_id', $deliverableIds)->delete();
+                DB::table('project_deliverable_comment_reads')->whereIn('deliverable_id', $deliverableIds)->delete();
                 DB::table('project_deliverable_comments')->whereIn('deliverable_id', $deliverableIds)->delete();
                 DB::table('project_deliverables')->whereIn('id', $deliverableIds)->delete();
             }
@@ -462,6 +463,7 @@ class ProjectStructureService
             $phaseId = $deliverable->phase_id !== null ? (int) $deliverable->phase_id : null;
 
             DB::table('project_deliverable_tasks')->where('deliverable_id', $deliverableId)->delete();
+            DB::table('project_deliverable_comment_reads')->where('deliverable_id', $deliverableId)->delete();
             DB::table('project_deliverable_comments')->where('deliverable_id', $deliverableId)->delete();
             DB::table('project_deliverables')->where('id', $deliverableId)->delete();
 

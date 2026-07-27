@@ -145,6 +145,7 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('projects/{project}/deliverables/{deliverable}', [ProjectController::class, 'destroyDeliverable']);
             Route::get('projects/{project}/deliverables/{deliverable}/comments', [ProjectController::class, 'deliverableComments']);
             Route::post('projects/{project}/deliverables/{deliverable}/comments', [ProjectController::class, 'storeDeliverableComment']);
+            Route::post('projects/{project}/deliverables/{deliverable}/comments/read', [ProjectController::class, 'markDeliverableCommentsRead']);
             Route::get('projects/{project}/contract', [ProjectController::class, 'showContract']);
             Route::put('projects/{project}/contract', [ProjectController::class, 'updateContract']);
             Route::post('projects/{project}/client-notification', [ProjectController::class, 'flushClientNotification']);
@@ -455,5 +456,6 @@ Route::prefix('v1')->group(function (): void {
             Route::patch('projects/{project}/deliverables/{deliverable}/status', [ColaboradorProjectController::class, 'updateDeliverableStatus']);
             Route::get('projects/{project}/deliverables/{deliverable}/comments', [ColaboradorProjectController::class, 'comments']);
             Route::post('projects/{project}/deliverables/{deliverable}/comments', [ColaboradorProjectController::class, 'storeComment']);
+            Route::post('projects/{project}/deliverables/{deliverable}/comments/read', [ColaboradorProjectController::class, 'markCommentsRead']);
         });
 });

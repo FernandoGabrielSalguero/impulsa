@@ -139,4 +139,18 @@ class ProjectController extends Controller
             'data' => $comment,
         ], 201);
     }
+
+    public function markCommentsRead(Request $request, int $project, int $deliverable): JsonResponse
+    {
+        $unreadCount = $this->commentService->markReadForCollaborator(
+            (int) $request->user()->id,
+            $project,
+            $deliverable,
+        );
+
+        return response()->json([
+            'message' => 'Comentarios marcados como leídos.',
+            'unread_comments_count' => $unreadCount,
+        ]);
+    }
 }

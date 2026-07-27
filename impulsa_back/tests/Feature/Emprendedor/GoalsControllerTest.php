@@ -114,6 +114,19 @@ class GoalsControllerTest extends TestCase
         ]);
     }
 
+    public function test_user_can_create_goal_with_only_due_date(): void
+    {
+        $user = $this->createUser('emprendedor2@test.com', 'impulsa_emprendedor');
+
+        $response = $this->actingAs($user)->postJson('/api/v1/emprendedor/metas', [
+            'title' => 'Meta con vencimiento',
+            'start_date' => null,
+            'due_date' => now()->addDays(10)->toDateString(),
+        ]);
+
+        $response->assertCreated();
+    }
+
     private function createUser(string $email, string $role, ?string $nombre = null, ?string $apellido = null): UserAuth
     {
         $user = UserAuth::query()->create([

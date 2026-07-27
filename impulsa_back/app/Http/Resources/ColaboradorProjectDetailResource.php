@@ -118,6 +118,7 @@ class ColaboradorProjectDetailResource extends JsonResource
             'assigned_user_id' => $assignedUserId,
             'assigned_user_label' => $deliverable['assigned_user_label'] ?? null,
             'assigned_to_me' => $assignedUserId !== null && $assignedUserId === $viewerId,
+            'unread_comments_count' => (int) ($deliverable['unread_comments_count'] ?? 0),
         ];
     }
 }
