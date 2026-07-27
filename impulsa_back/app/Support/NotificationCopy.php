@@ -133,6 +133,48 @@ class NotificationCopy
         ];
     }
 
+    /** @return array{title: string, body: string} */
+    public static function goalObjectiveCompleted(string $goalTitle, string $objectiveTitle, int $progressPercent, int $remaining): array
+    {
+        $body = 'Completaste "'.$objectiveTitle.'" en la meta '.$goalTitle.'. Avance: '.$progressPercent.'%.';
+
+        if ($remaining > 0) {
+            $body .= ' Quedan '.$remaining.' objetivo(s) por cumplir.';
+        }
+
+        return [
+            'title' => 'Objetivo completado',
+            'body' => $body,
+        ];
+    }
+
+    /** @return array{title: string, body: string} */
+    public static function goalCompleted(string $goalTitle): array
+    {
+        return [
+            'title' => 'Meta completada',
+            'body' => 'Felicitaciones, completaste todos los objetivos de la meta "'.$goalTitle.'".',
+        ];
+    }
+
+    /** @return array{title: string, body: string} */
+    public static function goalReminderUpcoming(string $entityLabel, string $goalTitle): array
+    {
+        return [
+            'title' => 'Vencimiento próximo',
+            'body' => $entityLabel.' de la meta "'.$goalTitle.'" vence mañana.',
+        ];
+    }
+
+    /** @return array{title: string, body: string} */
+    public static function goalReminderOverdue(string $entityLabel, string $goalTitle): array
+    {
+        return [
+            'title' => 'Vencimiento superado',
+            'body' => $entityLabel.' de la meta "'.$goalTitle.'" está vencido.',
+        ];
+    }
+
     /**
      * @param  list<string>  $changeLines
      */

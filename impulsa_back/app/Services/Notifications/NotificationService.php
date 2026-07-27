@@ -31,6 +31,14 @@ class NotificationService
 
     public const TYPE_PROJECT_CLIENT_UPDATE = 'project.client_update';
 
+    public const TYPE_GOAL_OBJECTIVE_COMPLETED = 'goals.objective_completed';
+
+    public const TYPE_GOAL_COMPLETED = 'goals.goal_completed';
+
+    public const TYPE_GOAL_REMINDER_UPCOMING = 'goals.reminder_upcoming';
+
+    public const TYPE_GOAL_REMINDER_OVERDUE = 'goals.reminder_overdue';
+
     /**
      * @param  list<int>  $userIds
      * @param  array<string, mixed>  $payload
@@ -608,9 +616,102 @@ class NotificationService
                 self::TYPE_PROJECT_DELIVERABLE_DELETED => 'flag',
                 self::TYPE_PROJECT_STATUS => 'sync_alt',
                 self::TYPE_PROJECT_CLIENT_UPDATE => 'campaign',
+                self::TYPE_GOAL_OBJECTIVE_COMPLETED,
+                self::TYPE_GOAL_COMPLETED => 'flag',
+                self::TYPE_GOAL_REMINDER_UPCOMING,
+                self::TYPE_GOAL_REMINDER_OVERDUE => 'event',
                 default => 'notifications',
             },
         ];
+    }
+
+    /**
+     * @param  array{total_objectives: int, completed_objectives: int, remaining_objectives: int, days_until_due: int|null}  $summary
+     */
+    public function notifyGoalObjectiveCompleted(
+        int $userAuthId,
+        object $goal,
+        object $objective,
+        array $summary,
+    ): void {
+        $copy = NotificationCopy::goalObjectiveCompleted(
+            (string) $goal->title,
+            (string) $objective->title,
+            (int) $goal->progress_percent,
+            (int) $summary['remaining_objectives'],
+        );
+
+        $this->notifyMany(
+            [$userAuthId],
+            self::TYPE_GOAL_OBJECTIVE_COMPLETED,
+            $copy['title'],
+            $copy['body'],
+            [
+                'goal_id' => (int) $goal->id,
+                'objective_id' => (int) $objective->id,
+                'progress_percent' => (int) $goal->progress_percent,
+                'remaining_objectives' => (int) $summary['remaining_objectives'],
+            ],
+        );
+    }
+
+    /**
+     * @param  array{total_objectives: int, completed_objectives: int, remaining_objectives: int, days_until_due: int|null}  $summary
+     */
+    public function notifyGoalCompleted(int $userAuthId, object $goal, array $summary): void
+    {
+        $copy = NotificationCopy::goalCompleted((string) $goal->title);
+
+        $this->notifyMany(
+            [$userAuthId],
+            self::TYPE_GOAL_COMPLETED,
+            $copy['title'],
+            $copy['body'],
+            [
+                'goal_id' => (int) $goal->id,
+                'progress_percent' => (int) $goal->progress_percent,
+                'total_objectives' => (int) $summary['total_objectives'],
+            ],
+        );
+    }
+
+    /**
+     * @param  array{total_objectives: int, completed_objectives: int, remaining_objectives: int, days_until_due: int|null}  $summary
+     */
+    public function notifyGoalReminder(
+        int $userAuthId,
+        object $goal,
+        ?object $objective,
+        bool $isUpcoming,
+        array $summary,
+    ): void {
+        $entityLabel = $objective !== null
+            ? 'El objetivo "'.$objective->title.'"'
+            : 'La meta';
+
+        $copy = $isUpcoming
+            ? NotificationCopy::goalReminderUpcoming($entityLabel, (string) $goal->title)
+            : NotificationCopy::goalReminderOverdue($entityLabel, (string) $goal->title);
+
+        $type = $isUpcoming ? self::TYPE_GOAL_REMINDER_UPCOMING : self::TYPE_GOAL_REMINDER_OVERDUE;
+
+        $payload = [
+            'goal_id' => (int) $goal->id,
+            'progress_percent' => (int) $goal->progress_percent,
+            'remaining_objectives' => (int) $summary['remaining_objectives'],
+        ];
+
+        if ($objective !== null) {
+            $payload['objective_id'] = (int) $objective->id;
+        }
+
+        $this->notifyMany(
+            [$userAuthId],
+            $type,
+            $copy['title'],
+            $copy['body'],
+            $payload,
+        );
     }
 
     private function userLabel(int $userAuthId): ?string

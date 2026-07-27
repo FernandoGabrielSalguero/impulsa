@@ -16,4 +16,7 @@ enum MailTemplate: string
     case ReenvioCorreoLog = 'reenvio_correo_log';
     case SubscriptionMonthlyNotice = 'subscription_monthly_notice';
     case SubscriptionPaymentReminder = 'subscription_payment_reminder';
+    case GoalObjectiveCompleted = 'goal_objective_completed';
+    case GoalCompleted = 'goal_completed';
+    case GoalReminder = 'goal_reminder';
 }
