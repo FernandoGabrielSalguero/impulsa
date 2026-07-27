@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Admin\ChatbotController;
 use App\Http\Controllers\Api\V1\Admin\EmailMarketingContactsController;
 use App\Http\Controllers\Api\V1\Admin\CorreoLogController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\GoalsMonitorController;
 use App\Http\Controllers\Api\V1\Admin\MarketingDashboardController;
 use App\Http\Controllers\Api\V1\Admin\MarketingPlanController;
 use App\Http\Controllers\Api\V1\Admin\MarketingSubscriptionController;
@@ -120,6 +121,10 @@ Route::prefix('v1')->group(function (): void {
             Route::get('ai-usage-logs/options', [AiUsageLogController::class, 'options']);
             Route::get('ai-usage-logs', [AiUsageLogController::class, 'index']);
             Route::get('ai-usage-logs/{aiUsageLog}', [AiUsageLogController::class, 'show']);
+            Route::get('metas/summary', [GoalsMonitorController::class, 'summary']);
+            Route::get('metas/options', [GoalsMonitorController::class, 'options']);
+            Route::get('metas', [GoalsMonitorController::class, 'index']);
+            Route::get('metas/{goalId}', [GoalsMonitorController::class, 'show']);
             Route::get('user-ingresos/options', [UserIngresoController::class, 'options']);
             Route::get('user-ingresos', [UserIngresoController::class, 'index']);
             Route::get('web-requests/internal', [WebRequestController::class, 'indexInternal']);

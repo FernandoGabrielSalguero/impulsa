@@ -1,0 +1,1 @@
+var t={pending:"Pendiente",in_progress:"En progreso",completed:"Completada",cancelled:"Cancelada"};function n(e){return t[e]??e}function r(e){return e==null?"Sin fecha l\xEDmite":e>1?`Vence en ${e} d\xEDas`:e===1?"Vence ma\xF1ana":e===0?"Vence hoy":`Venci\xF3 hace ${Math.abs(e)} d\xEDa(s)`}export{n,r};

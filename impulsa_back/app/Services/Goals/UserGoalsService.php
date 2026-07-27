@@ -306,6 +306,24 @@ class UserGoalsService
         return $dueDate->startOfDay()->lt(now()->startOfDay());
     }
 
+    /** @return array<string, mixed> */
+    public function goalListItem(UserGoal $goal): array
+    {
+        return $this->serializeGoalListItem($goal);
+    }
+
+    /** @return array<string, mixed> */
+    public function objectiveItem(UserGoalObjective $objective, UserGoal $goal): array
+    {
+        return $this->serializeObjective($objective, $goal);
+    }
+
+    /** @return array{total_objectives: int, completed_objectives: int, remaining_objectives: int, days_until_due: int|null} */
+    public function goalSummary(UserGoal $goal): array
+    {
+        return $this->buildSummary($goal);
+    }
+
     private function sendReminder(UserAuth $user, UserGoal $goal, ?UserGoalObjective $objective, string $kind): int
     {
         if ($this->reminderAlreadySent($user->id, $objective ? 'objective' : 'goal', $objective?->id ?? $goal->id, $kind)) {
