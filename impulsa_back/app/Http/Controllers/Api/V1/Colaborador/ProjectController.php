@@ -175,12 +175,17 @@ class ProjectController extends Controller
     ): JsonResponse {
         $userId = (int) $request->user()->id;
         $this->attachmentService->assertCollaboratorAssigned($userId, $project);
+        $file = $request->file('file');
+
+        if ($file === null) {
+            return response()->json(['message' => 'Debés seleccionar un archivo.'], 422);
+        }
 
         $attachment = $this->attachmentService->storeForPhase(
             $userId,
             $project,
             $phase,
-            $request->file('file'),
+            $file,
         );
 
         return response()->json([
@@ -196,18 +201,50 @@ class ProjectController extends Controller
     ): JsonResponse {
         $userId = (int) $request->user()->id;
         $this->attachmentService->assertCollaboratorAssigned($userId, $project);
+        $file = $request->file('file');
+
+        if ($file === null) {
+            return response()->json(['message' => 'Debés seleccionar un archivo.'], 422);
+        }
 
         $attachment = $this->attachmentService->storeForDeliverable(
             $userId,
             $project,
             $deliverable,
-            $request->file('file'),
+            $file,
         );
 
         return response()->json([
             'message' => 'Archivo adjunto correctamente.',
             'data' => $attachment,
         ], 201);
+    }
+
+    public function markPhaseAttachmentsRead(Request $request, int $project, int $phase): JsonResponse
+    {
+        $userId = (int) $request->user()->id;
+        $this->attachmentService->assertCollaboratorAssigned($userId, $project);
+        $unread = $this->attachmentService->markPhaseAttachmentsRead($userId, $project, $phase);
+
+        return response()->json([
+            'message' => 'Adjuntos marcados como vistos.',
+            'unread_attachments_count' => $unread,
+        ]);
+    }
+
+    public function markDeliverableAttachmentsRead(
+        Request $request,
+        int $project,
+        int $deliverable,
+    ): JsonResponse {
+        $userId = (int) $request->user()->id;
+        $this->attachmentService->assertCollaboratorAssigned($userId, $project);
+        $unread = $this->attachmentService->markDeliverableAttachmentsRead($userId, $project, $deliverable);
+
+        return response()->json([
+            'message' => 'Adjuntos marcados como vistos.',
+            'unread_attachments_count' => $unread,
+        ]);
     }
 
     public function destroyAttachment(Request $request, int $project, int $attachment): JsonResponse

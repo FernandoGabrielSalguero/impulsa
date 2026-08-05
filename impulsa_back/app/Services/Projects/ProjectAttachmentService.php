@@ -78,22 +78,41 @@ class ProjectAttachmentService
      * @param  list<array<string, mixed>>  $deliverables
      * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>}
      */
-    public function attachToDetail(int $projectId, array $phases, array $deliverables): array
-    {
+    public function attachToDetail(
+        int $projectId,
+        array $phases,
+        array $deliverables,
+        ?int $viewerUserId = null,
+    ): array {
         $map = $this->mapForEntities(
             $projectId,
             array_map(static fn (array $phase): int => (int) $phase['id'], $phases),
             array_map(static fn (array $deliverable): int => (int) $deliverable['id'], $deliverables),
         );
 
-        $phases = array_map(static function (array $phase) use ($map): array {
-            $phase['attachments'] = $map['phases'][(int) $phase['id']] ?? [];
+        $phaseUnread = $viewerUserId !== null
+            ? $this->unreadCountsByPhase($viewerUserId, $projectId, array_keys($map['phases']))
+            : [];
+        $deliverableUnread = $viewerUserId !== null
+            ? $this->unreadCountsByDeliverable($viewerUserId, $projectId, array_keys($map['deliverables']))
+            : [];
+
+        $phases = array_map(static function (array $phase) use ($map, $phaseUnread): array {
+            $id = (int) $phase['id'];
+            $attachments = $map['phases'][$id] ?? [];
+            $phase['attachments'] = $attachments;
+            $phase['attachments_count'] = count($attachments);
+            $phase['unread_attachments_count'] = $phaseUnread[$id] ?? 0;
 
             return $phase;
         }, $phases);
 
-        $deliverables = array_map(static function (array $deliverable) use ($map): array {
-            $deliverable['attachments'] = $map['deliverables'][(int) $deliverable['id']] ?? [];
+        $deliverables = array_map(static function (array $deliverable) use ($map, $deliverableUnread): array {
+            $id = (int) $deliverable['id'];
+            $attachments = $map['deliverables'][$id] ?? [];
+            $deliverable['attachments'] = $attachments;
+            $deliverable['attachments_count'] = count($attachments);
+            $deliverable['unread_attachments_count'] = $deliverableUnread[$id] ?? 0;
 
             return $deliverable;
         }, $deliverables);
@@ -124,6 +143,8 @@ class ProjectAttachmentService
             'updated_at' => now(),
         ]);
 
+        $this->markPhaseAttachmentsRead($userAuthId, $projectId, $phaseId);
+
         return $this->findAttachmentRow($projectId, $id);
     }
 
@@ -150,7 +171,25 @@ class ProjectAttachmentService
             'updated_at' => now(),
         ]);
 
+        $this->markDeliverableAttachmentsRead($userAuthId, $projectId, $deliverableId);
+
         return $this->findAttachmentRow($projectId, $id);
+    }
+
+    public function markPhaseAttachmentsRead(int $userAuthId, int $projectId, int $phaseId): int
+    {
+        $this->assertPhaseBelongsToProject($projectId, $phaseId);
+        $this->markEntityAttachmentsRead($userAuthId, $projectId, 'phase_id', $phaseId);
+
+        return 0;
+    }
+
+    public function markDeliverableAttachmentsRead(int $userAuthId, int $projectId, int $deliverableId): int
+    {
+        $this->assertDeliverableBelongsToProject($projectId, $deliverableId);
+        $this->markEntityAttachmentsRead($userAuthId, $projectId, 'deliverable_id', $deliverableId);
+
+        return 0;
     }
 
     public function delete(int $projectId, int $attachmentId): void
@@ -208,7 +247,7 @@ class ProjectAttachmentService
     {
         if (! $this->tableExists()) {
             throw ValidationException::withMessages([
-                'file' => ['La tabla de adjuntos no está disponible.'],
+                'file' => ['La tabla de adjuntos no está disponible. Ejecutá la migración project_attachments.'],
             ]);
         }
 
@@ -219,6 +258,121 @@ class ProjectAttachmentService
                 'file' => ['Podés cargar como máximo '.self::MAX_PER_ENTITY.' archivos. Eliminá uno para subir otro.'],
             ]);
         }
+    }
+
+    /**
+     * @param  list<int|string>  $phaseIds
+     * @return array<int, int>
+     */
+    private function unreadCountsByPhase(int $userAuthId, int $projectId, array $phaseIds): array
+    {
+        return $this->unreadCountsForColumn($userAuthId, $projectId, 'phase_id', $phaseIds);
+    }
+
+    /**
+     * @param  list<int|string>  $deliverableIds
+     * @return array<int, int>
+     */
+    private function unreadCountsByDeliverable(int $userAuthId, int $projectId, array $deliverableIds): array
+    {
+        return $this->unreadCountsForColumn($userAuthId, $projectId, 'deliverable_id', $deliverableIds);
+    }
+
+    /**
+     * @param  list<int|string>  $entityIds
+     * @return array<int, int>
+     */
+    private function unreadCountsForColumn(
+        int $userAuthId,
+        int $projectId,
+        string $column,
+        array $entityIds,
+    ): array {
+        if (! $this->tableExists() || ! $this->readsTableExists()) {
+            return [];
+        }
+
+        $ids = collect($entityIds)
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $counts = array_fill_keys($ids, 0);
+
+        $rows = DB::table('project_attachments as a')
+            ->leftJoin('project_attachment_reads as r', function ($join) use ($userAuthId, $column): void {
+                $join->on('r.'.$column, '=', 'a.'.$column)
+                    ->where('r.user_auth_id', '=', $userAuthId);
+            })
+            ->where('a.project_id', $projectId)
+            ->whereIn('a.'.$column, $ids)
+            ->where('a.uploaded_by', '!=', $userAuthId)
+            ->whereRaw('a.id > COALESCE(r.last_read_attachment_id, 0)')
+            ->groupBy('a.'.$column)
+            ->selectRaw('a.'.$column.' as entity_id, COUNT(*) as unread_count')
+            ->get();
+
+        foreach ($rows as $row) {
+            $counts[(int) $row->entity_id] = (int) $row->unread_count;
+        }
+
+        return $counts;
+    }
+
+    private function markEntityAttachmentsRead(
+        int $userAuthId,
+        int $projectId,
+        string $column,
+        int $entityId,
+    ): void {
+        if (! $this->tableExists() || ! $this->readsTableExists()) {
+            return;
+        }
+
+        $maxId = DB::table('project_attachments')
+            ->where('project_id', $projectId)
+            ->where($column, $entityId)
+            ->max('id');
+
+        $now = now();
+        $existing = DB::table('project_attachment_reads')
+            ->where('user_auth_id', $userAuthId)
+            ->where($column, $entityId)
+            ->first();
+
+        $payload = [
+            'project_id' => $projectId,
+            'phase_id' => $column === 'phase_id' ? $entityId : null,
+            'deliverable_id' => $column === 'deliverable_id' ? $entityId : null,
+            'last_read_attachment_id' => $maxId !== null ? (int) $maxId : null,
+            'last_read_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        if ($existing !== null) {
+            DB::table('project_attachment_reads')
+                ->where('id', $existing->id)
+                ->update($payload);
+
+            return;
+        }
+
+        DB::table('project_attachment_reads')->insert([
+            ...$payload,
+            'user_auth_id' => $userAuthId,
+            'created_at' => $now,
+        ]);
+    }
+
+    private function readsTableExists(): bool
+    {
+        return Schema::hasTable('project_attachment_reads');
     }
 
     private function assertPhaseBelongsToProject(int $projectId, int $phaseId): void

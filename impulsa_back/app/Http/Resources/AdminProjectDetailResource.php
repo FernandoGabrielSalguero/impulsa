@@ -84,6 +84,8 @@ class AdminProjectDetailResource extends JsonResource
                 ? (int) $phase['assigned_user_id']
                 : null,
             'assigned_user_label' => $phase['assigned_user_label'] ?? null,
+            'attachments_count' => (int) ($phase['attachments_count'] ?? count($phase['attachments'] ?? [])),
+            'unread_attachments_count' => (int) ($phase['unread_attachments_count'] ?? 0),
             'attachments' => array_map(
                 static fn (array $attachment): array => [
                     'id' => (int) $attachment['id'],
@@ -122,6 +124,8 @@ class AdminProjectDetailResource extends JsonResource
             'assigned_user_label' => $deliverable['assigned_user_label'] ?? null,
             'comments_count' => (int) ($deliverable['comments_count'] ?? 0),
             'unread_comments_count' => (int) ($deliverable['unread_comments_count'] ?? 0),
+            'attachments_count' => (int) ($deliverable['attachments_count'] ?? count($deliverable['attachments'] ?? [])),
+            'unread_attachments_count' => (int) ($deliverable['unread_attachments_count'] ?? 0),
             'attachments' => array_map(
                 static fn (array $attachment): array => [
                     'id' => (int) $attachment['id'],

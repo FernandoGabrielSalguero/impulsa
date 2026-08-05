@@ -5,7 +5,9 @@ namespace App\Services\Projects;
 use App\Services\ApiProduct\ApiProductNormalizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class ProjectAttachmentStorageService
 {
@@ -47,28 +49,28 @@ class ProjectAttachmentStorageService
             ]);
         }
 
-        $mimeType = (string) $file->getMimeType();
-
-        if ($mimeType === '' || ! in_array($mimeType, self::MIME_TYPES, true)) {
-            throw ValidationException::withMessages([
-                'file' => ['El tipo de archivo no está permitido.'],
-            ]);
-        }
-
-        $directory = $this->storageDirectory();
-
-        if (! is_dir($directory) && ! File::makeDirectory($directory, 0775, true) && ! is_dir($directory)) {
-            throw ValidationException::withMessages([
-                'file' => ['No se pudo preparar la carpeta de uploads.'],
-            ]);
-        }
-
+        $mimeType = $this->resolveMimeType($file, $extension);
+        $directory = $this->ensureStorageDirectory();
         $originalName = (string) $file->getClientOriginalName();
-        $normalizer = app(ApiProductNormalizer::class);
-        $baseSlug = $normalizer->slugify(pathinfo($originalName, PATHINFO_FILENAME)) ?: 'adjunto';
+        $baseSlug = $this->slugify(pathinfo($originalName, PATHINFO_FILENAME)) ?: 'adjunto';
         $fileName = 'project_attachment_'.$baseSlug.'_'.date('Ymd_His').'_'.bin2hex(random_bytes(6)).'.'.$extension;
+        $absoluteTarget = rtrim($directory, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$fileName;
 
-        $file->move($directory, $fileName);
+        try {
+            if (! $file->move($directory, $fileName) && ! is_file($absoluteTarget)) {
+                throw ValidationException::withMessages([
+                    'file' => ['No se pudo guardar el archivo en el servidor.'],
+                ]);
+            }
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            throw ValidationException::withMessages([
+                'file' => ['No se pudo guardar el archivo en el servidor. Verificá permisos de la carpeta de uploads.'],
+            ]);
+        }
 
         return [
             'file_path' => rtrim($this->pathPrefix(), '/').'/'.$fileName,
@@ -112,14 +114,100 @@ class ProjectAttachmentStorageService
         }
     }
 
+    private function resolveMimeType(UploadedFile $file, string $extension): string
+    {
+        $mimeType = trim((string) ($file->getMimeType() ?: $file->getClientMimeType()));
+
+        if (in_array($mimeType, self::MIME_TYPES, true)) {
+            return $mimeType;
+        }
+
+        if ($mimeType === '' || $mimeType === 'application/octet-stream') {
+            return match ($extension) {
+                'jpg', 'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'webp' => 'image/webp',
+                'gif' => 'image/gif',
+                'pdf' => 'application/pdf',
+                default => $mimeType,
+            };
+        }
+
+        throw ValidationException::withMessages([
+            'file' => ['El tipo de archivo no está permitido.'],
+        ]);
+    }
+
+    private function ensureStorageDirectory(): string
+    {
+        $directory = $this->storageDirectory();
+
+        if ($directory === '') {
+            throw ValidationException::withMessages([
+                'file' => ['No está configurada la carpeta de uploads de adjuntos.'],
+            ]);
+        }
+
+        try {
+            if (! is_dir($directory) && ! File::makeDirectory($directory, 0775, true) && ! is_dir($directory)) {
+                throw ValidationException::withMessages([
+                    'file' => ['No se pudo preparar la carpeta de uploads.'],
+                ]);
+            }
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            throw ValidationException::withMessages([
+                'file' => ['No se pudo preparar la carpeta de uploads: '.$directory],
+            ]);
+        }
+
+        if (! is_writable($directory)) {
+            throw ValidationException::withMessages([
+                'file' => ['La carpeta de uploads no tiene permisos de escritura.'],
+            ]);
+        }
+
+        return $directory;
+    }
+
+    private function slugify(string $text): string
+    {
+        try {
+            $slug = app(ApiProductNormalizer::class)->slugify($text);
+
+            if (is_string($slug) && $slug !== '') {
+                return $slug;
+            }
+        } catch (Throwable) {
+            // fallback below
+        }
+
+        return (string) (Str::slug($text) ?: 'adjunto');
+    }
+
     private function storageDirectory(): string
     {
-        return (string) config('uploads.project_attachment.storage_path');
+        $configured = config('uploads.project_attachment.storage_path');
+
+        if (is_string($configured) && trim($configured) !== '') {
+            return $configured;
+        }
+
+        return storage_path('app/project-attachments');
     }
 
     private function pathPrefix(): string
     {
-        return (string) config('uploads.project_attachment.path_prefix', 'project-attachments');
+        $configured = config('uploads.project_attachment.path_prefix');
+
+        if (is_string($configured) && trim($configured) !== '') {
+            return $configured;
+        }
+
+        return 'project-attachments';
     }
 
     private function isExistingFile(string $path): bool

@@ -220,11 +220,17 @@ class ProjectController extends Controller
         Project $project,
         int $phase,
     ): JsonResponse {
+        $file = $request->file('file');
+
+        if ($file === null) {
+            return response()->json(['message' => 'Debés seleccionar un archivo.'], 422);
+        }
+
         $attachment = $this->attachmentService->storeForPhase(
             (int) $request->user()->id,
             (int) $project->id,
             $phase,
-            $request->file('file'),
+            $file,
         );
 
         return response()->json([
@@ -238,17 +244,54 @@ class ProjectController extends Controller
         Project $project,
         int $deliverable,
     ): JsonResponse {
+        $file = $request->file('file');
+
+        if ($file === null) {
+            return response()->json(['message' => 'Debés seleccionar un archivo.'], 422);
+        }
+
         $attachment = $this->attachmentService->storeForDeliverable(
             (int) $request->user()->id,
             (int) $project->id,
             $deliverable,
-            $request->file('file'),
+            $file,
         );
 
         return response()->json([
             'message' => 'Archivo adjunto correctamente.',
             'data' => $attachment,
         ], 201);
+    }
+
+    public function markPhaseAttachmentsRead(Request $request, Project $project, int $phase): JsonResponse
+    {
+        $unread = $this->attachmentService->markPhaseAttachmentsRead(
+            (int) $request->user()->id,
+            (int) $project->id,
+            $phase,
+        );
+
+        return response()->json([
+            'message' => 'Adjuntos marcados como vistos.',
+            'unread_attachments_count' => $unread,
+        ]);
+    }
+
+    public function markDeliverableAttachmentsRead(
+        Request $request,
+        Project $project,
+        int $deliverable,
+    ): JsonResponse {
+        $unread = $this->attachmentService->markDeliverableAttachmentsRead(
+            (int) $request->user()->id,
+            (int) $project->id,
+            $deliverable,
+        );
+
+        return response()->json([
+            'message' => 'Adjuntos marcados como vistos.',
+            'unread_attachments_count' => $unread,
+        ]);
     }
 
     public function destroyAttachment(Project $project, int $attachment): JsonResponse

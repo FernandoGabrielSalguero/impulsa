@@ -90,6 +90,7 @@ class ProjectAdminService
             (int) $project->id,
             $phases,
             $deliverables,
+            $viewerUserId,
         );
         $contract = $this->getContractRow((int) $project->id);
         $collaborators = $this->listProjectCollaborators((int) $project->id);

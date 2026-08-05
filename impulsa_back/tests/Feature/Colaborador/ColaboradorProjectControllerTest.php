@@ -536,6 +536,8 @@ class ColaboradorProjectControllerTest extends TestCase
     private function createSchema(): void
     {
         Schema::dropIfExists('user_notifications');
+        Schema::dropIfExists('project_attachment_reads');
+        Schema::dropIfExists('project_attachments');
         Schema::dropIfExists('project_deliverable_comment_reads');
         Schema::dropIfExists('project_deliverable_comments');
         Schema::dropIfExists('project_collaborators');
@@ -728,6 +730,17 @@ class ColaboradorProjectControllerTest extends TestCase
             $table->string('mime_type', 120);
             $table->unsignedInteger('size_bytes')->default(0);
             $table->unsignedInteger('uploaded_by');
+            $table->timestamps();
+        });
+
+        Schema::create('project_attachment_reads', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedInteger('user_auth_id');
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('phase_id')->nullable();
+            $table->unsignedBigInteger('deliverable_id')->nullable();
+            $table->unsignedBigInteger('last_read_attachment_id')->nullable();
+            $table->timestamp('last_read_at')->nullable();
             $table->timestamps();
         });
 

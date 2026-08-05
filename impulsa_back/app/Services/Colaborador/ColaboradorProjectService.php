@@ -96,6 +96,7 @@ class ColaboradorProjectService
             $projectId,
             $phases,
             $deliverables,
+            $userAuthId,
         );
 
         return [
