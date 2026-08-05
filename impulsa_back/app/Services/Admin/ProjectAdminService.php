@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\UserAuth;
 use App\Services\Colaborador\DeliverableCommentService;
 use App\Services\Notifications\NotificationService;
+use App\Services\Projects\ProjectAttachmentService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,7 @@ class ProjectAdminService
         private readonly ProjectClientNotificationService $clientNotificationService,
         private readonly NotificationService $notificationService,
         private readonly DeliverableCommentService $commentService,
+        private readonly ProjectAttachmentService $attachmentService,
     ) {}
 
     public function list(?string $q, int $perPage = 20): LengthAwarePaginator
@@ -83,6 +85,11 @@ class ProjectAdminService
         $deliverables = $this->commentService->attachUnreadCounts(
             $this->structureService->getDeliverables((int) $project->id),
             $viewerUserId,
+        );
+        [$phases, $deliverables] = $this->attachmentService->attachToDetail(
+            (int) $project->id,
+            $phases,
+            $deliverables,
         );
         $contract = $this->getContractRow((int) $project->id);
         $collaborators = $this->listProjectCollaborators((int) $project->id);

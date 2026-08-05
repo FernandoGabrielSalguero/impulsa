@@ -105,6 +105,19 @@ class ProjectControllerTest extends TestCase
         $this->assertSame(0, (int) \DB::table('projects')->count());
     }
 
+    public function test_options_include_corrections_deliverable_type(): void
+    {
+        $admin = $this->createAdmin();
+
+        $response = $this->actingAs($admin)->getJson('/api/v1/admin/projects/options');
+
+        $response->assertOk();
+        $values = collect($response->json('deliverable_types'))->pluck('value')->all();
+        $this->assertContains('corrections', $values);
+        $labels = collect($response->json('deliverable_types'))->pluck('label')->all();
+        $this->assertContains('Correcciones', $labels);
+    }
+
     private function createAdmin(): UserAuth
     {
         $admin = UserAuth::query()->create([

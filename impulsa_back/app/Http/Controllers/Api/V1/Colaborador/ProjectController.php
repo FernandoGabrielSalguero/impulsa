@@ -7,19 +7,23 @@ use App\Http\Requests\Colaborador\StoreDeliverableCommentRequest;
 use App\Http\Requests\Colaborador\UpdateDeliverableStatusRequest;
 use App\Http\Requests\Colaborador\UpdatePhaseStatusRequest;
 use App\Http\Requests\Colaborador\UpdateProjectStatusRequest;
+use App\Http\Requests\Projects\StoreProjectAttachmentRequest;
 use App\Http\Resources\AdminProjectCollection;
 use App\Http\Resources\ColaboradorProjectDetailResource;
 use App\Services\Colaborador\ColaboradorProjectService;
 use App\Services\Colaborador\DeliverableCommentService;
+use App\Services\Projects\ProjectAttachmentService;
 use App\Support\ProjectLabels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProjectController extends Controller
 {
     public function __construct(
         private readonly ColaboradorProjectService $projectService,
         private readonly DeliverableCommentService $commentService,
+        private readonly ProjectAttachmentService $attachmentService,
     ) {}
 
     public function index(Request $request): AdminProjectCollection
@@ -109,6 +113,16 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function projectComments(Request $request, int $project): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->commentService->listGroupedByPhaseForCollaborator(
+                (int) $request->user()->id,
+                $project,
+            ),
+        ]);
+    }
+
     public function comments(Request $request, int $project, int $deliverable): JsonResponse
     {
         $comments = $this->commentService->listForCollaborator(
@@ -152,5 +166,64 @@ class ProjectController extends Controller
             'message' => 'Comentarios marcados como leídos.',
             'unread_comments_count' => $unreadCount,
         ]);
+    }
+
+    public function storePhaseAttachment(
+        StoreProjectAttachmentRequest $request,
+        int $project,
+        int $phase,
+    ): JsonResponse {
+        $userId = (int) $request->user()->id;
+        $this->attachmentService->assertCollaboratorAssigned($userId, $project);
+
+        $attachment = $this->attachmentService->storeForPhase(
+            $userId,
+            $project,
+            $phase,
+            $request->file('file'),
+        );
+
+        return response()->json([
+            'message' => 'Archivo adjunto correctamente.',
+            'data' => $attachment,
+        ], 201);
+    }
+
+    public function storeDeliverableAttachment(
+        StoreProjectAttachmentRequest $request,
+        int $project,
+        int $deliverable,
+    ): JsonResponse {
+        $userId = (int) $request->user()->id;
+        $this->attachmentService->assertCollaboratorAssigned($userId, $project);
+
+        $attachment = $this->attachmentService->storeForDeliverable(
+            $userId,
+            $project,
+            $deliverable,
+            $request->file('file'),
+        );
+
+        return response()->json([
+            'message' => 'Archivo adjunto correctamente.',
+            'data' => $attachment,
+        ], 201);
+    }
+
+    public function destroyAttachment(Request $request, int $project, int $attachment): JsonResponse
+    {
+        $this->attachmentService->assertCollaboratorAssigned((int) $request->user()->id, $project);
+        $this->attachmentService->delete($project, $attachment);
+
+        return response()->json([
+            'message' => 'Adjunto eliminado correctamente.',
+        ]);
+    }
+
+    public function showAttachment(Request $request, int $project, int $attachment): BinaryFileResponse
+    {
+        $this->attachmentService->assertCollaboratorAssigned((int) $request->user()->id, $project);
+
+        return $this->attachmentService->fileResponse($project, $attachment);
     }
 }

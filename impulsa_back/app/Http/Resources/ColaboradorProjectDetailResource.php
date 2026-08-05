@@ -90,6 +90,16 @@ class ColaboradorProjectDetailResource extends JsonResource
             'assigned_user_id' => $assignedUserId,
             'assigned_user_label' => $phase['assigned_user_label'] ?? null,
             'assigned_to_me' => $assignedUserId !== null && $assignedUserId === $viewerId,
+            'attachments' => array_map(
+                static fn (array $attachment): array => [
+                    'id' => (int) $attachment['id'],
+                    'original_name' => $attachment['original_name'],
+                    'mime_type' => $attachment['mime_type'],
+                    'size_bytes' => (int) ($attachment['size_bytes'] ?? 0),
+                    'created_at' => $attachment['created_at'] ?? null,
+                ],
+                $phase['attachments'] ?? [],
+            ),
         ];
     }
 
@@ -118,7 +128,18 @@ class ColaboradorProjectDetailResource extends JsonResource
             'assigned_user_id' => $assignedUserId,
             'assigned_user_label' => $deliverable['assigned_user_label'] ?? null,
             'assigned_to_me' => $assignedUserId !== null && $assignedUserId === $viewerId,
+            'comments_count' => (int) ($deliverable['comments_count'] ?? 0),
             'unread_comments_count' => (int) ($deliverable['unread_comments_count'] ?? 0),
+            'attachments' => array_map(
+                static fn (array $attachment): array => [
+                    'id' => (int) $attachment['id'],
+                    'original_name' => $attachment['original_name'],
+                    'mime_type' => $attachment['mime_type'],
+                    'size_bytes' => (int) ($attachment['size_bytes'] ?? 0),
+                    'created_at' => $attachment['created_at'] ?? null,
+                ],
+                $deliverable['attachments'] ?? [],
+            ),
         ];
     }
 }

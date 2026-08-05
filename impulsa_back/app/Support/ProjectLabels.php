@@ -46,6 +46,7 @@ final class ProjectLabels
         'development' => 'Desarrollo',
         'deployment' => 'Publicación',
         'training' => 'Capacitación',
+        'corrections' => 'Correcciones',
         'other' => 'Otro',
     ];
 

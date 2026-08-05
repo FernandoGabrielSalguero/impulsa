@@ -127,24 +127,146 @@ class DeliverableCommentService
      */
     public function attachUnreadCounts(array $deliverables, ?int $viewerUserId): array
     {
-        if ($viewerUserId === null || $deliverables === []) {
-            return array_map(static function (array $deliverable): array {
-                $deliverable['unread_comments_count'] = 0;
-
-                return $deliverable;
-            }, $deliverables);
+        if ($deliverables === []) {
+            return [];
         }
 
-        $counts = $this->unreadCountsByDeliverable(
-            $viewerUserId,
-            array_map(static fn (array $deliverable): int => (int) $deliverable['id'], $deliverables),
-        );
+        $deliverableIds = array_map(static fn (array $deliverable): int => (int) $deliverable['id'], $deliverables);
+        $totalCounts = $this->commentCountsByDeliverable($deliverableIds);
+        $unreadCounts = $viewerUserId !== null
+            ? $this->unreadCountsByDeliverable($viewerUserId, $deliverableIds)
+            : [];
 
-        return array_map(static function (array $deliverable) use ($counts): array {
-            $deliverable['unread_comments_count'] = $counts[(int) $deliverable['id']] ?? 0;
+        return array_map(static function (array $deliverable) use ($totalCounts, $unreadCounts): array {
+            $id = (int) $deliverable['id'];
+            $deliverable['comments_count'] = $totalCounts[$id] ?? 0;
+            $deliverable['unread_comments_count'] = $unreadCounts[$id] ?? 0;
 
             return $deliverable;
         }, $deliverables);
+    }
+
+    /**
+     * @return array{phases: list<array<string, mixed>>, unassigned: array{deliverables: list<array<string, mixed>>}}
+     */
+    public function listGroupedByPhaseForAdmin(int $projectId, ?int $viewerUserId = null): array
+    {
+        return $this->listGroupedByPhase($projectId, $viewerUserId);
+    }
+
+    /**
+     * @return array{phases: list<array<string, mixed>>, unassigned: array{deliverables: list<array<string, mixed>>}}
+     */
+    public function listGroupedByPhaseForCollaborator(int $userAuthId, int $projectId): array
+    {
+        $this->assertCollaboratorAssigned($userAuthId, $projectId);
+
+        return $this->listGroupedByPhase($projectId, $userAuthId);
+    }
+
+    /**
+     * @param  list<int>  $deliverableIds
+     * @return array<int, int>
+     */
+    public function commentCountsByDeliverable(array $deliverableIds): array
+    {
+        $ids = collect($deliverableIds)
+            ->map(static fn ($id): int => (int) $id)
+            ->filter(static fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $counts = array_fill_keys($ids, 0);
+
+        $rows = DB::table('project_deliverable_comments')
+            ->whereIn('deliverable_id', $ids)
+            ->groupBy('deliverable_id')
+            ->selectRaw('deliverable_id, COUNT(*) as comments_count')
+            ->get();
+
+        foreach ($rows as $row) {
+            $counts[(int) $row->deliverable_id] = (int) $row->comments_count;
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @return array{phases: list<array<string, mixed>>, unassigned: array{deliverables: list<array<string, mixed>>}}
+     */
+    private function listGroupedByPhase(int $projectId, ?int $viewerUserId): array
+    {
+        $phases = DB::table('project_phases')
+            ->where('project_id', $projectId)
+            ->orderBy('phase_order')
+            ->orderBy('id')
+            ->get(['id', 'title', 'phase_order', 'status']);
+
+        $deliverables = DB::table('project_deliverables')
+            ->where('project_id', $projectId)
+            ->orderBy('id')
+            ->get(['id', 'phase_id', 'title', 'status', 'deliverable_type']);
+
+        $deliverableIds = $deliverables->pluck('id')->map(static fn ($id): int => (int) $id)->all();
+        $unreadCounts = $viewerUserId !== null
+            ? $this->unreadCountsByDeliverable($viewerUserId, $deliverableIds)
+            : [];
+        $totalCounts = $this->commentCountsByDeliverable($deliverableIds);
+
+        $commentsByDeliverable = [];
+        foreach ($deliverableIds as $deliverableId) {
+            $commentsByDeliverable[$deliverableId] = $this->listComments($projectId, $deliverableId, $viewerUserId);
+        }
+
+        $mapDeliverable = static function ($row) use ($commentsByDeliverable, $unreadCounts, $totalCounts): array {
+            $id = (int) $row->id;
+
+            return [
+                'id' => $id,
+                'title' => $row->title,
+                'status' => $row->status,
+                'deliverable_type' => $row->deliverable_type,
+                'comments_count' => $totalCounts[$id] ?? 0,
+                'unread_comments_count' => $unreadCounts[$id] ?? 0,
+                'comments' => $commentsByDeliverable[$id] ?? [],
+            ];
+        };
+
+        $groupedPhases = [];
+        foreach ($phases as $phase) {
+            $phaseId = (int) $phase->id;
+            $phaseDeliverables = $deliverables
+                ->filter(static fn ($row): bool => (int) ($row->phase_id ?? 0) === $phaseId)
+                ->values()
+                ->map($mapDeliverable)
+                ->all();
+
+            $groupedPhases[] = [
+                'id' => $phaseId,
+                'title' => $phase->title,
+                'phase_order' => (int) $phase->phase_order,
+                'status' => $phase->status,
+                'deliverables' => $phaseDeliverables,
+            ];
+        }
+
+        $unassigned = $deliverables
+            ->filter(static fn ($row): bool => $row->phase_id === null)
+            ->values()
+            ->map($mapDeliverable)
+            ->all();
+
+        return [
+            'phases' => $groupedPhases,
+            'unassigned' => [
+                'deliverables' => $unassigned,
+            ],
+        ];
     }
 
     /**

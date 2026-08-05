@@ -70,10 +70,18 @@ return [
 
     'project_deliverable' => [
         'label' => 'Entregables de proyecto',
-        'description' => 'Documentos y archivos de project_deliverables (futuro).',
+        'description' => 'Documentos y archivos de project_deliverables (legado).',
         'storage_path' => env('UPLOAD_PROJECT_DELIVERABLE_PATH')
             ?: storage_path('app/project-deliverables'),
         'path_prefix' => env('UPLOAD_PROJECT_DELIVERABLE_PREFIX', 'project-deliverables'),
+    ],
+
+    'project_attachment' => [
+        'label' => 'Adjuntos de proyecto',
+        'description' => 'Imágenes y PDFs de fases y objetivos (máx. 3 por entidad).',
+        'storage_path' => env('UPLOAD_PROJECT_ATTACHMENT_PATH')
+            ?: storage_path('app/project-attachments'),
+        'path_prefix' => env('UPLOAD_PROJECT_ATTACHMENT_PREFIX', 'project-attachments'),
     ],
 
     'project_contract' => [

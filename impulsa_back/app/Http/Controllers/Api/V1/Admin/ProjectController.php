@@ -9,15 +9,18 @@ use App\Http\Requests\Admin\StoreProjectPhaseRequest;
 use App\Http\Requests\Admin\StoreProjectRequest;
 use App\Http\Requests\Admin\UpdateProjectContractRequest;
 use App\Http\Requests\Admin\UpdateProjectRequest;
+use App\Http\Requests\Projects\StoreProjectAttachmentRequest;
 use App\Http\Resources\AdminProjectCollection;
 use App\Http\Resources\AdminProjectDetailResource;
 use App\Models\Project;
 use App\Services\Admin\ProjectAdminService;
 use App\Services\Admin\ProjectStructureService;
 use App\Services\Colaborador\DeliverableCommentService;
+use App\Services\Projects\ProjectAttachmentService;
 use App\Support\ProjectLabels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProjectController extends Controller
 {
@@ -25,6 +28,7 @@ class ProjectController extends Controller
         private readonly ProjectAdminService $projectAdminService,
         private readonly ProjectStructureService $structureService,
         private readonly DeliverableCommentService $commentService,
+        private readonly ProjectAttachmentService $attachmentService,
     ) {}
 
     public function index(Request $request): AdminProjectCollection
@@ -188,6 +192,16 @@ class ProjectController extends Controller
         ]);
     }
 
+    public function projectComments(Request $request, Project $project): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->commentService->listGroupedByPhaseForAdmin(
+                (int) $project->id,
+                (int) $request->user()->id,
+            ),
+        ]);
+    }
+
     public function deliverableComments(Request $request, Project $project, int $deliverable): JsonResponse
     {
         $comments = $this->commentService->listForAdmin(
@@ -199,6 +213,56 @@ class ProjectController extends Controller
         return response()->json([
             'data' => $comments,
         ]);
+    }
+
+    public function storePhaseAttachment(
+        StoreProjectAttachmentRequest $request,
+        Project $project,
+        int $phase,
+    ): JsonResponse {
+        $attachment = $this->attachmentService->storeForPhase(
+            (int) $request->user()->id,
+            (int) $project->id,
+            $phase,
+            $request->file('file'),
+        );
+
+        return response()->json([
+            'message' => 'Archivo adjunto correctamente.',
+            'data' => $attachment,
+        ], 201);
+    }
+
+    public function storeDeliverableAttachment(
+        StoreProjectAttachmentRequest $request,
+        Project $project,
+        int $deliverable,
+    ): JsonResponse {
+        $attachment = $this->attachmentService->storeForDeliverable(
+            (int) $request->user()->id,
+            (int) $project->id,
+            $deliverable,
+            $request->file('file'),
+        );
+
+        return response()->json([
+            'message' => 'Archivo adjunto correctamente.',
+            'data' => $attachment,
+        ], 201);
+    }
+
+    public function destroyAttachment(Project $project, int $attachment): JsonResponse
+    {
+        $this->attachmentService->delete((int) $project->id, $attachment);
+
+        return response()->json([
+            'message' => 'Adjunto eliminado correctamente.',
+        ]);
+    }
+
+    public function showAttachment(Project $project, int $attachment): BinaryFileResponse
+    {
+        return $this->attachmentService->fileResponse((int) $project->id, $attachment);
     }
 
     public function storeDeliverableComment(

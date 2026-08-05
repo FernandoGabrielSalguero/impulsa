@@ -8,6 +8,7 @@ use App\Services\Admin\ProjectStructureService;
 use App\Services\Colaborador\DeliverableCommentService;
 use App\Services\Notifications\NotificationService;
 use App\Services\Profile\UserAvatarStorageService;
+use App\Services\Projects\ProjectAttachmentService;
 use App\Support\ProjectLabels;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ class ColaboradorProjectService
         private readonly ProjectClientNotificationService $clientNotificationService,
         private readonly UserAvatarStorageService $avatarStorage,
         private readonly DeliverableCommentService $commentService,
+        private readonly ProjectAttachmentService $attachmentService,
     ) {}
 
     public function listForUser(int $userAuthId, ?string $q, int $perPage = 20): LengthAwarePaginator
@@ -85,13 +87,21 @@ class ColaboradorProjectService
         $row['progress_percent'] = $recalculated['progress_percent'];
         $row['progress_detail'] = $recalculated['progress_detail'];
 
+        $phases = $this->structureService->getPhases($projectId);
+        $deliverables = $this->commentService->attachUnreadCounts(
+            $this->structureService->getDeliverables($projectId),
+            $userAuthId,
+        );
+        [$phases, $deliverables] = $this->attachmentService->attachToDetail(
+            $projectId,
+            $phases,
+            $deliverables,
+        );
+
         return [
             'project' => $row,
-            'phases' => $this->structureService->getPhases($projectId),
-            'deliverables' => $this->commentService->attachUnreadCounts(
-                $this->structureService->getDeliverables($projectId),
-                $userAuthId,
-            ),
+            'phases' => $phases,
+            'deliverables' => $deliverables,
             'collaborators' => $this->listProjectCollaborators($projectId),
         ];
     }

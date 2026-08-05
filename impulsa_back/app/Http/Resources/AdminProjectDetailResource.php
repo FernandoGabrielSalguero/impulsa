@@ -84,6 +84,16 @@ class AdminProjectDetailResource extends JsonResource
                 ? (int) $phase['assigned_user_id']
                 : null,
             'assigned_user_label' => $phase['assigned_user_label'] ?? null,
+            'attachments' => array_map(
+                static fn (array $attachment): array => [
+                    'id' => (int) $attachment['id'],
+                    'original_name' => $attachment['original_name'],
+                    'mime_type' => $attachment['mime_type'],
+                    'size_bytes' => (int) ($attachment['size_bytes'] ?? 0),
+                    'created_at' => $attachment['created_at'] ?? null,
+                ],
+                $phase['attachments'] ?? [],
+            ),
         ];
     }
 
@@ -110,7 +120,18 @@ class AdminProjectDetailResource extends JsonResource
                 ? (int) $deliverable['assigned_user_id']
                 : null,
             'assigned_user_label' => $deliverable['assigned_user_label'] ?? null,
+            'comments_count' => (int) ($deliverable['comments_count'] ?? 0),
             'unread_comments_count' => (int) ($deliverable['unread_comments_count'] ?? 0),
+            'attachments' => array_map(
+                static fn (array $attachment): array => [
+                    'id' => (int) $attachment['id'],
+                    'original_name' => $attachment['original_name'],
+                    'mime_type' => $attachment['mime_type'],
+                    'size_bytes' => (int) ($attachment['size_bytes'] ?? 0),
+                    'created_at' => $attachment['created_at'] ?? null,
+                ],
+                $deliverable['attachments'] ?? [],
+            ),
         ];
     }
 

@@ -220,6 +220,7 @@ class ColaboradorProjectControllerTest extends TestCase
         $detail = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/' . $projectId);
         $detail->assertOk();
         $detail->assertJsonPath('data.deliverables.0.unread_comments_count', 1);
+        $detail->assertJsonPath('data.deliverables.0.comments_count', 2);
         $detail->assertJsonPath('data.deliverables.0.assigned_to_me', true);
         $detail->assertJsonPath('data.deliverables.0.description', 'Detalle');
 
@@ -240,6 +241,97 @@ class ColaboradorProjectControllerTest extends TestCase
             '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/comments',
             ['message' => 'No debería'],
         );
+        $forbidden->assertNotFound();
+
+        $grouped = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/' . $projectId . '/comments');
+        $grouped->assertOk();
+        $grouped->assertJsonPath('data.phases.0.title', 'Fase 1');
+        $grouped->assertJsonPath('data.phases.0.deliverables.0.comments_count', 2);
+        $grouped->assertJsonCount(2, 'data.phases.0.deliverables.0.comments');
+    }
+
+    public function test_attachments_max_three_and_forbidden_for_unassigned_collaborator(): void
+    {
+        $colaborador = $this->createColaborador('cola-attach@test.com');
+        $other = $this->createColaborador('otro-attach@test.com');
+        $admin = $this->createAdmin();
+        $client = $this->createClient('cliente-attach@test.com');
+        $projectId = $this->createProject($admin->id, $client->id, 'Proyecto adjuntos');
+        $this->assignCollaborator($projectId, $colaborador->id);
+
+        $phaseId = (int) DB::table('project_phases')->insertGetId([
+            'project_id' => $projectId,
+            'title' => 'Fase adjuntos',
+            'description' => null,
+            'duration_days' => null,
+            'phase_order' => 1,
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $deliverableId = (int) DB::table('project_deliverables')->insertGetId([
+            'project_id' => $projectId,
+            'phase_id' => $phaseId,
+            'title' => 'Objetivo adjuntos',
+            'description' => null,
+            'deliverable_type' => 'corrections',
+            'status' => 'pending',
+            'client_visible' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $storage = storage_path('app/project-attachments-test');
+        config([
+            'uploads.project_attachment.storage_path' => $storage,
+            'uploads.project_attachment.path_prefix' => 'project-attachments-test',
+        ]);
+
+        for ($i = 1; $i <= 3; $i++) {
+            $file = \Illuminate\Http\UploadedFile::fake()->create("evidencia-{$i}.pdf", 100, 'application/pdf');
+            $upload = $this->actingAs($colaborador)
+                ->withHeader('Accept', 'application/json')
+                ->post(
+                    '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/attachments',
+                    ['file' => $file],
+                );
+            $upload->assertCreated();
+        }
+
+        $overLimit = $this->actingAs($colaborador)
+            ->withHeader('Accept', 'application/json')
+            ->post(
+                '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/attachments',
+                ['file' => \Illuminate\Http\UploadedFile::fake()->create('extra.pdf', 100, 'application/pdf')],
+            );
+        $overLimit->assertStatus(422);
+
+        $phaseUpload = $this->actingAs($admin)
+            ->withHeader('Accept', 'application/json')
+            ->post(
+                '/api/v1/admin/projects/' . $projectId . '/phases/' . $phaseId . '/attachments',
+                ['file' => \Illuminate\Http\UploadedFile::fake()->create('fase.pdf', 80, 'application/pdf')],
+            );
+        $phaseUpload->assertCreated();
+
+        $detail = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/' . $projectId);
+        $detail->assertOk();
+        $detail->assertJsonCount(3, 'data.deliverables.0.attachments');
+        $detail->assertJsonCount(1, 'data.phases.0.attachments');
+
+        $attachmentId = (int) $detail->json('data.deliverables.0.attachments.0.id');
+        $delete = $this->actingAs($colaborador)->deleteJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/attachments/' . $attachmentId,
+        );
+        $delete->assertOk();
+
+        $forbidden = $this->actingAs($other)
+            ->withHeader('Accept', 'application/json')
+            ->post(
+                '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/attachments',
+                ['file' => \Illuminate\Http\UploadedFile::fake()->create('no.pdf', 100, 'application/pdf')],
+            );
         $forbidden->assertNotFound();
     }
 
@@ -624,6 +716,19 @@ class ColaboradorProjectControllerTest extends TestCase
             $table->unsignedInteger('user_auth_id');
             $table->timestamps();
             $table->unique(['project_id', 'user_auth_id']);
+        });
+
+        Schema::create('project_attachments', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('phase_id')->nullable();
+            $table->unsignedBigInteger('deliverable_id')->nullable();
+            $table->string('file_path', 500);
+            $table->string('original_name', 255);
+            $table->string('mime_type', 120);
+            $table->unsignedInteger('size_bytes')->default(0);
+            $table->unsignedInteger('uploaded_by');
+            $table->timestamps();
         });
 
         Schema::create('user_notifications', function (Blueprint $table): void {

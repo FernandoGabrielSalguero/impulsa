@@ -1,1 +1,0 @@
-import {T,w as je,bg as $l,br as _}from'./main-UEELLFJB.js';function w(t){t||(t=T(je));let i=new _(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe($l(i))}export{w};
