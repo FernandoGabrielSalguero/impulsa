@@ -55,6 +55,88 @@ class FinanceCalculator
     }
 
     /**
+     * @param list<array{name?: string, price?: float|int|string|null, description?: string|null}> $competitors
+     * @return list<array{name: string, price: float, description: string|null}>
+     */
+    public function normalizeCompetitors(array $competitors): array
+    {
+        $rows = [];
+
+        foreach (array_slice($competitors, 0, 6) as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $name = trim((string) ($row['name'] ?? ''));
+            $price = round(max(0.0, (float) ($row['price'] ?? 0)), 2);
+            $description = trim((string) ($row['description'] ?? ''));
+
+            if ($name === '' && $price <= 0 && $description === '') {
+                continue;
+            }
+
+            $rows[] = [
+                'name' => $name,
+                'price' => $price,
+                'description' => $description !== '' ? $description : null,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param list<array{name: string, price: float, description: string|null}> $competitors
+     * @return array{
+     *   min: float,
+     *   max: float,
+     *   avg: float,
+     *   count: int,
+     *   position: 'below'|'within'|'above'|null,
+     *   message: string|null
+     * }|null
+     */
+    public function competitorBand(array $competitors, float $suggestedPrice): ?array
+    {
+        $prices = array_values(array_filter(
+            array_map(static fn (array $row): float => (float) $row['price'], $competitors),
+            static fn (float $price): bool => $price > 0,
+        ));
+
+        if ($prices === []) {
+            return null;
+        }
+
+        $min = round(min($prices), 2);
+        $max = round(max($prices), 2);
+        $avg = round(array_sum($prices) / count($prices), 2);
+        $position = null;
+        $message = null;
+
+        if ($suggestedPrice > 0) {
+            if ($suggestedPrice < $min) {
+                $position = 'below';
+                $message = 'Estás por debajo de la competencia; podrías estar dejando margen.';
+            } elseif ($suggestedPrice > $max) {
+                $position = 'above';
+                $message = 'Estás por encima; revisá si tu propuesta de valor lo justifica.';
+            } else {
+                $position = 'within';
+                $message = 'Estás dentro de la banda de la competencia.';
+            }
+        }
+
+        return [
+            'min' => $min,
+            'max' => $max,
+            'avg' => $avg,
+            'count' => count($prices),
+            'position' => $position,
+            'message' => $message,
+        ];
+    }
+
+    /**
      * @return array{
      *   fixed_costs_monthly: float,
      *   price: float,

@@ -107,7 +107,8 @@ class EmprendedorFinanzasService
         $this->assertCategoryForUser($user, (int) $payload['category_id'], $payload['type']);
         $this->assertOptionalProduct($user, $payload['product_id'] ?? null);
 
-        $movement = FinanceMovement::query()->create([
+        $quantity = max(1, min(200, (int) ($payload['quantity'] ?? 1)));
+        $attributes = [
             'user_auth_id' => $user->id,
             'type' => $payload['type'],
             'category_id' => (int) $payload['category_id'],
@@ -115,7 +116,17 @@ class EmprendedorFinanzasService
             'occurred_on' => $payload['occurred_on'],
             'description' => $payload['description'] ?? null,
             'product_id' => $payload['product_id'] ?? null,
-        ]);
+        ];
+
+        $movement = \Illuminate\Support\Facades\DB::transaction(function () use ($attributes, $quantity) {
+            $created = null;
+
+            for ($i = 0; $i < $quantity; $i++) {
+                $created = FinanceMovement::query()->create($attributes);
+            }
+
+            return $created;
+        });
 
         return $this->serializeMovement($movement->load('category'));
     }
@@ -287,6 +298,7 @@ class EmprendedorFinanzasService
     public function createPricingItem(UserAuth $user, array $payload): array
     {
         $this->assertOptionalProduct($user, $payload['product_id'] ?? null);
+        $competitors = $this->validatedCompetitors($payload['competitors'] ?? []);
         $preview = $this->calculator->pricingPreview(
             (float) ($payload['variable_cost'] ?? 0),
             (float) ($payload['extra_costs'] ?? 0),
@@ -304,6 +316,7 @@ class EmprendedorFinanzasService
             'suggested_price' => $preview['suggested_price'],
             'notes' => $payload['notes'] ?? null,
             'product_id' => $payload['product_id'] ?? null,
+            'competitors_json' => $competitors,
         ]);
 
         return $this->serializePricingItem($item);
@@ -314,6 +327,9 @@ class EmprendedorFinanzasService
     {
         $item = $this->findOwnedPricingItem($user, $itemId);
         $this->assertOptionalProduct($user, $payload['product_id'] ?? $item->product_id);
+        $competitors = array_key_exists('competitors', $payload)
+            ? $this->validatedCompetitors($payload['competitors'] ?? [])
+            : ($item->competitors_json ?? []);
 
         $preview = $this->calculator->pricingPreview(
             (float) ($payload['variable_cost'] ?? $item->variable_cost),
@@ -331,6 +347,7 @@ class EmprendedorFinanzasService
             'suggested_price' => $preview['suggested_price'],
             'notes' => array_key_exists('notes', $payload) ? $payload['notes'] : $item->notes,
             'product_id' => array_key_exists('product_id', $payload) ? $payload['product_id'] : $item->product_id,
+            'competitors_json' => $competitors,
         ]);
         $item->save();
 
@@ -345,12 +362,22 @@ class EmprendedorFinanzasService
     /** @param array<string, mixed> $payload */
     public function pricingPreview(array $payload): array
     {
-        return $this->calculator->pricingPreview(
+        $preview = $this->calculator->pricingPreview(
             (float) ($payload['variable_cost'] ?? 0),
             (float) ($payload['extra_costs'] ?? 0),
             (string) ($payload['mode'] ?? 'margen'),
             (float) ($payload['target_percent'] ?? 30),
         );
+
+        $competitors = $this->calculator->normalizeCompetitors(
+            is_array($payload['competitors'] ?? null) ? $payload['competitors'] : [],
+        );
+        $preview['competitor_band'] = $this->calculator->competitorBand(
+            $competitors,
+            (float) $preview['suggested_price'],
+        );
+
+        return $preview;
     }
 
     /** @param array<string, mixed> $payload */
@@ -855,7 +882,29 @@ class EmprendedorFinanzasService
             'suggested_price' => (float) $item->suggested_price,
             'notes' => $item->notes,
             'product_id' => $item->product_id !== null ? (int) $item->product_id : null,
+            'competitors' => is_array($item->competitors_json) ? $item->competitors_json : [],
         ];
+    }
+
+    /**
+     * @param mixed $competitors
+     * @return list<array{name: string, price: float, description: string|null}>
+     */
+    private function validatedCompetitors(mixed $competitors): array
+    {
+        $rows = $this->calculator->normalizeCompetitors(is_array($competitors) ? $competitors : []);
+        $complete = array_filter(
+            $rows,
+            static fn (array $row): bool => $row['name'] !== '' && $row['price'] > 0,
+        );
+
+        if (count($complete) < 3) {
+            throw ValidationException::withMessages([
+                'competitors' => ['Completá al menos 3 precios de la competencia (nombre y precio).'],
+            ]);
+        }
+
+        return $rows;
     }
 
     /** @return array<string, mixed> */

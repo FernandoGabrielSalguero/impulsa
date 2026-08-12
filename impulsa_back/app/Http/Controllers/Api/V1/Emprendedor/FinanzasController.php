@@ -87,9 +87,15 @@ class FinanzasController extends Controller
 
     public function storeMovement(StoreFinanceMovementRequest $request): JsonResponse
     {
+        $payload = $request->validated();
+        $quantity = max(1, min(200, (int) ($payload['quantity'] ?? 1)));
+        $data = $this->finanzasService->createMovement($request->user(), $payload);
+
         return response()->json([
-            'message' => 'Movimiento registrado.',
-            'data' => $this->finanzasService->createMovement($request->user(), $request->validated()),
+            'message' => $quantity > 1
+                ? "Se registraron {$quantity} ventas."
+                : 'Movimiento registrado.',
+            'data' => $data,
         ], 201);
     }
 

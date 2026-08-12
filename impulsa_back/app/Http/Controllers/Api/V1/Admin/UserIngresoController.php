@@ -29,6 +29,7 @@ class UserIngresoController extends Controller
             $request->query('nombre_usuario'),
             $request->query('rol'),
             $request->query('fecha'),
+            $request->query('usuario_tipo'),
             $perPage,
         );
 

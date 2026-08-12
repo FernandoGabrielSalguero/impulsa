@@ -19,6 +19,7 @@ class FinancePricingItem extends Model
         'suggested_price',
         'notes',
         'product_id',
+        'competitors_json',
     ];
 
     protected $casts = [
@@ -26,6 +27,7 @@ class FinancePricingItem extends Model
         'extra_costs' => 'float',
         'target_percent' => 'float',
         'suggested_price' => 'float',
+        'competitors_json' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

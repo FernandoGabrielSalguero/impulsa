@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS `finance_pricing_items` (
   `suggested_price` decimal(14,2) NOT NULL DEFAULT 0.00,
   `notes` varchar(500) DEFAULT NULL,
   `product_id` bigint(20) unsigned DEFAULT NULL,
+  `competitors_json` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),

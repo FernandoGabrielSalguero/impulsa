@@ -21,6 +21,7 @@ class StoreFinanceMovementRequest extends FormRequest
             'occurred_on' => ['required', 'date'],
             'description' => ['nullable', 'string', 'max:255'],
             'product_id' => ['nullable', 'integer', 'min:1'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:200'],
         ];
     }
 }

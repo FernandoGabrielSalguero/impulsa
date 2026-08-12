@@ -28,6 +28,9 @@ class MailTemplateLabels
                 MailTemplate::ReenvioCorreoLog => 'Reenvío de correo',
                 MailTemplate::SubscriptionMonthlyNotice => 'Aviso mensual de suscripción',
                 MailTemplate::SubscriptionPaymentReminder => 'Recordatorio de pago de suscripción',
+                MailTemplate::GoalObjectiveCompleted => 'Objetivo de meta completado',
+                MailTemplate::GoalCompleted => 'Meta completada',
+                MailTemplate::GoalReminder => 'Recordatorio de meta',
             };
         }
 

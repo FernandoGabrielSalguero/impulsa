@@ -12,9 +12,10 @@ class UserIngresoAdminService
         ?string $nombreUsuario,
         ?string $rol,
         ?string $fecha,
+        ?string $usuarioTipo,
         int $perPage = 20,
     ): LengthAwarePaginator {
-        return $this->baseQuery($nombreUsuario, $rol, $fecha)
+        return $this->baseQuery($nombreUsuario, $rol, $fecha, $usuarioTipo)
             ->orderByDesc('ui.fecha_ingreso')
             ->orderByDesc('ui.hora_ingreso')
             ->orderByDesc('ui.id')
@@ -43,7 +44,7 @@ class UserIngresoAdminService
         );
     }
 
-    private function baseQuery(?string $nombreUsuario, ?string $rol, ?string $fecha)
+    private function baseQuery(?string $nombreUsuario, ?string $rol, ?string $fecha, ?string $usuarioTipo)
     {
         $query = DB::table('user_ingresos as ui')
             ->leftJoin('user_auth as ua', 'ua.id', '=', 'ui.user_auth_id')
@@ -56,6 +57,7 @@ class UserIngresoAdminService
                 'ui.hora_ingreso',
                 'ui.created_at',
                 'ua.correo as usuario_correo',
+                'ua.usuario_tipo as usuario_tipo',
             ]);
 
         $nombreFilter = trim((string) $nombreUsuario);
@@ -76,6 +78,11 @@ class UserIngresoAdminService
         $fechaFilter = trim((string) $fecha);
         if ($fechaFilter !== '') {
             $query->whereDate('ui.fecha_ingreso', $fechaFilter);
+        }
+
+        $tipoFilter = trim((string) $usuarioTipo);
+        if ($tipoFilter !== '' && $tipoFilter !== '__all__') {
+            $query->where('ua.usuario_tipo', $tipoFilter);
         }
 
         return $query;

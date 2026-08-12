@@ -1,1 +1,0 @@
-import {T,w as je,bf as $l,bq as _}from'./main-AJUDKJF7.js';function w(t){t||(t=T(je));let i=new _(e=>{if(t.destroyed){e.next();return}return t.onDestroy(e.next.bind(e))});return e=>e.pipe($l(i))}export{w};

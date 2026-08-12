@@ -19,6 +19,10 @@ class FinancePricingPreviewRequest extends FormRequest
             'extra_costs' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'mode' => ['required', 'in:markup,margen'],
             'target_percent' => ['required', 'numeric', 'min:0', 'max:99.99'],
+            'competitors' => ['nullable', 'array', 'max:6'],
+            'competitors.*.name' => ['nullable', 'string', 'max:120'],
+            'competitors.*.price' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'competitors.*.description' => ['nullable', 'string', 'max:255'],
         ];
     }
 }
