@@ -44,11 +44,13 @@ class PublicChatbotService
         }
 
         $avatarUrl = $this->resolvePublicAvatarUrl($integration, $chatbot);
+        $iconBackgroundColor = $this->resolveIconBackgroundColor($chatbot);
 
         return [
             'id' => (int) $chatbot->id,
             'name' => (string) $chatbot->name,
             'avatar_url' => $avatarUrl,
+            'icon_background_color' => $iconBackgroundColor,
             'whatsapp' => (string) $chatbot->whatsapp,
             'initial_message' => (string) $chatbot->initial_message,
             'nodes' => $chatbot->nodes->map(fn ($node): array => [
@@ -145,12 +147,24 @@ class PublicChatbotService
         }
 
         if ($this->avatarStorage->isManagedPath($stored)) {
+            $version = $chatbot->updated_at?->getTimestamp() ?: time();
+
             return $this->mediaUrlBuilder->publicApiUrl(
                 '/v1/public/chatbot/avatar?public_key=' . urlencode((string) $integration->public_key)
+                . '&v=' . $version
             );
         }
 
         return $this->mediaUrlBuilder->url($stored);
+    }
+
+    private function resolveIconBackgroundColor(Chatbot $chatbot): string
+    {
+        $value = strtoupper(trim((string) ($chatbot->icon_background_color ?? '')));
+
+        return preg_match('/^#[0-9A-F]{6}$/', $value) === 1
+            ? $value
+            : Chatbot::DEFAULT_ICON_BACKGROUND_COLOR;
     }
 
     private function hashIp(?string $ipAddress): ?string

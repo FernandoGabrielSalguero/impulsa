@@ -10,10 +10,13 @@ class Chatbot extends Model
 {
     protected $table = 'chatbots';
 
+    public const DEFAULT_ICON_BACKGROUND_COLOR = '#009EE3';
+
     protected $fillable = [
         'api_integration_id',
         'name',
         'avatar_url',
+        'icon_background_color',
         'whatsapp',
         'initial_message',
         'status',

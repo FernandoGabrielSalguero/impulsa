@@ -55,7 +55,8 @@ class PublicChatbotController extends Controller
 
         return response()->file($file['path'], [
             'Content-Type' => $file['mime'],
-            'Cache-Control' => 'public, max-age=3600',
+            'Cache-Control' => 'public, no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
         ]);
     }
 

@@ -19,6 +19,7 @@ class UpdateChatbotSettingsRequest extends FormRequest
             'avatar_url' => ['nullable', 'string', 'max:255'],
             'avatar_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'remove_avatar' => ['sometimes', 'boolean'],
+            'icon_background_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'whatsapp' => ['required', 'string', 'max:80'],
             'initial_message' => ['required', 'string', 'max:5000'],
         ];

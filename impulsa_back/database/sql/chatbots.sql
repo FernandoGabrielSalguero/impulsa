@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `chatbots` (
   `api_integration_id` bigint(20) unsigned NOT NULL,
   `name` varchar(180) NOT NULL,
   `avatar_url` varchar(255) DEFAULT NULL,
+  `icon_background_color` varchar(7) NOT NULL DEFAULT '#009EE3',
   `whatsapp` varchar(80) NOT NULL DEFAULT '',
   `initial_message` text NOT NULL,
   `status` enum('active','inactive') NOT NULL DEFAULT 'inactive',

@@ -18,10 +18,12 @@ class EmprendedorChatbotResource extends JsonResource
             'name' => (string) $chatbot->name,
             'avatar_url' => $this->resolveAvatarUrl($chatbot, $request),
             'has_avatar' => $this->hasManagedAvatar($chatbot),
+            'icon_background_color' => $this->resolveIconBackgroundColor($chatbot),
             'whatsapp' => (string) $chatbot->whatsapp,
             'initial_message' => (string) $chatbot->initial_message,
             'status' => (string) $chatbot->status,
             'disabled_by_admin' => (bool) $chatbot->disabled_by_admin,
+            'updated_at' => $chatbot->updated_at?->toISOString(),
             'nodes' => $chatbot->relationLoaded('nodes')
                 ? $chatbot->nodes->map(static fn ($node): array => [
                     'id' => (int) $node->id,
@@ -72,5 +74,14 @@ class EmprendedorChatbotResource extends JsonResource
         $stored = trim((string) ($chatbot->avatar_url ?? ''));
 
         return $stored !== '' && str_starts_with($stored, 'chatbot-avatars/');
+    }
+
+    private function resolveIconBackgroundColor(Chatbot $chatbot): string
+    {
+        $value = strtoupper(trim((string) ($chatbot->icon_background_color ?? '')));
+
+        return preg_match('/^#[0-9A-F]{6}$/', $value) === 1
+            ? $value
+            : Chatbot::DEFAULT_ICON_BACKGROUND_COLOR;
     }
 }

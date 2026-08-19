@@ -182,6 +182,7 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('projects/{project}/client-notification', [ProjectController::class, 'discardClientNotification']);
             Route::get('tasks/options', [TaskController::class, 'options']);
             Route::get('tasks/assignees', [TaskController::class, 'assignees']);
+            Route::get('tasks/metrics', [TaskController::class, 'metrics']);
             Route::get('tasks', [TaskController::class, 'index']);
             Route::post('tasks', [TaskController::class, 'store']);
             Route::get('tasks/{adminTarea}', [TaskController::class, 'show']);

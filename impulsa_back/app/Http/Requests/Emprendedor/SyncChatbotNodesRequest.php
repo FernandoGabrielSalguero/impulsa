@@ -16,6 +16,7 @@ class SyncChatbotNodesRequest extends FormRequest
     {
         return [
             'nodes' => ['required', 'array'],
+            'nodes.*.id' => ['nullable', 'integer', 'min:1'],
             'nodes.*.client_key' => ['nullable', 'string', 'max:80'],
             'nodes.*.title' => ['required', 'string', 'max:180'],
             'nodes.*.body' => ['required', 'string', 'max:10000'],
@@ -23,6 +24,8 @@ class SyncChatbotNodesRequest extends FormRequest
             'nodes.*.is_start' => ['nullable', 'boolean'],
             'nodes.*.status' => ['nullable', 'in:active,inactive'],
             'nodes.*.options' => ['nullable', 'array'],
+            'nodes.*.options.*.id' => ['nullable', 'integer', 'min:1'],
+            'nodes.*.options.*.client_key' => ['nullable', 'string', 'max:80'],
             'nodes.*.options.*.label' => ['required_with:nodes.*.options', 'string', 'max:180'],
             'nodes.*.options.*.action_type' => ['nullable', 'in:go_to_node,whatsapp,restart,close'],
             'nodes.*.options.*.target_client_key' => ['nullable', 'string', 'max:80'],

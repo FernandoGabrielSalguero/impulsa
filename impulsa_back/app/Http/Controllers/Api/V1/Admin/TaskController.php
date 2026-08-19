@@ -51,6 +51,20 @@ class TaskController extends Controller
         ]);
     }
 
+    public function metrics(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'granularity' => ['sometimes', 'in:day,week,month'],
+            'scope' => ['sometimes', 'in:mine,all'],
+        ]);
+
+        return response()->json($this->adminTaskService->metrics(
+            $validated['granularity'] ?? 'week',
+            $validated['scope'] ?? 'mine',
+            (int) $request->user()->id,
+        ));
+    }
+
     public function store(StoreAdminTaskRequest $request): JsonResponse
     {
         $task = $this->adminTaskService->create($request->validated(), (int) $request->user()->id);

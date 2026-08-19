@@ -11,6 +11,7 @@ use App\Services\Chatbot\ChatbotAvatarStorageService;
 use App\Support\EmprendedorIntegrationAccess;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class EmprendedorChatbotService
@@ -45,7 +46,7 @@ class EmprendedorChatbotService
             ->value('whatsapp'));
 
         return DB::transaction(function () use ($integration, $whatsapp): Chatbot {
-            $chatbot = Chatbot::query()->create([
+            $payload = [
                 'api_integration_id' => $integration->id,
                 'name' => 'Chatbot ' . $integration->project_name,
                 'avatar_url' => null,
@@ -53,7 +54,13 @@ class EmprendedorChatbotService
                 'initial_message' => 'Hola, soy el asistente del sitio. Elegi una opcion para continuar.',
                 'status' => 'inactive',
                 'disabled_by_admin' => false,
-            ]);
+            ];
+
+            if (Schema::hasColumn('chatbots', 'icon_background_color')) {
+                $payload['icon_background_color'] = Chatbot::DEFAULT_ICON_BACKGROUND_COLOR;
+            }
+
+            $chatbot = Chatbot::query()->create($payload);
 
             return $this->seedDefaultNodes($chatbot);
         });
@@ -104,12 +111,21 @@ class EmprendedorChatbotService
             $avatarUrl = $chatbot->avatar_url;
         }
 
-        $chatbot->fill([
+        $payload = [
             'name' => trim((string) $data['name']),
             'avatar_url' => $avatarUrl,
             'whatsapp' => trim((string) $data['whatsapp']),
             'initial_message' => trim((string) $data['initial_message']),
-        ]);
+        ];
+
+        if (Schema::hasColumn('chatbots', 'icon_background_color')) {
+            $payload['icon_background_color'] = $this->normalizeIconBackgroundColor(
+                $data['icon_background_color'] ?? null,
+                $chatbot->icon_background_color,
+            );
+        }
+
+        $chatbot->fill($payload);
         $chatbot->save();
 
         return $this->reload($chatbot);
@@ -162,26 +178,39 @@ class EmprendedorChatbotService
         $nodes = is_array($data['nodes'] ?? null) ? $data['nodes'] : [];
 
         return DB::transaction(function () use ($chatbot, $nodes): Chatbot {
-            $existingNodeIds = $chatbot->nodes()->pluck('id');
-            ChatbotNodeOption::query()->whereIn('node_id', $existingNodeIds)->delete();
-            $chatbot->nodes()->delete();
-
+            $existingNodes = $chatbot->nodes()->with('options')->get()->keyBy('id');
+            $keptNodeIds = [];
             $nodeIdMap = [];
 
             foreach ($nodes as $index => $nodeData) {
                 $clientKey = trim((string) ($nodeData['client_key'] ?? 'node_' . $index));
-                $node = ChatbotNode::query()->create([
-                    'chatbot_id' => $chatbot->id,
+                $incomingId = (int) ($nodeData['id'] ?? 0);
+                $attributes = [
                     'title' => trim((string) ($nodeData['title'] ?? 'Nodo ' . ($index + 1))),
                     'body' => trim((string) ($nodeData['body'] ?? '')),
                     'sort_order' => (int) ($nodeData['sort_order'] ?? $index + 1),
                     'is_start' => (bool) ($nodeData['is_start'] ?? $index === 0),
                     'status' => in_array($nodeData['status'] ?? 'active', ['active', 'inactive'], true)
-                        ? $nodeData['status']
+                        ? (string) $nodeData['status']
                         : 'active',
-                ]);
+                ];
+
+                if ($incomingId > 0 && $existingNodes->has($incomingId)) {
+                    $node = $existingNodes->get($incomingId);
+                    $node->fill($attributes);
+                    $node->save();
+                } else {
+                    $node = ChatbotNode::query()->create([
+                        'chatbot_id' => $chatbot->id,
+                        ...$attributes,
+                    ]);
+                }
+
+                $keptNodeIds[] = (int) $node->id;
                 $nodeIdMap[$clientKey] = (int) $node->id;
             }
+
+            $chatbot->nodes()->whereNotIn('id', $keptNodeIds !== [] ? $keptNodeIds : [0])->delete();
 
             foreach ($nodes as $index => $nodeData) {
                 $clientKey = trim((string) ($nodeData['client_key'] ?? 'node_' . $index));
@@ -191,26 +220,64 @@ class EmprendedorChatbotService
                     continue;
                 }
 
+                $existingOptions = ChatbotNodeOption::query()
+                    ->where('node_id', $nodeId)
+                    ->get()
+                    ->keyBy('id');
+                $keptOptionIds = [];
+
                 foreach ($nodeData['options'] ?? [] as $optionIndex => $optionData) {
                     $targetKey = trim((string) ($optionData['target_client_key'] ?? ''));
                     $targetNodeId = $targetKey !== '' && isset($nodeIdMap[$targetKey])
                         ? $nodeIdMap[$targetKey]
                         : null;
-
-                    ChatbotNodeOption::query()->create([
-                        'node_id' => $nodeId,
+                    $optionAttributes = [
                         'label' => trim((string) ($optionData['label'] ?? 'Opción')),
                         'action_type' => in_array($optionData['action_type'] ?? 'go_to_node', ['go_to_node', 'whatsapp', 'restart', 'close'], true)
-                            ? $optionData['action_type']
+                            ? (string) $optionData['action_type']
                             : 'go_to_node',
                         'target_node_id' => $targetNodeId,
                         'sort_order' => (int) ($optionData['sort_order'] ?? $optionIndex + 1),
-                    ]);
+                    ];
+                    $incomingOptionId = (int) ($optionData['id'] ?? 0);
+
+                    if ($incomingOptionId > 0 && $existingOptions->has($incomingOptionId)) {
+                        $option = $existingOptions->get($incomingOptionId);
+                        $option->fill($optionAttributes);
+                        $option->save();
+                    } else {
+                        $option = ChatbotNodeOption::query()->create([
+                            'node_id' => $nodeId,
+                            ...$optionAttributes,
+                        ]);
+                    }
+
+                    $keptOptionIds[] = (int) $option->id;
                 }
+
+                ChatbotNodeOption::query()
+                    ->where('node_id', $nodeId)
+                    ->whereNotIn('id', $keptOptionIds !== [] ? $keptOptionIds : [0])
+                    ->delete();
             }
 
             return $this->reload($chatbot);
         });
+    }
+
+    private function normalizeIconBackgroundColor(mixed $value, mixed $fallback = null): string
+    {
+        $candidate = strtoupper(trim((string) $value));
+
+        if (preg_match('/^#[0-9A-F]{6}$/', $candidate) === 1) {
+            return $candidate;
+        }
+
+        $fallbackColor = strtoupper(trim((string) $fallback));
+
+        return preg_match('/^#[0-9A-F]{6}$/', $fallbackColor) === 1
+            ? $fallbackColor
+            : Chatbot::DEFAULT_ICON_BACKGROUND_COLOR;
     }
 
     private function assertEditable(Chatbot $chatbot): void

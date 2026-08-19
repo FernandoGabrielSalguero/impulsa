@@ -2,6 +2,7 @@
 
 namespace App\Services\Emprendedor;
 
+use App\Models\Chatbot;
 use App\Models\UserAuth;
 use App\Support\ChatbotEventLabels;
 use App\Support\EmprendedorIntegrationAccess;
@@ -33,6 +34,7 @@ class EmprendedorMetricsService
             'summary' => [
                 'visits_total' => $this->visitsTotal($integrationId, $since),
                 'chatbot_events_total' => $this->chatbotEventsTotal($integrationId, $since),
+                'whatsapp_clicks_total' => $this->chatbotEventTypeTotal($integrationId, $since, 'whatsapp_clicked'),
                 'content_views_total' => $this->contentViewsTotal($integrationId, $since),
                 'active_campaigns' => $marketing['active_campaigns'],
                 'total_spent_ars' => $marketing['total_spent_ars'],
@@ -40,6 +42,7 @@ class EmprendedorMetricsService
             ],
             'visits' => $this->visitsSeries($integrationId, $since),
             'chatbot' => $this->chatbotSeries($integrationId, $since),
+            'chatbot_identity' => $this->chatbotIdentity($integrationId),
             'content' => $this->contentTop($integrationId, $since),
             'marketing' => $marketing,
         ];
@@ -204,6 +207,69 @@ class EmprendedorMetricsService
             'labels' => collect($datasets)->pluck('label')->all(),
             'datasets' => $datasets,
             'total' => (int) collect($datasets)->sum('value'),
+            'whatsapp_clicks' => $this->chatbotEventTypeTotal($integrationId, $since, 'whatsapp_clicked'),
+            'top_questions' => $this->chatbotTopQuestions($integrationId, $since),
+        ];
+    }
+
+    /** @return list<array{label: string, count: int}> */
+    private function chatbotTopQuestions(?int $integrationId, Carbon $since): array
+    {
+        if ($integrationId === null) {
+            return [];
+        }
+
+        $labelExpr = "COALESCE(NULLIF(TRIM(cno.label), ''), JSON_UNQUOTE(JSON_EXTRACT(ce.metadata_json, '$.option_label')), 'Pregunta eliminada')";
+
+        $rows = DB::table('chatbot_events as ce')
+            ->leftJoin('chatbot_node_options as cno', 'cno.id', '=', 'ce.option_id')
+            ->where('ce.api_integration_id', $integrationId)
+            ->where('ce.created_at', '>=', $since)
+            ->where('ce.event_type', 'option_clicked')
+            ->selectRaw("{$labelExpr} as question_label, COUNT(*) as total")
+            ->groupBy(DB::raw($labelExpr))
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get();
+
+        return $rows->map(static fn ($row): array => [
+            'label' => trim((string) $row->question_label) !== ''
+                ? (string) $row->question_label
+                : 'Pregunta eliminada',
+            'count' => (int) $row->total,
+        ])->values()->all();
+    }
+
+    /** @return array{has_avatar: bool, icon_background_color: string, updated_at: string|null} */
+    private function chatbotIdentity(?int $integrationId): array
+    {
+        $fallback = [
+            'has_avatar' => false,
+            'icon_background_color' => Chatbot::DEFAULT_ICON_BACKGROUND_COLOR,
+            'updated_at' => null,
+        ];
+
+        if ($integrationId === null) {
+            return $fallback;
+        }
+
+        $chatbot = Chatbot::query()
+            ->where('api_integration_id', $integrationId)
+            ->first();
+
+        if ($chatbot === null) {
+            return $fallback;
+        }
+
+        $stored = trim((string) $chatbot->avatar_url);
+        $color = strtoupper(trim((string) ($chatbot->icon_background_color ?? '')));
+
+        return [
+            'has_avatar' => $stored !== '' && str_starts_with($stored, 'chatbot-avatars/'),
+            'icon_background_color' => preg_match('/^#[0-9A-F]{6}$/', $color) === 1
+                ? $color
+                : Chatbot::DEFAULT_ICON_BACKGROUND_COLOR,
+            'updated_at' => $chatbot->updated_at?->toISOString(),
         ];
     }
 
@@ -299,6 +365,19 @@ class EmprendedorMetricsService
         return (int) DB::table('chatbot_events')
             ->where('api_integration_id', $integrationId)
             ->where('created_at', '>=', $since)
+            ->count();
+    }
+
+    private function chatbotEventTypeTotal(?int $integrationId, Carbon $since, string $eventType): int
+    {
+        if ($integrationId === null) {
+            return 0;
+        }
+
+        return (int) DB::table('chatbot_events')
+            ->where('api_integration_id', $integrationId)
+            ->where('created_at', '>=', $since)
+            ->where('event_type', $eventType)
             ->count();
     }
 
