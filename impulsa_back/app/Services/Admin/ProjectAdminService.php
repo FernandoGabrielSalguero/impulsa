@@ -177,9 +177,18 @@ class ProjectAdminService
         return $detail;
     }
 
-    public function flushClientNotification(Project $project, ?int $actorUserId = null): ?bool
-    {
-        return $this->clientNotificationService->flush($project, $actorUserId);
+    public function flushClientNotification(
+        Project $project,
+        ?int $actorUserId = null,
+        bool $notifyClient = true,
+        bool $notifyCollaborators = false,
+    ): array {
+        return $this->clientNotificationService->flush(
+            $project,
+            $actorUserId,
+            $notifyClient,
+            $notifyCollaborators,
+        );
     }
 
     public function discardClientNotification(Project $project): void

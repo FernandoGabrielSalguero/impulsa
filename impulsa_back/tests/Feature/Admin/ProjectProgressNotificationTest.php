@@ -55,6 +55,89 @@ class ProjectProgressNotificationTest extends TestCase
         Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class, 1);
     }
 
+    public function test_flush_can_notify_collaborators_from_the_same_buffer(): void
+    {
+        Mail::fake();
+
+        $admin = $this->createAdmin();
+        $client = $this->createClient('cliente@test.com', 'María', 'García');
+        $collaborator = $this->createCollaborator('cola@test.com', 'Lucía', 'Pérez');
+        $project = $this->createProject($admin, $client);
+
+        \DB::table('project_collaborators')->insert([
+            'project_id' => $project->id,
+            'user_auth_id' => $collaborator->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)->putJson('/api/v1/admin/projects/' . $project->id, [
+            'project_name' => 'Sitio web actualizado',
+            'manager_user_id' => $admin->id,
+            'status' => 'in_progress',
+            'priority' => 'medium',
+            'client_visible' => true,
+        ])->assertOk();
+
+        $flushResponse = $this->actingAs($admin)->postJson(
+            '/api/v1/admin/projects/' . $project->id . '/client-notification',
+            [
+                'notify_client' => true,
+                'notify_collaborators' => true,
+            ],
+        );
+
+        $flushResponse->assertOk()
+            ->assertJsonPath('email_sent', true)
+            ->assertJsonPath('client_email_sent', true)
+            ->assertJsonPath('collaborators_email_sent', true)
+            ->assertJsonPath('collaborators_notified', 1);
+
+        Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class, 2);
+        $this->assertSame(2, (int) \DB::table('correos_log')->count());
+        $this->assertTrue(
+            \DB::table('correos_log')->pluck('correo')->contains('cola@test.com'),
+        );
+    }
+
+    public function test_flush_can_notify_only_collaborators(): void
+    {
+        Mail::fake();
+
+        $admin = $this->createAdmin();
+        $client = $this->createClient('cliente@test.com');
+        $collaborator = $this->createCollaborator('cola@test.com', 'Lucía', 'Pérez');
+        $project = $this->createProject($admin, $client);
+
+        \DB::table('project_collaborators')->insert([
+            'project_id' => $project->id,
+            'user_auth_id' => $collaborator->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)->putJson('/api/v1/admin/projects/' . $project->id, [
+            'project_name' => 'Sitio web actualizado',
+            'manager_user_id' => $admin->id,
+            'status' => 'in_progress',
+            'priority' => 'medium',
+            'client_visible' => true,
+        ])->assertOk();
+
+        $this->actingAs($admin)
+            ->postJson('/api/v1/admin/projects/' . $project->id . '/client-notification', [
+                'notify_client' => false,
+                'notify_collaborators' => true,
+            ])
+            ->assertOk()
+            ->assertJsonPath('email_sent', null)
+            ->assertJsonPath('client_email_sent', null)
+            ->assertJsonPath('collaborators_notified', 1);
+
+        Mail::assertSent(\App\Mail\ProjectProgressUpdateMail::class, 1);
+        $this->assertSame('cola@test.com', \DB::table('correos_log')->value('correo'));
+    }
+
     public function test_multiple_updates_send_one_aggregated_email_on_flush(): void
     {
         Mail::fake();
@@ -242,6 +325,25 @@ class ProjectProgressNotificationTest extends TestCase
         return $client;
     }
 
+    private function createCollaborator(string $correo, string $nombre, string $apellido): UserAuth
+    {
+        $collaborator = UserAuth::query()->create([
+            'correo' => $correo,
+            'password' => 'secret',
+            'rol' => 'impulsa_colaborador',
+            'email_verified_at' => now(),
+            'usuario_tipo' => 'externo',
+        ]);
+
+        UserInfo::query()->create([
+            'user_auth_id' => $collaborator->id,
+            'nombre' => $nombre,
+            'apellido' => $apellido,
+        ]);
+
+        return $collaborator;
+    }
+
     private function createProject(UserAuth $admin, UserAuth $client, bool $clientVisible = true): Project
     {
         return Project::query()->create([
@@ -265,6 +367,8 @@ class ProjectProgressNotificationTest extends TestCase
         Schema::dropIfExists('user_notifications');
         Schema::dropIfExists('project_contracts');
         Schema::dropIfExists('project_updates');
+        Schema::dropIfExists('project_deliverable_comment_reads');
+        Schema::dropIfExists('project_deliverable_comments');
         Schema::dropIfExists('project_deliverable_tasks');
         Schema::dropIfExists('project_deliverables');
         Schema::dropIfExists('project_phases');
@@ -291,6 +395,7 @@ class ProjectProgressNotificationTest extends TestCase
             $table->unsignedInteger('user_auth_id')->unique();
             $table->string('nombre', 100)->nullable();
             $table->string('apellido', 100)->nullable();
+            $table->string('apodo', 100)->nullable();
             $table->timestamps();
         });
 
@@ -364,6 +469,25 @@ class ProjectProgressNotificationTest extends TestCase
             $table->boolean('client_visible')->default(true);
             $table->unsignedInteger('assigned_user_id')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('project_deliverable_comments', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('deliverable_id');
+            $table->unsignedInteger('user_auth_id');
+            $table->text('message');
+            $table->timestamps();
+        });
+
+        Schema::create('project_deliverable_comment_reads', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedInteger('user_auth_id');
+            $table->unsignedBigInteger('deliverable_id');
+            $table->unsignedBigInteger('last_read_comment_id')->nullable();
+            $table->timestamp('last_read_at')->nullable();
+            $table->timestamps();
+            $table->unique(['user_auth_id', 'deliverable_id']);
         });
 
         Schema::create('project_deliverable_tasks', function (Blueprint $table): void {

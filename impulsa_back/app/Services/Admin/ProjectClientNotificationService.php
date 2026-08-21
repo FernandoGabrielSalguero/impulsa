@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Mail\ProjectProgressUpdateMail;
 use App\Models\Project;
+use App\Models\ProjectCollaborator;
 use App\Models\UserAuth;
 use App\Services\Mail\ImpulsaMailService;
 use App\Services\Notifications\NotificationService;
@@ -106,28 +107,33 @@ class ProjectClientNotificationService
         return null;
     }
 
-    public function flush(Project $project, ?int $actorUserId = null): ?bool
-    {
-        $buffer = Cache::pull($this->bufferKey((int) $project->id));
+    public function flush(
+        Project $project,
+        ?int $actorUserId = null,
+        bool $notifyClient = true,
+        bool $notifyCollaborators = false,
+    ): array {
+        $empty = [
+            'client_email_sent' => null,
+            'collaborators_email_sent' => null,
+            'collaborators_notified' => 0,
+        ];
+
+        if (! $notifyClient && ! $notifyCollaborators) {
+            return $empty;
+        }
+
+        $buffer = Cache::get($this->bufferKey((int) $project->id));
 
         if (! is_array($buffer) || ($buffer['sections'] ?? []) === []) {
-            return null;
+            return $empty;
         }
+
+        Cache::forget($this->bufferKey((int) $project->id));
 
         $project->refresh();
 
-        if (! $project->client_visible) {
-            return null;
-        }
-
-        $clientEmail = strtolower(trim((string) $project->client_email));
-
-        if ($clientEmail === '' || ! filter_var($clientEmail, FILTER_VALIDATE_EMAIL)) {
-            return null;
-        }
-
-        $sections = $buffer['sections'];
-        $aggregated = $this->aggregateSections($sections);
+        $aggregated = $this->aggregateSections($buffer['sections']);
         $progressSnapshot = is_array($buffer['progress'] ?? null)
             ? [
                 'progress_percent' => (int) ($buffer['progress']['progress_percent'] ?? $project->progress_percent),
@@ -138,17 +144,55 @@ class ProjectClientNotificationService
                 'progress_detail' => '',
             ];
 
+        $clientEmailSent = null;
+
+        if ($notifyClient) {
+            $clientEmailSent = $this->sendClientMail($project, $aggregated, $progressSnapshot);
+        }
+
+        $collaboratorsEmailSent = null;
+        $collaboratorsNotified = 0;
+
+        if ($notifyCollaborators) {
+            [$collaboratorsEmailSent, $collaboratorsNotified] = $this->sendCollaboratorMails(
+                $project,
+                $aggregated,
+                $progressSnapshot,
+            );
+        }
+
+        return [
+            'client_email_sent' => $clientEmailSent,
+            'collaborators_email_sent' => $collaboratorsEmailSent,
+            'collaborators_notified' => $collaboratorsNotified,
+        ];
+    }
+
+    /**
+     * @param  array{update_title: string, update_message: string, change_lines: list<string>}  $aggregated
+     * @param  array{progress_percent: int, progress_detail: string}  $progressSnapshot
+     */
+    private function sendClientMail(Project $project, array $aggregated, array $progressSnapshot): ?bool
+    {
+        if (! $project->client_visible) {
+            return null;
+        }
+
+        $clientEmail = strtolower(trim((string) $project->client_email));
+
+        if ($clientEmail === '' || ! filter_var($clientEmail, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+
         $clientUser = $project->client_user_id
             ? UserAuth::query()->with('info')->find($project->client_user_id)
             : null;
-
-        $clientName = $this->resolveClientName($project, $clientUser);
 
         return $this->mailService->send(
             new ProjectProgressUpdateMail(
                 recipientEmail: $clientEmail,
                 userAuthId: $clientUser?->id,
-                clientName: $clientName,
+                clientName: $this->resolveClientName($project, $clientUser),
                 projectName: (string) $project->project_name,
                 updateTitle: $aggregated['update_title'],
                 updateMessage: $aggregated['update_message'],
@@ -156,10 +200,75 @@ class ProjectClientNotificationService
                 progressPercent: $progressSnapshot['progress_percent'],
                 progressDetail: $progressSnapshot['progress_detail'],
                 statusLabel: ProjectLabels::statusLabel($project->status),
-                dashboardUrl: $this->clientDashboardUrl(),
+                dashboardUrl: $this->frontendPathUrl('/cliente/dashboard'),
                 projectId: (int) $project->id,
             ),
         );
+    }
+
+    /**
+     * @param  array{update_title: string, update_message: string, change_lines: list<string>}  $aggregated
+     * @param  array{progress_percent: int, progress_detail: string}  $progressSnapshot
+     * @return array{0: bool|null, 1: int}
+     */
+    private function sendCollaboratorMails(Project $project, array $aggregated, array $progressSnapshot): array
+    {
+        $collaboratorIds = ProjectCollaborator::query()
+            ->where('project_id', $project->id)
+            ->pluck('user_auth_id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
+
+        if ($collaboratorIds === []) {
+            return [null, 0];
+        }
+
+        $collaborators = UserAuth::query()
+            ->with('info')
+            ->whereIn('id', $collaboratorIds)
+            ->get();
+
+        $attempted = 0;
+        $sent = 0;
+        $failed = 0;
+
+        foreach ($collaborators as $collaborator) {
+            $email = strtolower(trim((string) $collaborator->correo));
+
+            if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                continue;
+            }
+
+            $attempted++;
+            $result = $this->mailService->send(
+                new ProjectProgressUpdateMail(
+                    recipientEmail: $email,
+                    userAuthId: (int) $collaborator->id,
+                    clientName: $this->resolveUserDisplayName($collaborator, 'Colaborador'),
+                    projectName: (string) $project->project_name,
+                    updateTitle: $aggregated['update_title'],
+                    updateMessage: $aggregated['update_message'],
+                    changeLines: $aggregated['change_lines'],
+                    progressPercent: $progressSnapshot['progress_percent'],
+                    progressDetail: $progressSnapshot['progress_detail'],
+                    statusLabel: ProjectLabels::statusLabel($project->status),
+                    dashboardUrl: $this->frontendPathUrl('/colaborador'),
+                    projectId: (int) $project->id,
+                ),
+            );
+
+            if ($result === true) {
+                $sent++;
+            } else {
+                $failed++;
+            }
+        }
+
+        if ($attempted === 0) {
+            return [null, 0];
+        }
+
+        return [$failed === 0, $sent];
     }
 
     public function discard(Project $project): void
@@ -281,16 +390,34 @@ class ProjectClientNotificationService
         return 'Cliente';
     }
 
-    private function clientDashboardUrl(): string
+    private function resolveUserDisplayName(UserAuth $user, string $fallback): string
+    {
+        $fullName = trim((string) (($user->info?->nombre ?? '') . ' ' . ($user->info?->apellido ?? '')));
+
+        if ($fullName !== '') {
+            return $fullName;
+        }
+
+        $apodo = trim((string) ($user->info?->apodo ?? ''));
+
+        if ($apodo !== '') {
+            return $apodo;
+        }
+
+        return $fallback;
+    }
+
+    private function frontendPathUrl(string $path): string
     {
         $base = rtrim((string) config('impulsa.frontend_url'), '/');
         $appPath = trim((string) config('impulsa.frontend_app_path', ''), '/');
+        $normalized = '/' . ltrim($path, '/');
 
         if ($appPath !== '') {
-            return $base . '/' . $appPath . '/cliente/dashboard';
+            return $base . '/' . $appPath . $normalized;
         }
 
-        return $base . '/cliente/dashboard';
+        return $base . $normalized;
     }
 
     private function bufferKey(int $projectId): string

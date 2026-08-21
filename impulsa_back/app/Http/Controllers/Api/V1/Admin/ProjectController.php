@@ -368,15 +368,32 @@ class ProjectController extends Controller
 
     public function flushClientNotification(Request $request, Project $project): JsonResponse
     {
-        $emailSent = $this->projectAdminService->flushClientNotification($project, (int) $request->user()->id);
+        $notifyClient = $request->boolean('notify_client', true);
+        $notifyCollaborators = $request->boolean('notify_collaborators', false);
+
+        $result = $this->projectAdminService->flushClientNotification(
+            $project,
+            (int) $request->user()->id,
+            $notifyClient,
+            $notifyCollaborators,
+        );
+
+        $clientSent = $result['client_email_sent'];
+        $collaboratorsSent = $result['collaborators_email_sent'];
+        $collaboratorsNotified = (int) $result['collaborators_notified'];
 
         return response()->json([
-            'message' => $emailSent === true
-                ? 'Notificación enviada al cliente.'
-                : ($emailSent === false
-                    ? 'No pudimos enviar la notificación al cliente.'
-                    : 'No había cambios pendientes para notificar.'),
-            'email_sent' => $emailSent,
+            'message' => $this->flushNotificationMessage(
+                $notifyClient,
+                $notifyCollaborators,
+                $clientSent,
+                $collaboratorsSent,
+                $collaboratorsNotified,
+            ),
+            'email_sent' => $clientSent,
+            'client_email_sent' => $clientSent,
+            'collaborators_email_sent' => $collaboratorsSent,
+            'collaborators_notified' => $collaboratorsNotified,
         ]);
     }
 
@@ -387,5 +404,43 @@ class ProjectController extends Controller
         return response()->json([
             'message' => 'Cambios pendientes de notificación descartados.',
         ]);
+    }
+
+    private function flushNotificationMessage(
+        bool $notifyClient,
+        bool $notifyCollaborators,
+        ?bool $clientSent,
+        ?bool $collaboratorsSent,
+        int $collaboratorsNotified,
+    ): string {
+        if ($clientSent === null && $collaboratorsSent === null && $collaboratorsNotified === 0) {
+            return 'No había cambios pendientes para notificar.';
+        }
+
+        $parts = [];
+
+        if ($notifyClient) {
+            $parts[] = match ($clientSent) {
+                true => 'Notificación enviada al cliente.',
+                false => 'No pudimos enviar la notificación al cliente.',
+                default => null,
+            };
+        }
+
+        if ($notifyCollaborators) {
+            if ($collaboratorsNotified > 0) {
+                $parts[] = $collaboratorsNotified === 1
+                    ? 'Notificación enviada a 1 colaborador.'
+                    : 'Notificación enviada a '.$collaboratorsNotified.' colaboradores.';
+            } elseif ($collaboratorsSent === false) {
+                $parts[] = 'No pudimos enviar la notificación a los colaboradores.';
+            } else {
+                $parts[] = 'No había colaboradores para notificar.';
+            }
+        }
+
+        $parts = array_values(array_filter($parts));
+
+        return $parts !== [] ? implode(' ', $parts) : 'No había cambios pendientes para notificar.';
     }
 }
