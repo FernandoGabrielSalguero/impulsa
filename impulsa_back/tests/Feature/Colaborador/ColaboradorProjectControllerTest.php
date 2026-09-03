@@ -138,7 +138,10 @@ class ColaboradorProjectControllerTest extends TestCase
         $options = $this->actingAs($colaborador)->getJson('/api/v1/colaborador/projects/options');
         $options->assertOk();
         $statuses = collect($options->json('deliverable_statuses'))->pluck('value')->all();
+        $this->assertContains('waiting_backend', $statuses);
+        $this->assertContains('waiting_frontend', $statuses);
         $this->assertNotContains('delivered', $statuses);
+        $this->assertNotContains('waiting_client_confirmation', $statuses);
 
         $response = $this->actingAs($colaborador)->patchJson(
             '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/status',
@@ -146,6 +149,20 @@ class ColaboradorProjectControllerTest extends TestCase
         );
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['status']);
+
+        $clientWait = $this->actingAs($colaborador)->patchJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/status',
+            ['status' => 'waiting_client_confirmation'],
+        );
+        $clientWait->assertStatus(422);
+        $clientWait->assertJsonValidationErrors(['status']);
+
+        $waitingBackend = $this->actingAs($colaborador)->patchJson(
+            '/api/v1/colaborador/projects/' . $projectId . '/deliverables/' . $deliverableId . '/status',
+            ['status' => 'waiting_backend'],
+        );
+        $waitingBackend->assertOk();
+        $waitingBackend->assertJsonPath('data.deliverables.0.status', 'waiting_backend');
     }
 
     public function test_colaborador_can_comment_on_deliverable_and_unassigned_gets_404(): void

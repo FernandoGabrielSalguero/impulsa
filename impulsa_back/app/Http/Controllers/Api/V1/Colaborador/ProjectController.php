@@ -49,8 +49,7 @@ class ProjectController extends Controller
                 'value' => $value,
                 'label' => ProjectLabels::phaseStatusLabel($value),
             ])->values(),
-            'deliverable_statuses' => collect(ProjectLabels::deliverableStatuses())
-                ->filter(static fn (string $value): bool => $value !== 'delivered')
+            'deliverable_statuses' => collect(ProjectLabels::colaboradorDeliverableStatuses())
                 ->map(static fn (string $value): array => [
                     'value' => $value,
                     'label' => ProjectLabels::deliverableStatusLabel($value),

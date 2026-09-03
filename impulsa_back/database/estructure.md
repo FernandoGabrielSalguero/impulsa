@@ -696,7 +696,7 @@ phase_id	bigint(20) unsigned	YES	MUL
 title	varchar(180)	NO			
 description	text	YES			
 deliverable_type	enum('document','design','development','deployment','training','other')	NO		other	
-status	enum('pending','in_progress','ready_for_review','delivered')	NO		pending	
+status	enum('pending','in_progress','waiting_backend','waiting_frontend','ready_for_review','waiting_client_confirmation','delivered')	NO		pending	
 due_date	date	YES			
 delivered_at	datetime	YES			
 client_visible	tinyint(1)	NO		1	

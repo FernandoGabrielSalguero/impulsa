@@ -62,7 +62,14 @@ class ClienteDashboardService
                 ->where('p.client_user_id', $user->id)
                 ->where('p.client_visible', 1)
                 ->where('pd.client_visible', 1)
-                ->whereIn('pd.status', ['pending', 'in_progress', 'ready_for_review'])
+                ->whereIn('pd.status', [
+                    'pending',
+                    'in_progress',
+                    'waiting_backend',
+                    'waiting_frontend',
+                    'ready_for_review',
+                    'waiting_client_confirmation',
+                ])
                 ->count(),
             'contratos_pendientes' => (int) DB::table('project_contracts as pc')
                 ->join('projects as p', 'p.id', '=', 'pc.project_id')

@@ -54,8 +54,17 @@ final class ProjectLabels
     private const DELIVERABLE_STATUS = [
         'pending' => 'Pendiente',
         'in_progress' => 'En progreso',
+        'waiting_backend' => 'Esperando Backend',
+        'waiting_frontend' => 'Esperando Frontend',
         'ready_for_review' => 'Listo para revisión',
+        'waiting_client_confirmation' => 'Esperando Confirmación del cliente',
         'delivered' => 'Entregado',
+    ];
+
+    /** @var list<string> */
+    private const COLABORADOR_FORBIDDEN_STATUSES = [
+        'delivered',
+        'waiting_client_confirmation',
     ];
 
     public static function statusLabel(?string $status): string
@@ -131,5 +140,14 @@ final class ProjectLabels
     public static function deliverableStatuses(): array
     {
         return array_keys(self::DELIVERABLE_STATUS);
+    }
+
+    /** @return list<string> */
+    public static function colaboradorDeliverableStatuses(): array
+    {
+        return array_values(array_filter(
+            self::deliverableStatuses(),
+            static fn (string $status): bool => ! in_array($status, self::COLABORADOR_FORBIDDEN_STATUSES, true),
+        ));
     }
 }

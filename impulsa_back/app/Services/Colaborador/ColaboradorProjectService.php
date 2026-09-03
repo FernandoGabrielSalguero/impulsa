@@ -277,7 +277,7 @@ class ColaboradorProjectService
     {
         $this->assertAssigned($userAuthId, $projectId);
 
-        if (! in_array($status, ProjectLabels::deliverableStatuses(), true)) {
+        if (! in_array($status, ProjectLabels::colaboradorDeliverableStatuses(), true)) {
             throw ValidationException::withMessages([
                 'status' => ['El estado del objetivo no es válido.'],
             ]);
