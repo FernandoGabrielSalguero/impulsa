@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 
 class UserAuth extends Authenticatable
@@ -54,5 +55,23 @@ class UserAuth extends Authenticatable
     public function menuViews(): HasMany
     {
         return $this->hasMany(UserMenuView::class, 'user_auth_id');
+    }
+
+    public function mailbox(): HasOne
+    {
+        return $this->hasOne(UserMailbox::class, 'user_auth_id');
+    }
+
+    public function hasEnabledMailbox(): bool
+    {
+        if (! Schema::hasTable('user_mailboxes')) {
+            return false;
+        }
+
+        if ($this->relationLoaded('mailbox')) {
+            return (bool) $this->mailbox?->enabled;
+        }
+
+        return $this->mailbox()->where('enabled', true)->exists();
     }
 }

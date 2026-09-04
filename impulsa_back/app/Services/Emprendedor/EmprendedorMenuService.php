@@ -32,12 +32,22 @@ class EmprendedorMenuService
             }
         }
 
+        $hasCorporateMail = $user->hasEnabledMailbox();
+
+        if ($hasCorporateMail) {
+            $menuItems[] = [
+                'key' => 'correo_corporativo',
+                'label' => 'Correo corporativo',
+            ];
+        }
+
         $defaultHome = UserMenuCatalog::keysForRole($user->rol)[0] ?? 'dashboard';
 
         return [
             'menu_items' => $menuItems,
             'home_page' => $user->params?->page ?? $defaultHome,
             'nombre' => $user->info?->nombre,
+            'has_corporate_mail' => $hasCorporateMail,
         ];
     }
 }

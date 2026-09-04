@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Mailbox\HostingerImapSmtpGateway;
+use App\Services\Mailbox\HostingerMailGateway;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(HostingerMailGateway::class, HostingerImapSmtpGateway::class);
     }
 
     /**

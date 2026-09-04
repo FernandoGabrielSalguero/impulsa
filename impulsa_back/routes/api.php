@@ -20,7 +20,9 @@ use App\Http\Controllers\Api\V1\Admin\TaskController;
 use App\Http\Controllers\Api\V1\Admin\AdminFinanzasController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserIngresoController;
+use App\Http\Controllers\Api\V1\Admin\UserMailboxController;
 use App\Http\Controllers\Api\V1\Admin\UserMenuController;
+use App\Http\Controllers\Api\V1\MailboxController;
 use App\Http\Controllers\Api\V1\Admin\WebRequestController;
 use App\Http\Controllers\Api\V1\Admin\WebsiteSubscriptionController;
 use App\Http\Controllers\Api\V1\NotificationController;
@@ -101,6 +103,12 @@ Route::prefix('v1')->group(function (): void {
         Route::post('notifications/read-all', [NotificationController::class, 'markAllRead']);
         Route::patch('notifications/{notification}/read', [NotificationController::class, 'markRead']);
         Route::delete('notifications/{notification}', [NotificationController::class, 'dismiss']);
+
+        Route::get('mailbox', [MailboxController::class, 'show']);
+        Route::get('mailbox/messages', [MailboxController::class, 'messages']);
+        Route::get('mailbox/messages/{uid}', [MailboxController::class, 'message']);
+        Route::get('mailbox/messages/{uid}/attachments/{part}', [MailboxController::class, 'attachment']);
+        Route::post('mailbox/messages', [MailboxController::class, 'send']);
     });
 
     Route::middleware(['auth:sanctum', 'role:impulsa_administrador'])
@@ -114,6 +122,9 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('users/{user}', [UserController::class, 'destroy']);
             Route::get('users/{user}/menu-options', [UserMenuController::class, 'options']);
             Route::put('users/{user}/menu', [UserMenuController::class, 'update']);
+            Route::get('users/{user}/mailbox', [UserMailboxController::class, 'show']);
+            Route::put('users/{user}/mailbox', [UserMailboxController::class, 'update']);
+            Route::delete('users/{user}/mailbox', [UserMailboxController::class, 'destroy']);
             Route::get('finanzas/users', [AdminFinanzasController::class, 'users']);
             Route::get('users/{userId}/finanzas/user', [AdminFinanzasController::class, 'user']);
             Route::get('users/{userId}/finanzas/summary', [AdminFinanzasController::class, 'summary']);

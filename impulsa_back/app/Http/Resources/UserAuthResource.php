@@ -21,6 +21,7 @@ class UserAuthResource extends JsonResource
 
                 return $avatarPath !== '' && str_starts_with($avatarPath, 'user-avatars/');
             }),
+            'has_corporate_mail' => $this->hasEnabledMailbox(),
             'redirect_to' => \App\Support\AuthDashboard::routeForRole($this->rol),
         ];
     }

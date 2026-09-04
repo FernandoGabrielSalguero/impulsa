@@ -23,6 +23,16 @@ return [
 
     'mail_from_name' => env('MAIL_FROM_NAME', 'Impulsa'),
 
+    'hostinger_mail' => [
+        'imap_host' => env('HOSTINGER_IMAP_HOST', 'imap.hostinger.com'),
+        'imap_port' => (int) env('HOSTINGER_IMAP_PORT', 993),
+        'imap_encryption' => env('HOSTINGER_IMAP_ENCRYPTION', 'ssl'),
+        'smtp_host' => env('HOSTINGER_SMTP_HOST', 'smtp.hostinger.com'),
+        'smtp_port' => (int) env('HOSTINGER_SMTP_PORT', 465),
+        'smtp_encryption' => env('HOSTINGER_SMTP_ENCRYPTION', 'ssl'),
+        'max_attachment_bytes' => (int) env('HOSTINGER_MAIL_MAX_ATTACHMENT_BYTES', 10 * 1024 * 1024),
+    ],
+
     'verification_token_ttl_hours' => (int) env('EMAIL_VERIFICATION_TTL_HOURS', 24),
 
     'password_reset_token_ttl_minutes' => (int) env('PASSWORD_RESET_TTL_MINUTES', 60),

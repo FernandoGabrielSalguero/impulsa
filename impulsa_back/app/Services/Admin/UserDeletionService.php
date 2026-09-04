@@ -52,6 +52,7 @@ class UserDeletionService
             $this->updateToNull('project_contracts', 'updated_by_user_id', $userId);
             $this->deleteWhere('project_updates', 'created_by', $userId);
 
+            $this->deleteWhere('user_mailboxes', 'user_auth_id', $userId);
             $this->deleteWhere('user_notifications', 'user_auth_id', $userId);
             $this->deleteWhere('project_deliverable_comments', 'user_auth_id', $userId);
             $this->updateToNull('project_phases', 'assigned_user_id', $userId);
